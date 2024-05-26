@@ -1,7 +1,7 @@
 import Lake
 open Lake DSL
 
-package ray where
+package interval where
   leanOptions := #[
     ⟨`pp.unicode.fun, true⟩, -- pretty-prints `fun a ↦ b`
     ⟨`pp.proofs.withType, false⟩,
