@@ -262,6 +262,10 @@ lemma isNeg_iff' {x : Floating} : x.n.isNeg = decide (x < 0) := by
 @[simp] lemma not_lt_nan (x : Floating) : ¬x < nan := by
   simpa only [le_def] using nan_le x
 
+/-- `nan` is the minimum -/
+@[simp] lemma not_lt_nan_val (x : Floating) : ¬x.val < (nan : Floating).val := by
+  simp only [not_lt, val_nan_le]
+
 /-- `x.n.isNeg` determines negativity, `val` version -/
 @[simp] lemma isNeg_iff {x : Floating} : x.n.isNeg = decide (x.val < 0) := by
   rw [val]; symm

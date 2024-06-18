@@ -47,6 +47,10 @@ instance {n : ℕ} [n.AtLeastTwo] : OfNat Interval n := ⟨.ofNat n⟩
   simp only [mix_eq_nan, not_or] at m
   exact ⟨Floating.ofNat_le m.1, Floating.le_ofNat m.2⟩
 
+/-- `approx_ofInt` for integer literals -/
+@[mono] lemma ofNat_mem_approx_ofNat {n : ℕ} [n.AtLeastTwo] :
+    OfNat.ofNat n ∈ approx (Interval.ofNat (OfNat.ofNat n)) := approx_ofNat _
+
 /-- `.ofInt` is conservative -/
 @[mono] lemma approx_ofInt (n : ℤ) : ↑n ∈ approx (.ofInt n : Interval) := by
   rw [ofInt]; simp only [approx, mem_ite_univ_left, mem_Icc]
