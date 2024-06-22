@@ -479,6 +479,28 @@ These are easy now that we have `exp` and `log`.
     rw [Interval.log_nonpos x0 xm, Interval.nan_mul, Interval.exp_nan]
     simp only [approx_nan, mem_univ]
 
+/-- `Interval.pow` is conservative for `ℕ` powers -/
+@[mono] lemma Interval.mem_approx_pow_nat {x : Interval} {n : ℕ} {x' : ℝ}
+    (xm : x' ∈ approx x) : x' ^ n ∈ approx (x.pow (.ofNat n)) := by
+  simp only [← Real.rpow_natCast]
+  mono
+
+/-!
+### Square root
+
+This is an extremely slow way of computing square roots.
+-/
+
+/-- `sqrt x = x ^ 0.5` -/
+@[irreducible] def Interval.sqrt (x : Interval) : Interval :=
+  x.pow (Interval.div2 1)
+
+/-- `Interval.sqrt` is conservative -/
+@[mono] lemma Interval.mem_approx_sqrt {x : Interval} {a : ℝ}
+    (ax : a ∈ approx x) : Real.sqrt a ∈ approx x.sqrt := by
+  rw [Interval.sqrt, Real.sqrt_eq_rpow]
+  mono
+
 /-!
 ### Unit tests
 
