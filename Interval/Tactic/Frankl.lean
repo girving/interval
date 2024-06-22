@@ -2,6 +2,8 @@ import Interval.Tactic.Interval
 
 /-!
 # The inequality from Alweiss et al.
+
+Exploring Claim 3 of https://arxiv.org/abs/2211.11731.
 -/
 
 open Real (log sqrt)
