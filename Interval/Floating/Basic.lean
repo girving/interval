@@ -115,9 +115,8 @@ instance : One Floating where
   apply mul_inv_cancel₀; norm_num
 
 lemma val_nan : (nan : Floating).val = -(2 ^ 63) * 2 ^ (2 ^ 63 - 1) := by
-  simp only [Floating.val, Floating.n_nan, Int64.coe_min', Int.reducePow, Int.reduceNeg,
-    Int.cast_neg, Int.cast_ofNat, Floating.s_nan, neg_mul, neg_inj, mul_eq_mul_left_iff,
-    OfNat.ofNat_ne_zero, or_false]
+  simp only [Floating.val, Floating.n_nan, Int64.coe_min', Int.reducePow,
+    Int.cast_neg, Int.cast_ofNat, Floating.s_nan]
   rw [show UInt64.max.toInt - (9223372036854775808) = 2 ^ 63 - 1 by decide]
   rw [show (9223372036854775808 : ℝ) = 2 ^ 63 by norm_num]
   rfl
