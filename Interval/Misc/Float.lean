@@ -7,4 +7,4 @@ import Mathlib.Data.Real.Basic
 open Set
 open scoped Real
 
-def Float.nan : Float := (0 : Float) / (0 : Float)
+-- DO NOT SUBMIT: Remove file

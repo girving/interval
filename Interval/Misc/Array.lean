@@ -1,3 +1,4 @@
+import Batteries.Data.ByteArray
 import Mathlib.Data.Fin.Basic
 import Mathlib.Tactic.Linarith.Frontend
 
@@ -5,7 +6,7 @@ import Mathlib.Tactic.Linarith.Frontend
 ## `Array` lemmas
 -/
 
-variable {α : Type}
+variable {α β : Type}
 
 @[simp] lemma Array.range_getElem (n k : ℕ) (kn : k < (range n).size) :
     ((Array.range n)[↑k]'kn) = k := by
@@ -18,9 +19,21 @@ variable {α : Type}
   · simp only [Nat.fold, flip, Array.get_push, range] at kn h ⊢
     by_cases lt : k < size (Nat.fold (fun b a => a.push b) n #[])
     · simp only [Function.flip_def, mkEmpty_eq, if_true, lt, forall_true_left] at *; assumption
-    · simp only [Function.flip_def, mkEmpty_eq, if_false, lt, size_push, ↓reduceDite] at kn ⊢
+    · simp only [Function.flip_def, mkEmpty_eq, if_false, lt, size_push, ↓reduceDIte] at kn ⊢
       simp only [nn] at kn lt
-      linarith
+      omega
+
+@[simp] lemma Array.getElem_map_fin (f : α → β) (x : Array α) {n : ℕ} (i : Fin n)
+    (h : i < (x.map f).size) : (x.map f)[i]'h = f (x[i]'(by simpa using h)) := by
+  simp only [Fin.getElem_fin, getElem_map]
+
+lemma Array.getElem_eq_get! [Inhabited α] (d : Array α) {n : ℕ} (i : Fin n) (h : i < d.size) :
+    d[i]'h = d.get! i := by
+  simp only [Fin.getElem_fin, get!_eq_getElem?, get?, h, ↓reduceDIte, Option.getD_some]
+
+@[simp] lemma Fin.getElem_fin' {Cont Elem : Type} {Dom : Cont → ℕ → Prop}
+    [GetElem Cont Nat Elem Dom] (a : Cont) {n : ℕ} (i : Fin n) (h : Dom a i) :
+    a[i] = a[i.1] := rfl
 
 /-!
 ## `ByteArray` lemmas
@@ -56,11 +69,11 @@ lemma ByteArray.get!_push (d : ByteArray) (c : UInt8) (i : ℕ) :
     rw [←getElemNat_eq_get! _ _ lt', ←getElemNat_eq_get! _ _ lt, ByteArray.get_push_lt _ _ _ lt]
   · rw [e, ←getElemNat_eq_get!, ByteArray.get_push_eq]
   · simp only [not_lt] at lt
-    simp only [ByteArray.get!, Array.get!, ByteArray.push_data, Array.getD_eq_get?, Array.get?,
+    simp only [ByteArray.get!, Array.get!, ByteArray.data_push, Array.getD_eq_get?, Array.get?,
       Array.size_push]
     rw [Array.getElem?_ge]
-    . rfl
-    . simp only [Array.size_push, ByteArray.size] at *; omega
+    · rfl
+    · simp only [Array.size_push, ByteArray.size] at *; omega
 
 lemma ByteArray.get!_eq_default (d : ByteArray) (i : ℕ) (le : d.size ≤ i) : d.get! i = default := by
   simp only [get!, Array.get!_eq_get?, Array.get?_eq_getElem?, Array.getElem?_eq_data_get?,

@@ -10,7 +10,7 @@ open scoped Real
 namespace Floating
 
 /-- Absolute value -/
-@[irreducible, pp_dot] def abs (x : Floating) : Floating where
+@[irreducible] def abs (x : Floating) : Floating where
   n := ⟨x.n.abs⟩
   s := x.s
   zero_same := by

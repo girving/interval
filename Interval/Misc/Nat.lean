@@ -1,6 +1,6 @@
 import Mathlib.Algebra.Order.Floor
 import Mathlib.Data.Nat.Bitwise
-import Mathlib.Data.Nat.Parity
+import Mathlib.Data.Nat.ModEq
 import Mathlib.Data.Real.Basic
 import Interval.Misc.Bool
 
@@ -20,30 +20,31 @@ lemma Nat.add_sub_lt_left {m n k : ℕ} (m0 : m ≠ 0) : m + n - k < m ↔ n < k
 
 @[simp] lemma Nat.bit_div_two (n : ℕ) (a : Bool) : Nat.bit a n / 2 = n := by
   induction a
-  · apply Nat.bit0_div_two
-  · apply Nat.bit1_div_two
+  · simp only [bit_false, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, mul_div_cancel_left₀]
+  · simp only [bit_true]; omega
 
 lemma Nat.bit_div2_eq (n : ℕ) : Nat.bit (Nat.bodd n) (Nat.div2 n) = n := by
   induction' n with n h
   · rfl
   · by_cases p : bodd n
-    · simp only [bit, p, cond_true] at h
-      simp only [bit, bodd_succ, p, Bool.not_true, div2_succ, cond_true, cond_false,
-        Nat.bit0_succ_eq, ← Nat.bit1_eq_succ_bit0, h]
+    · simp only [p, div2_val, bit_true, bodd_succ, Bool.not_true, div2_succ, succ_eq_add_one,
+        cond_true, bit_false] at h ⊢
+      omega
     · simp only [bit, p, cond_false] at h
-      simp only [bit, bodd_succ, p, Bool.not_false, div2_succ, cond_false, cond_true,
-        Nat.bit1_eq_succ_bit0, h]
+      simp only [bit, bodd_succ, p, Bool.not_false, div2_succ, succ_eq_add_one, cond_false,
+        cond_true, h]
 
 lemma Nat.bit_le_bit {a b : Bool} {m n : ℕ} (ab : a ≤ b) (mn : m ≤ n) : bit a m ≤ bit b n := by
   induction a
   · induction b
-    repeat simp only [bit_false, bit_true, bit0_le_bit0, bit0_le_bit1_iff, mn]
+    · simp only [bit_false, ofNat_pos, _root_.mul_le_mul_left, mn]
+    · simp only [bit_false, bit_true]; omega
   · induction b
     · simp only [← not_lt, Bool.false_lt_true, not_true_eq_false] at ab
-    · simp only [bit_true, bit1_le_bit1, mn]
+    · simp only [bit_true, mn]; omega
 
 @[simp] lemma Nat.testBit_zero' {i : ℕ} : testBit 0 i = false := by
-  simp only [testBit, zero_shiftRight, and_one_is_mod, zero_mod, bne_self_eq_false]
+  simp only [testBit, zero_shiftRight, and_zero, bne_self_eq_false]
 
 lemma Nat.testBit_zero_eq_bodd {n : ℕ} : testBit n 0 = bodd n := by
   nth_rw 1 [←Nat.bit_div2_eq n]
@@ -110,7 +111,7 @@ lemma Nat.bodd_two_pow {k : ℕ} : bodd (2^k) = decide (k = 0) := by
 @[simp] lemma Nat.pow_dvd' {a m n : ℕ} : a^n ∣ a^(m + n) := by
   induction' n with n h
   · simp only [zero_eq, _root_.pow_zero, add_zero, isUnit_one, IsUnit.dvd]
-  · simp only [pow_succ, add_succ, IsUnit.mul_iff, ne_eq, Nat.isUnit_iff, add_eq_zero_iff, not_and]
+  · simp only [pow_succ, add_succ, IsUnit.mul_iff, ne_eq, Nat.isUnit_iff, add_eq_zero, not_and]
     exact Nat.mul_dvd_mul_right h a
 
 @[simp] lemma Nat.pow_mod' {a m n : ℕ} : a^(m + n) % a^n = 0 :=
@@ -206,7 +207,7 @@ lemma Nat.div_mod_mul_add_mod_eq {a n : ℕ} : a / n % n * n + a % n = a % n^2 :
       apply Nat.le_mul_self
     have lt : b % n * n + c < n^2 := by
       apply lt_of_lt_of_le (add_lt_add_left cn _)
-      rw [pow_two, mul_comm _ n, ←mul_add_one (α := ℕ)]
+      rw [pow_two, mul_comm _ n, ←_root_.mul_add_one (α := ℕ)]
       apply Nat.mul_le_mul_left
       rw [Nat.add_one_le_iff]
       exact mod_lt b np
@@ -216,10 +217,10 @@ lemma Nat.lor_eq_add {a b : ℕ} (h : ∀ i, testBit a i = false ∨ testBit b i
     a ||| b = a + b := by
   revert h b
   induction' a using Nat.binaryRec with c a ha
-  · simp only [zero_testBit, true_or, forall_const, or_zero, zero_add, forall_true_left]
+  · simp only [zero_testBit, true_or, implies_true, zero_or, zero_add, imp_self]
   · intro b h
     induction' b using Nat.binaryRec with d b _
-    · simp only [zero_or, add_zero]
+    · simp only [or_zero, add_zero]
     · simp only [lor_bit]
       simp only [bit_val]
       simp only [← add_assoc, add_comm _ (2 * b)]
@@ -245,7 +246,8 @@ lemma Nat.lor_eq_add {a b : ℕ} (h : ∀ i, testBit a i = false ∨ testBit b i
     simp only [mul_comm _ (2 ^ k), ge_iff_le, add_le_iff_nonpos_left, nonpos_iff_eq_zero,
       tsub_eq_zero_iff_le, add_tsub_cancel_right]
     rw [Nat.mul_div_mul_left _ _ (pow_pos (by norm_num) k), Bool.decide_coe]
-  · simp only [and_one_is_mod, ki, bne_iff_ne, ne_eq, mod_two_ne_zero, false_and, decide_False]
+  · simp only [one_and_eq_mod_two, ki, bne_iff_ne, ne_eq, mod_two_ne_zero, false_and, decide_False,
+      bne_eq_false_iff_eq]
     simp only [not_le] at ki
     rw [←Nat.sub_add_cancel ki]
     simp only [add_succ, pow_succ', pow_add, ← mul_assoc, gt_iff_lt, zero_lt_two, pow_pos,
@@ -336,8 +338,6 @@ lemma Nat.le_add_div_mul {n k : ℕ} (k0 : 0 < k) : n ≤ (n + k - 1) / k * k :=
       refine Nat.div_pos ?_ k0
       omega
 
-@[simp] lemma Nat.log2_zero : Nat.log2 0 = 0 := rfl
-
 lemma Nat.two_pow_ne_zero {n : ℕ} : 2^n ≠ 0 := by
   apply pow_ne_zero; norm_num
 
@@ -426,7 +426,8 @@ lemma Nat.rdiv_lt {a b : ℕ} {up : Bool} : (a.rdiv b up : ℝ) < a / b + 1 := b
   have b0 : 0 < (b : ℝ) := by positivity
   have bb : b-1 < b := by omega
   rw [←mul_lt_mul_iff_of_pos_right b0]
-  simp only [add_one_mul, div_mul_cancel₀ _ b0.ne', ←Nat.cast_add, ←Nat.cast_mul, Nat.cast_lt]
+  simp only [add_one_mul, div_mul_cancel₀ _ b0.ne', ←Nat.cast_add, ←Nat.cast_mul, Nat.cast_lt,
+    add_mul, one_mul]
   refine lt_of_le_of_lt (Nat.div_mul_le_self _ _) ?_
   omega
 

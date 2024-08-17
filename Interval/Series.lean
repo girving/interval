@@ -98,7 +98,7 @@ instance : Approx (Series s) (ℝ → ℝ) where
 lemma Series.approx_of_taylor (p : Series s) (f : ℝ → ℝ) (a : ℕ → ℝ) (b : ℝ)
     (pf : p.radius ≠ nan → ∀ x : ℝ,
       |x| ≤ p.radius.val → |f x - ∑ n in Finset.range p.coeffs.size, a n * x ^ n| ≤ b)
-    (ac : ∀ n : Fin p.coeffs.size, a n ∈ approx p.coeffs[n])
+    (ac : ∀ n : Fin p.coeffs.size, a n ∈ approx p.coeffs[n.1])
     (be : p.error ≠ nan → b ≤ p.error.val) :
     f ∈ approx p := by
   intro x y xy
@@ -139,6 +139,10 @@ def exp_series_radius : ℚ := 0.346574
   error := bif n == 0 then nan
            else .ofRat (exp_series_radius ^ n * ((n + 1) / (Nat.factorial n * n))) true
 
+@[simp] lemma Array.getElem_fin {α : Type} {Dom : Array α → ℕ → Prop}
+    [GetElem (Array α) Nat α Dom] (a : Array α) {n : ℕ} (i : Fin n) (h : Dom a i) :
+    a[i] = a[i.1] := rfl
+
 /-- Our power series for `exp` is correct -/
 lemma approx_exp_series (n : ℕ) : Real.exp ∈ approx (exp_series s n) := by
   have nn : (exp_series s n).coeffs.size = n := by rw [exp_series, Array.size_map, Array.size_range]
@@ -164,8 +168,8 @@ lemma approx_exp_series (n : ℕ) : Real.exp ∈ approx (exp_series s n) := by
     · intro k
       have e : (Nat.factorial k : ℝ)⁻¹ = (Nat.factorial k : ℚ)⁻¹ := by
         simp only [Rat.cast_inv, Rat.cast_natCast]
-      simp only [exp_series, getElem_fin, Array.getElem_map, Array.range_getElem,
-        ←Rat.cast_inv, e]
+      simp only [exp_series, /-Fin.getElem_fin,-/ Array.getElem_map, Array.range_getElem,
+        ← Rat.cast_inv, e]
       apply Interval.approx_ofRat
     · intro en
       simp only [mul_inv_rev, Nat.cast_succ]
@@ -247,7 +251,7 @@ lemma approx_log1p_div_series (n : ℕ) : log1p_div ∈ approx (log1p_div_series
     have e : (-1 : ℝ) ^ k / (k + 1) = ↑((-1) ^ k / (↑k + 1) : ℚ) := by
       simp only [Rat.cast_div, Rat.cast_pow, Rat.cast_neg, Rat.cast_one, Rat.cast_add,
         Rat.cast_natCast]
-    simp only [log1p_div_series, getElem_fin, Array.getElem_map, Array.range_getElem, e]
+    simp only [log1p_div_series, Array.getElem_map, Array.range_getElem, e]
     apply Interval.approx_ofRat
   · intro en
     simp only [log1p_div_series] at en ⊢
@@ -289,8 +293,8 @@ them before we've done the general argument reduction.
     simp only [log1p_div, one_div, inv_eq_zero, OfNat.ofNat_ne_zero, div_inv_eq_mul,
       mul_comm (Real.log _), ite_false, ← mul_assoc, ne_eq, not_false_eq_true, div_mul_cancel,
       inv_mul_cancel, one_mul]
-    rw [←Real.log_rpow (by norm_num), ←Real.log_mul (by norm_num) (by norm_num)]
-    norm_num
+    rw [← Real.log_rpow, ← Real.log_rpow, ← Real.log_mul]
+    all_goals norm_num
   rw [Interval.log_2, e, log1p_div_series_38]
   mono
 

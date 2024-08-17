@@ -70,7 +70,7 @@ instance : One Interval where
   one := ⟨1, 1, by simp only, fun _ _ ↦ le_refl _⟩
 
 /-- The width of an interval -/
-@[pp_dot] def size (x : Interval) : Floating := x.hi.sub x.lo true
+def size (x : Interval) : Floating := x.hi.sub x.lo true
 
 /-- We print `Interval` as an approximate floating point interval -/
 instance : Repr Interval where
@@ -505,7 +505,7 @@ instance : Coe Floating Interval where
 -/
 
 /-- Absolute value -/
-@[irreducible, pp_dot] def abs (x : Interval) : Interval :=
+@[irreducible] def abs (x : Interval) : Interval :=
   let a := x.lo.abs
   let b := x.hi.abs
   mix (bif x.lo.n.isNeg != x.hi.n.isNeg then 0 else min a b) (a.max b) (by
@@ -671,7 +671,7 @@ lemma abs_pos_of_not_zero_mem {x : Interval} (z : 0 ∉ approx x) : 0 < x.abs.lo
 -/
 
 /-- Determine whether `0 ∈ approx x` -/
-@[irreducible, pp_dot] def zero_mem (x : Interval) : Bool :=
+@[irreducible] def zero_mem (x : Interval) : Bool :=
   x.lo == 0 || x == nan || x.lo.n.isNeg != x.hi.n.isNeg
 
 /-- Mathematical definition of `zero_mem` -/

@@ -11,7 +11,7 @@ open scoped Real
 namespace Floating
 
 /-- Scale by changing the exponent -/
-@[irreducible, pp_dot] def scaleB (x : Floating) (t : Int64) : Floating :=
+@[irreducible] def scaleB (x : Floating) (t : Int64) : Floating :=
   bif x == 0 then 0 else
   bif t.isNeg then
     let t := (-t).n
@@ -20,7 +20,7 @@ namespace Floating
     bif .max - t.n < x.s then nan else of_ns x.n (x.s + t.n)
 
 /-- Scale by changing the exponent -/
-@[irreducible, pp_dot] def scaleB' (x : Floating) (t : Fixed 0) : Floating :=
+@[irreducible] def scaleB' (x : Floating) (t : Fixed 0) : Floating :=
   bif t == nan then nan else scaleB x t.n
 
 /-- `scaleB` is conservative -/

@@ -10,7 +10,7 @@ open scoped Real
 namespace Floating
 
 /-- `n` s.t. `2^n ≤ |x| < 2^(n+1)`, or `nan` -/
-@[irreducible, pp_dot] def log2 (x : Floating) : Fixed 0 :=
+@[irreducible] def log2 (x : Floating) : Fixed 0 :=
   bif x == 0 || x == nan || x.s == .max then nan else
   -- The result is `x.n.abs.log2 + x.s - 2^63` if that doesn't overflow.
   let a : Fixed 0 := ⟨⟨x.n.abs.log2⟩ - 1⟩

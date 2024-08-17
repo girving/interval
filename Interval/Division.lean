@@ -3,7 +3,7 @@ import Interval.Floating.TwoPow
 import Interval.Interval.Conversion
 import Interval.Interval.Around
 import Interval.Interval.Mul
-import Std.Data.Rat.Basic
+import Batteries.Data.Rat.Basic
 
 open Pointwise
 
@@ -48,7 +48,7 @@ lemma approx_inv_step_reason (c : ℝ) {x rl rh ml mh : ℝ} (x0 : 0 < x) (xr : 
     : c + ml ≤ x⁻¹ ∧ x⁻¹ ≤ c + mh := by
   generalize he : 1/x - c = e
   replace he : c = 1/x - e := by linarith
-  simp only [he, one_div, mul_sub, mul_inv_cancel x0.ne', sub_sub_cancel, add_comm_sub,
+  simp only [he, one_div, mul_sub, mul_inv_cancel₀ x0.ne', sub_sub_cancel, add_comm_sub,
     add_le_iff_nonpos_right, tsub_le_iff_right, zero_add, le_add_iff_nonneg_right,
     sub_nonneg] at mm ⊢
   by_cases e0 : 0 ≤ e
@@ -57,18 +57,18 @@ lemma approx_inv_step_reason (c : ℝ) {x rl rh ml mh : ℝ} (x0 : 0 < x) (xr : 
     rw [Set.Icc_subset_Icc_iff (by nlinarith)] at mm
     constructor
     · refine le_trans mm.1 (le_trans (mul_le_mul_of_nonneg_right xr.1 xe) ?_)
-      simp only [← mul_assoc, inv_mul_cancel x0.ne', one_mul, le_refl]
+      simp only [← mul_assoc, inv_mul_cancel₀ x0.ne', one_mul, le_refl]
     · refine le_trans (le_trans ?_ (mul_le_mul_of_nonneg_right xr.2 xe)) mm.2
-      simp only [← mul_assoc, inv_mul_cancel x0.ne', one_mul, le_refl]
+      simp only [← mul_assoc, inv_mul_cancel₀ x0.ne', one_mul, le_refl]
   · simp only [not_le] at e0
     have xe : x * e < 0 := mul_neg_of_pos_of_neg x0 e0
     simp only [image_mul_right_Icc_of_neg xe] at mm
     rw [Set.Icc_subset_Icc_iff (by nlinarith)] at mm
     constructor
     · refine le_trans mm.1 (le_trans (mul_le_mul_of_nonpos_right xr.2 xe.le) ?_)
-      simp only [← mul_assoc, inv_mul_cancel x0.ne', one_mul, le_refl]
+      simp only [← mul_assoc, inv_mul_cancel₀ x0.ne', one_mul, le_refl]
     · refine le_trans (le_trans ?_ (mul_le_mul_of_nonpos_right xr.1 xe.le)) mm.2
-      simp only [← mul_assoc, inv_mul_cancel x0.ne', one_mul, le_refl]
+      simp only [← mul_assoc, inv_mul_cancel₀ x0.ne', one_mul, le_refl]
 
 /-- The exact precision reason why `inv_step` is conservative, with `c` in a different place -/
 lemma approx_inv_step_reason' (c : ℝ) {x rl rh ml mh : ℝ} (x0 : 0 < x) (xr : rl ≤ x⁻¹ ∧ x⁻¹ ≤ rh)
@@ -103,7 +103,7 @@ def inv_guess (x : Floating) : Floating :=
   .of_ns ⟨y⟩ t
 
 /-- Conservative region that includes `x⁻¹` -/
-@[irreducible] def inv_region (x : Floating) (x0 : 0 < x.val) : Interval :=
+@[irreducible] def inv_region (x : Floating) : Interval :=
   bif x.s == 0 then nan else  -- Bail if we're denormalized
   --
   -- We have
@@ -121,16 +121,16 @@ def inv_guess (x : Floating) : Floating :=
       intro _ _
       simp only [t, UInt64.pow_eq_zero, zero_sub, not_lt] at ts
       have o : (-62 - 63 - x.s).toNat ≠ 2 ^ 64 - 1 := by
-        rw [UInt64.toNat_sub ts]
+        rw [UInt64.toNat_sub'' ts]
         exact ne_of_lt (lt_of_le_of_lt (Nat.sub_le _ _) (by decide))
       simp only [t, UInt64.pow_eq_zero, zero_sub, Floating.val_two_pow_special]
       apply zpow_le_of_le (by norm_num)
-      simp only [UInt64.toNat_add_one o, UInt64.toNat_sub ts]
+      simp only [UInt64.toNat_add_one o, UInt64.toNat_sub'' ts]
       omega }
 
 /-- `inv_region` is conservative -/
 @[mono] lemma approx_inv_region {x : Floating} (x0 : 0 < x.val) :
-    x.val⁻¹ ∈ approx (inv_region x x0) := by
+    x.val⁻¹ ∈ approx (inv_region x) := by
   rw [inv_region]
   simp only [UInt64.pow_eq_zero, zero_sub, bif_eq_if, beq_iff_eq]
   split_ifs with s0 ts
@@ -138,7 +138,7 @@ def inv_guess (x : Floating) : Floating :=
   · simp only [approx_nan, mem_univ]
   · simp only [not_lt] at ts
     have o : (-62 - 63 - x.s).toNat ≠ 2 ^ 64 - 1 := by
-      simp only [UInt64.toNat_sub ts]
+      simp only [UInt64.toNat_sub'' ts]
       exact ne_of_lt (lt_of_le_of_lt (Nat.sub_le _ _) (by decide))
     have e : (-62 - 63 : UInt64).toNat = 2^64 - 125 := by decide
     have t0 : (2 : ℝ) ≠ 0 := by norm_num
@@ -147,7 +147,7 @@ def inv_guess (x : Floating) : Floating :=
       simp only [Floating.isNeg_iff, decide_eq_false_iff_not, not_lt, x0.le]
     have n_lt : ((x.n : ℤ) : ℝ) < 2^63 := Floating.coe_coe_n_lt
     simp only [approx, Floating.two_pow_special_ne_nan, Floating.val_two_pow_special, ite_false,
-      mem_Icc, UInt64.toNat_add_one o, UInt64.toNat_sub ts, e]
+      mem_Icc, UInt64.toNat_add_one o, UInt64.toNat_sub'' ts, e]
     simp only [UInt64.le_iff_toNat_le, e] at ts
     simp only [Nat.cast_sub ts]
     rw [Floating.val, mul_inv, ←zpow_neg, UInt64.toInt, Nat.cast_add_one, Nat.cast_sub ts]
@@ -196,21 +196,21 @@ def inv_guess (x : Floating) : Floating :=
 
 /-- Floating point interval reciprocal using Newton's method.
     We assume `x⁻¹ ∈ approx r`. -/
-@[irreducible, pp_dot] def _root_.Floating.inv_pos (x : Floating) (x0 : 0 < x.val) :
+@[irreducible] def _root_.Floating.inv_pos (x : Floating) (x0 : 0 < x.val) :
     Around x.val⁻¹ :=
   -- Three steps of Newton's method to produce a tight, conservative interval.
   -- Probably two is enough, but I'm lazy.
-  let r0 : Around x.val⁻¹ := ⟨inv_region x x0, approx_inv_region x0⟩
+  let r0 : Around x.val⁻¹ := ⟨inv_region x, approx_inv_region x0⟩
   let r1 := inv_step x r0 (inv_guess x) x0
   let r2 := inv_step x r1 r1.i.lo x0
   inv_step x r2 r2.i.lo x0
 
 /-- `Interval` reciprocal of a positive interval -/
-@[irreducible, pp_dot] def inv_pos (x : Interval) (x0 : 0 < x.lo.val) : Interval :=
+@[irreducible] def inv_pos (x : Interval) (x0 : 0 < x.lo.val) : Interval :=
   (x.hi.inv_pos (lt_of_lt_of_le x0 x.le)).i ∪ (x.lo.inv_pos x0).i
 
 /-- `Interval` reciprocal using Newton's method. -/
-@[irreducible, pp_dot] def inv (x : Interval) : Interval :=
+@[irreducible] def inv (x : Interval) : Interval :=
   if z : x.zero_mem then nan else
   let r := x.abs.inv_pos (by
     simp only [zero_mem_eq, decide_eq_true_eq] at z

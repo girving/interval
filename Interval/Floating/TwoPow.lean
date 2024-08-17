@@ -40,7 +40,7 @@ namespace Floating
   have le' : 62 ≤ (n.n.n + 2^63).toNat := by simpa only [UInt64.le_iff_toNat_le, u62] using le
   have v : ((n.n.n + 2^63).toNat : ℤ) = (n.n : ℤ) + 2^63 := Int64.toNat_add_pow_eq_coe _
   simp only [Int64.coe_zero, zpow_zero, mul_one, Real.rpow_intCast, e62, Int.cast_pow,
-    Int.cast_ofNat, UInt64.toInt, UInt64.toNat_sub le, u62, Nat.cast_sub le', v, Nat.cast_ofNat,
+    Int.cast_ofNat, UInt64.toInt, UInt64.toNat_sub'' le, u62, Nat.cast_sub le', v, Nat.cast_ofNat,
     sub_right_comm _ (62 : ℤ), add_sub_cancel_right]
   rw [mul_comm, zpow_sub₀ (by norm_num), ←zpow_natCast, Nat.cast_ofNat,
     div_mul_cancel₀ _ two_zpow_pos.ne']

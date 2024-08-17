@@ -48,12 +48,12 @@ lemma nan_def : (nan : Preinterval) = ⟨nan, nan⟩ := rfl
 -/
 
 /-- If a `Preinterval` is nonempty`, it can be turned into an `Interval` -/
-@[irreducible, inline, pp_dot] def mix (x : Preinterval)
+@[irreducible, inline] def mix (x : Preinterval)
     (le : x.lo ≠ nan → x.hi ≠ nan → x.lo.val ≤ x.hi.val) : Interval :=
   Interval.mix x.lo x.hi le
 
 /-- If a `Preinterval` is nonempty`, it can be turned into an `Interval` -/
-@[irreducible, inline, pp_dot] def mix' (x : Preinterval) {a : ℝ} (m : a ∈ approx x) : Interval :=
+@[irreducible, inline] def mix' (x : Preinterval) {a : ℝ} (m : a ∈ approx x) : Interval :=
   x.mix (by
     intro ln hn
     simp only [approx, ln, hn, or_self, ite_false, mem_Icc] at m

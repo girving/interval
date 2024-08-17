@@ -13,6 +13,7 @@ open Pointwise
 
 open Set
 open scoped Real
+open scoped UInt64.CommRing
 namespace Floating
 
 /-!
@@ -35,7 +36,7 @@ lemma Convert.n_mod (x : Convert) : x.n % 2^64 = x.n := by
   omega
 
 /-- Build a `Floating` out of `n * 2^(s - 2^63)`, rounding if required -/
-@[irreducible, pp_dot] def Convert.finish (x : Convert) (up : Bool) : Floating :=
+@[irreducible] def Convert.finish (x : Convert) (up : Bool) : Floating :=
   if s0 : x.s < 0 then bif up then min_norm else 0 else
   if 2^64 ≤ x.s then nan else
   have e : x.n % 2^64 = x.n := x.n_mod

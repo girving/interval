@@ -61,7 +61,7 @@ instance : Nan Floating where
   nan := ⟨.min, .max, by decide, by decide, by decide⟩
 
 /-- The `ℝ` that a `Fixed` represents, if it's not `nan` -/
-@[pp_dot] noncomputable def val (x : Floating) : ℝ :=
+noncomputable def val (x : Floating) : ℝ :=
   ((x.n : ℤ) : ℝ) * (2 : ℝ)^(x.s.toInt - 2^63)
 
 /-- `Floating` approximates `ℝ` -/
@@ -112,7 +112,7 @@ instance : One Floating where
   have e0 : ((2^62 : Int64) : ℤ) = 2^62 := by decide
   have e1 : (2^63 - 62 : UInt64).toInt - 2^63 = -62 := by decide
   simp only [val, n_one, e0, Int.cast_pow, Int.cast_ofNat, s_one, e1, zpow_neg]
-  apply mul_inv_cancel; norm_num
+  apply mul_inv_cancel₀; norm_num
 
 lemma val_nan : (nan : Floating).val = -(2 ^ 63) * 2 ^ (2 ^ 63 - 1) := by
   simp only [Floating.val, Floating.n_nan, Int64.coe_min', Int.reducePow, Int.reduceNeg,
@@ -226,7 +226,7 @@ lemma val_of_nonneg {x : Floating} (x0 : 0 ≤ x.val) :
 -/
 
 /-- Approximate `Floating` by a `Float` -/
-@[irreducible, pp_dot] def toFloat (x : Floating) : Float :=
+@[irreducible] def toFloat (x : Floating) : Float :=
   bif x == nan then Float.nan else x.n.toFloat.scaleB (x.s.toInt - 2^63)
 
 /-- We print `Fixed s` as an approximate floating point number -/

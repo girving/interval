@@ -90,7 +90,7 @@ export Nan (nan)
 For when we approximately round up or down.
 -/
 
-variable {I : Type} [LinearOrder I]
+variable {I J : Type} [LinearOrder I]
 variable {up : Bool}
 variable {s t : Set I}
 
@@ -108,7 +108,8 @@ lemma subset_rounds [Preorder R] (s : Set R) (up : Bool) : s ⊆ rounds s up := 
 @[mono] lemma rounds_mono (st : s ⊆ t) : rounds s up ⊆ rounds t up := by
   intro x m; rcases m with ⟨y,m,h⟩; exact ⟨y, st m, h⟩
 
-@[simp] lemma rounds_neg [OrderedAddCommGroup I] : rounds (-s) up = -(rounds s !up) := by
+@[simp] lemma rounds_neg [OrderedAddCommGroup J] {s : Set J} :
+    rounds (-s) up = -(rounds s !up) := by
   ext x
   simp only [rounds, mem_neg, mem_setOf_eq, Bool.not_eq_true']
   by_cases u : up

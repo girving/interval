@@ -8,6 +8,7 @@ import Interval.Misc.Int
 -/
 
 open Classical
+open scoped UInt64.CommRing
 
 /-!
 ### Definitions and basics
@@ -27,7 +28,7 @@ instance : Zero UInt128 where
 instance : One UInt128 where
   one := ⟨1, 0⟩
 
-@[irreducible, pp_dot] def UInt128.toNat (x : UInt128) : ℕ :=
+@[irreducible] def UInt128.toNat (x : UInt128) : ℕ :=
   (x.hi.toNat <<< 64) + x.lo.toNat
 
 @[coe] def UInt128.toReal (x : UInt128) : ℝ := x.toNat
@@ -178,8 +179,10 @@ instance : LawfulBEq UInt128 where
     dvd_refl, Int.emod_emod_of_dvd]
   rw [Int.emod_eq_of_lt b0 bnn, Int.emod_eq_of_lt an0 ann, Int.emod_eq_of_lt ba0 ban]
 
-@[simp] lemma UInt128.ofInt_zero : UInt128.ofInt 0 = 0 := by native_decide
-@[simp] lemma UInt128.ofInt_pow : UInt128.ofInt (2^128) = 0 := by native_decide
+@[simp] lemma UInt128.ofInt_zero : UInt128.ofInt 0 = 0 := by
+  simp only [ofInt, Int.cast_zero, Int.reducePow, Int.zero_ediv]; rfl
+@[simp] lemma UInt128.ofInt_pow : UInt128.ofInt (2^128) = 0 := by
+  simp only [Int.reducePow, ofInt, Int.cast_ofNat, Int.reduceDiv]; rfl
 
 /-!
 ### 128-bit increment
@@ -197,7 +200,7 @@ lemma UInt128.toNat_succ {x : UInt128} (h : x.toNat ≠ 2^128-1) : x.succ.toNat 
   have e : (2:UInt64)^64 = 0 := by rfl
   rw [succ]
   by_cases ll : x.lo = (2:UInt64)^64-1
-  · simp only [ll, e, zero_sub, add_left_neg, beq_self_eq_true, cond_true]
+  · simp only [ll, e, zero_sub, neg_add_cancel, beq_self_eq_true, cond_true]
     by_cases hh : x.hi = (2:UInt64)^64-1
     · simp only [toNat_def, hh, ll, ge_iff_le, ne_eq] at h; contrapose h; clear h; decide
     · simp only [UInt64.eq_iff_toNat_eq] at hh
@@ -347,9 +350,9 @@ instance : AddCommGroup UInt128 where
   add_zero x := by
     rw [←UInt128.ofInt_zero, ←UInt128.ofInt_toInt x]
     simp only [UInt128.add_ofInt, add_zero]
-  add_left_neg x := by
+  neg_add_cancel x := by
     rw [←UInt128.ofInt_toInt x]
-    simp only [UInt128.neg_ofInt, UInt128.add_ofInt, add_left_neg, UInt128.ofInt_zero]
+    simp only [UInt128.neg_ofInt, UInt128.add_ofInt, neg_add_cancel, UInt128.ofInt_zero]
   add_comm x y := by
     rw [←UInt128.ofInt_toInt x, ←UInt128.ofInt_toInt y]
     simp only [UInt128.add_ofInt, add_comm]
@@ -449,7 +452,7 @@ lemma toNat_mul128_mod (x y : UInt64) : (mul128 x y).toNat % 2^128 = x.toNat * y
 -/
 
 /-- Multiply by `2^(s % 128)`, discarding overflow bits -/
-@[irreducible, pp_dot] def UInt128.shiftLeft (x : UInt128) (s : UInt64) : UInt128 :=
+@[irreducible] def UInt128.shiftLeft (x : UInt128) (s : UInt64) : UInt128 :=
   let s := s.land 127
   { lo := bif s < 64 then x.lo <<< s else 0
     hi := bif s == 0 then x.hi
@@ -457,7 +460,7 @@ lemma toNat_mul128_mod (x y : UInt64) : (mul128 x y).toNat % 2^128 = x.toNat * y
           else x.lo <<< (s - 64) }
 
 /-- Divide by `2^(s % 128)`, rounding down -/
-@[irreducible, pp_dot] def UInt128.shiftRight (x : UInt128) (s : UInt64) : UInt128 :=
+@[irreducible] def UInt128.shiftRight (x : UInt128) (s : UInt64) : UInt128 :=
   let s := s.land 127
   { lo := bif s == 0 then x.lo
           else bif s < 64 then x.lo >>> s ||| x.hi <<< (64-s)
@@ -474,7 +477,7 @@ lemma UInt128.shiftLeft_def (x : UInt128) (s : UInt64) : x <<< s = x.shiftLeft s
 lemma UInt128.shiftRight_def (x : UInt128) (s : UInt64) : x >>> s = x.shiftRight s := rfl
 
 /-- Divide by `2^s`, rounding up or down -/
-@[irreducible, pp_dot] def UInt128.shiftRightRound (x : UInt128) (s : UInt64) (up : Bool) :
+@[irreducible] def UInt128.shiftRightRound (x : UInt128) (s : UInt64) (up : Bool) :
     UInt128 :=
   bif s == 0 then x
   else bif 128 ≤ s then bif x == 0 || !up then 0 else 1
@@ -483,7 +486,7 @@ lemma UInt128.shiftRight_def (x : UInt128) (s : UInt64) : x >>> s = x.shiftRight
     bif up && x != y <<< s then y.succ else y
 
  /-- Multiply by `2^s`, saturating at `UInt128.max` if we overflow -/
-@[irreducible, pp_dot] def UInt128.shiftLeftSaturate (x : UInt128) (s : UInt64) : UInt128 :=
+@[irreducible] def UInt128.shiftLeftSaturate (x : UInt128) (s : UInt64) : UInt128 :=
   bif bif 128 ≤ s then x != 0 else s != 0 && x >>> (128-s) != 0 then UInt128.max
   else x <<< s
 
@@ -538,7 +541,7 @@ lemma tb_false {x : UInt64} {i : ℕ} (il : 64 ≤ i) : Nat.testBit x.toNat i = 
 @[local simp] lemma ts1 {t : ℕ} (h : t < 128) : t < UInt64.size := lt_trans h (by norm_num)
 @[local simp] lemma shift0 {t : ℕ} (t0 : t ≠ 0) (t64 : t < 64) :
     (64 - (t : UInt64)).toNat % 64 = 64 - t := by
-  rw [UInt64.toNat_sub]
+  rw [UInt64.toNat_sub'']
   · norm_num
     simp only [p64, UInt64.toNat_cast, Nat.mod_eq_of_lt (ts0 t64), ge_iff_le,
       Nat.mod_succ_eq_iff_lt]
@@ -552,7 +555,7 @@ lemma tb_false {x : UInt64} {i : ℕ} (il : 64 ≤ i) : Nat.testBit x.toNat i = 
     p127, t127 h]
 @[local simp] lemma e0 {t : ℕ} (t0 : t ≠ 0) (t64 : t < 64) :
     (64 - (t : UInt64)).toNat % 64 = 64 - t := by
-  rw [UInt64.toNat_sub]
+  rw [UInt64.toNat_sub'']
   · simp only [p64, UInt64.toNat_cast, Nat.mod_eq_of_lt (ts0 t64), ge_iff_le,
       Nat.mod_succ_eq_iff_lt]
     exact Nat.sub_lt (by norm_num) (Nat.pos_iff_ne_zero.mpr t0)
@@ -563,7 +566,7 @@ lemma tb_false {x : UInt64} {i : ℕ} (il : 64 ≤ i) : Nat.testBit x.toNat i = 
   rw [Nat.sub_sub_assoc h.le]
 @[local simp] lemma e3 {t : ℕ} (t64 : 64 ≤ t) (t128 : t < 128) :
     ((t : UInt64) - 64).toNat % 64 = t - 64 := by
-  rw [UInt64.toNat_sub, p64, UInt64.toNat_cast, Nat.mod_eq_of_lt (ts1 t128), Nat.mod_eq_of_lt]
+  rw [UInt64.toNat_sub'', p64, UInt64.toNat_cast, Nat.mod_eq_of_lt (ts1 t128), Nat.mod_eq_of_lt]
   · omega
   · rw [UInt64.le_iff_toNat_le]
     simpa only [p64, UInt64.toNat_cast, Nat.mod_eq_of_lt (ts1 t128)]
@@ -572,14 +575,14 @@ lemma tb_false {x : UInt64} {i : ℕ} (il : 64 ≤ i) : Nat.testBit x.toNat i = 
 @[local simp] lemma e6 {t : ℕ} (t0 : t ≠ 0) (t64 : t < 64) :
     (64 - (t : UInt64)).toNat % 64 = 64 - t := by
   have t0' := Nat.pos_of_ne_zero t0
-  rw [UInt64.toNat_sub, p64, UInt64.toNat_cast, Nat.mod_eq_of_lt (ts0 t64), Nat.mod_eq_of_lt]
+  rw [UInt64.toNat_sub'', p64, UInt64.toNat_cast, Nat.mod_eq_of_lt (ts0 t64), Nat.mod_eq_of_lt]
   · omega
   · rw [UInt64.le_iff_toNat_le]
     simp only [UInt64.toNat_cast, Nat.mod_eq_of_lt (ts0 t64), p64, t64.le]
 @[local simp] lemma e7 {t i : ℕ} (hi : 64 ≤ i) (ht : t < 64) : i - 64 + (64 - t) = i - t := by omega
 @[local simp] lemma e8 {t i : ℕ} (ht : 64 ≤ t) : i - 64 - (t - 64) = i - t := by omega
 @[local simp] lemma e9 {t : ℕ} (h : t < 128) : (128 - (t : UInt64)).toNat = 128 - t := by
-  rw [UInt64.toNat_sub, p128, UInt64.toNat_cast, Nat.mod_eq_of_lt (ts1 h)]
+  rw [UInt64.toNat_sub'', p128, UInt64.toNat_cast, Nat.mod_eq_of_lt (ts1 h)]
   simp only [UInt64.le_iff_toNat_le, UInt64.toNat_cast, Nat.mod_eq_of_lt (ts1 h), p128, h.le]
 @[local simp] lemma e10 : (128 : UInt64) &&& 127 = 0 := rfl
 @[local simp] lemma a1 {t i : ℕ} (t0 : t ≠ 0) (i64 : i < 64) : i + t - 64 < t := by
@@ -817,7 +820,7 @@ lemma UInt128.toNat_shiftLeftSaturate {x : UInt128} {s : UInt64}
   · have t128' : (t : UInt64) < 128 := by
       simpa only [UInt64.lt_iff_toNat_lt, UInt64.toNat_cast, Nat.mod_eq_of_lt t64, p128]
     have sub : 128 - (t : UInt64) < 128 := by
-      rw [UInt64.lt_iff_toNat_lt, UInt64.toNat_sub t128'.le, p128, UInt64.toNat_cast,
+      rw [UInt64.lt_iff_toNat_lt, UInt64.toNat_sub'' t128'.le, p128, UInt64.toNat_cast,
         Nat.mod_eq_of_lt t64]
       omega
     simp only [shiftLeftSaturate, UInt64.le_iff_toNat_le, p128, UInt64.toNat_cast, t128, ts1,
@@ -840,7 +843,7 @@ lemma UInt128.toNat_shiftLeftSaturate {x : UInt128} {s : UInt64}
         · simp only [← pow_add, Nat.sub_add_cancel t128.le, le_refl]
       simp only [UInt64.toNat_cast]
       rw [Nat.mod_eq_of_lt t64, Nat.mod_eq_of_lt c, min_eq_left (by omega)]
-    . assumption
+    · assumption
   · simp only [not_lt] at t128
     have t128' : 128 ≤ (t : UInt64) := by
       simpa only [UInt64.le_iff_toNat_le, p128, UInt64.toNat_cast, Nat.mod_eq_of_lt t64]
@@ -942,7 +945,7 @@ lemma UInt128.toNat_hi_shiftRightRound_le_hi {y : UInt64} {s : UInt64} {up : Boo
   generalize (⟨0, y⟩ : UInt128).shiftRightRound s up = z at h
   contrapose h; simp only [not_le] at h
   apply ne_of_gt
-  rw [←Int.cast_lt (α := ℝ)]
+  rw [←Int.cast_lt (R := ℝ)]
   refine lt_of_lt_of_le Int.rdiv_lt ?_
   simp only [UInt128.toNat_def, UInt64.toNat_zero, add_zero, Nat.cast_mul, Nat.cast_pow,
     Nat.cast_ofNat, Int.cast_mul, Int.cast_ofNat, Int.cast_pow, Int.cast_natCast, Nat.cast_add,

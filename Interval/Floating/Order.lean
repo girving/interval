@@ -12,14 +12,14 @@ open scoped Real
 namespace Floating
 
 /-- Unlike `Float`, we don't worry about `nan` for our comparisons -/
-@[irreducible, pp_dot] def blt (x y : Floating) : Bool :=
+@[irreducible] def blt (x y : Floating) : Bool :=
   let xn := x.n.isNeg
   let yn := y.n.isNeg
   xn > yn || (xn == yn &&
     ((bif xn then x.s > y.s else x.s < y.s) || (x.s == y.s && x.n.n < y.n.n)))
 
 /-- Unlike `Float`, we don't worry about `nan` for our comparisons -/
-@[irreducible, pp_dot] def ble (x y : Floating) : Bool := !(y.blt x)
+@[irreducible] def ble (x y : Floating) : Bool := !(y.blt x)
 
 -- Ordering instances
 instance : LT Floating where lt x y := x.blt y
@@ -33,7 +33,7 @@ instance : Min Floating where min x y := bif x.ble y then x else y
 instance : Max Floating where max x y := bif x.ble y then y else x
 
 /-- A version of `max` that propagates `nan` -/
-@[irreducible, pp_dot] def max (x y : Floating) : Floating :=
+@[irreducible] def max (x y : Floating) : Floating :=
   -min (-x) (-y)
 
 /-- Turn `blt` into `<` -/
@@ -270,7 +270,7 @@ lemma isNeg_iff' {x : Floating} : x.n.isNeg = decide (x < 0) := by
 @[simp] lemma isNeg_iff {x : Floating} : x.n.isNeg = decide (x.val < 0) := by
   rw [val]; symm
   by_cases xn : x.n.isNeg
-  · simp only [xn, decide_eq_true_eq, ←not_le, mul_nonneg_iff_of_pos_right two_zpow_pos]
+  · simp only [xn, decide_eq_true_eq, ←not_le, mul_nonneg_iff_of_pos_right (two_zpow_pos (𝕜 := ℝ))]
     simpa only [Int.cast_nonneg, not_le, Int64.coe_lt_zero_iff]
   · simp only [xn, decide_eq_false_iff_not, not_lt, gt_iff_lt, two_zpow_pos,
       mul_nonneg_iff_of_pos_right, Int.cast_nonneg, Int64.coe_nonneg_iff]

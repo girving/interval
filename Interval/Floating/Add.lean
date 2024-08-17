@@ -3,6 +3,7 @@ import Interval.Floating.Neg
 import Interval.Floating.Standardization
 
 open Pointwise
+open scoped UInt64.CommRing
 
 /-!
 ## Floating point addition and subtraction
@@ -43,7 +44,7 @@ lemma add_adjust_2_eq {r : UInt128} {s : UInt64} (g : r.log2 ≠ 127 ∨ s ≠ U
       Nat.cast_one, sub_self]
   · have d0 : (lower (126 - r.log2) s).2.toNat < 2^64-1 := by
       refine lt_of_le_of_lt (low_d_le _ _) ?_
-      rw [UInt64.toNat_sub, u126]; norm_num; omega
+      rw [UInt64.toNat_sub'', u126]; norm_num; omega
       simp only [UInt64.eq_iff_toNat_eq, u127, UInt64.le_iff_toNat_le, u126] at h ⊢
       exact Nat.le_of_lt_succ (Ne.lt_of_le h r.log2_le_127)
     simp only [UInt64.toNat_add_one d0.ne, low_s_2_eq, Nat.cast_add_one,
@@ -64,7 +65,7 @@ lemma adjust_d_le (r : UInt128) (s : UInt64) :
     have d1 : r.log2 ≤ 126 := by simpa only [UInt64.le_iff_toNat_le, UInt128.toNat_log2, u126]
     have d2 : (lower (126 - r.log2) s).2.toNat + 1 ≤ 127 - r.toNat.log2 := by
       refine le_trans (add_le_add_right (low_d_le _ _) _) ?_
-      rw [UInt64.toNat_sub d1, u126, UInt128.toNat_log2]
+      rw [UInt64.toNat_sub'' d1, u126, UInt128.toNat_log2]
       omega
     rwa [UInt64.toNat_add, UInt64.toNat_one, UInt64.size_eq_pow, Nat.mod_eq_of_lt]
     exact lt_of_le_of_lt (le_trans d2 (Nat.sub_le _ _)) (by norm_num)
@@ -94,7 +95,7 @@ lemma adjust_le_r {r : UInt128} {s : UInt64} (r0 : r.toNat ≠ 0)
     by_cases s126 : s < 126 - UInt128.log2 r
     · simp only [s126, ite_true, UInt64.toNat_zero, not_true_eq_false] at s0
     · have d0 : 126 - r.log2 + 1 = 127 - r.log2 := by ring
-      simp only [s126, ite_false, sub_sub_cancel, d0, UInt64.toNat_sub (UInt128.log2_le_127 r),
+      simp only [s126, ite_false, sub_sub_cancel, d0, UInt64.toNat_sub'' (UInt128.log2_le_127 r),
         u127, UInt128.toNat_log2, Nat.add_sub_cancel' (UInt128.log2_le_127' _), le_refl]
 
 /-- `add_adjust` doesn't overflow `r` -/
@@ -124,12 +125,12 @@ lemma adjust_shift_le_63 (r : UInt128) (s : UInt64) (up : Bool)
     (r.shiftRightRound (65 - (add_adjust r.log2 s).2) up).toNat ≤ 2^63 := by
   apply Nat.le_of_lt_succ
   rw [←Nat.cast_lt (α := ℤ), UInt128.toInt_shiftRightRound]
-  rw [←Int.cast_lt (α := ℝ)]
+  rw [←Int.cast_lt (R := ℝ)]
   refine lt_of_lt_of_le Int.rdiv_lt ?_
   simp only [Int.cast_ofNat, Nat.cast_pow, Nat.cast_ofNat, Nat.cast_succ, Int.cast_add,
     Int.cast_pow, Int.cast_ofNat, Int.cast_one, ← le_sub_iff_add_le, add_sub_cancel_right]
   have a65' : (add_adjust r.log2 s).2 < 65 := by simpa only [UInt64.lt_iff_toNat_lt, u65]
-  rw [div_le_iff (by positivity), ←pow_add, UInt64.toNat_sub a65'.le, u65,
+  rw [div_le_iff (by positivity), ←pow_add, UInt64.toNat_sub'' a65'.le, u65,
     ←Nat.add_sub_assoc a65.le]
   have lt := adjust_r_lt_128 r s
   simp only [← Nat.cast_lt (α := ℝ), Nat.cast_pow, Nat.cast_ofNat] at lt
@@ -154,7 +155,7 @@ lemma add_n_le (r : UInt128) (s : UInt64) (up : Bool) : (add_n r s up).n.toNat �
     have d1 : 65 ≤ a.2.toNat := by simpa only [UInt64.le_iff_toNat_le, u65] using a65
     have d2 : 0 < 2^65 := by norm_num
     have d3 : r.lo.toNat = r.toNat := by rw [←ha] at d1; exact adjust_lo_eq d1
-    simp only [a65, ite_true, UInt64.toNat_shiftLeft', UInt64.toNat_sub a65, u65,
+    simp only [a65, ite_true, UInt64.toNat_shiftLeft', UInt64.toNat_sub'' a65, u65,
       Nat.mod_eq_of_lt d0, ← Nat.sub_sub_assoc d1, gt_iff_lt, d3]
     rw [Nat.mod_eq_of_lt]
     · rw [←mul_le_mul_iff_of_pos_right d2, mul_assoc, ←pow_add, ←pow_add, Nat.sub_add_cancel d1]
@@ -198,21 +199,21 @@ lemma coe_add_n (r : UInt128) (s : UInt64) (up : Bool) :
       · simp only [r0, zero_lt_two, pow_pos, UInt128.toNat_lo]
       · rw [UInt128.toNat_lo_of_log2_lt (by omega)]; rw [←Nat.log2_lt r0]; omega
     have d8 : r.toNat < 2^(63 - (a - 65).toNat) := by
-      rw [UInt64.toNat_sub a65, u65, ←Nat.sub_sub_assoc d4]; exact d1
+      rw [UInt64.toNat_sub'' a65, u65, ←Nat.sub_sub_assoc d4]; exact d1
     have d9 : ((⟨r.lo⟩ : Int64) : ℤ) = r.toNat := by
       simpa only [Int64.toInt, Int64.isNeg_eq_le, not_le.mpr d6, decide_False, cond_false,
         CharP.cast_eq_zero, sub_zero, Nat.cast_inj]
     have d12 : r.toNat < 2^(64 - (a - 65).toNat) :=
       lt_of_lt_of_le d8 (pow_le_pow_right (by norm_num) (Nat.sub_le_sub_right (by norm_num) _))
     have d11 : a - 65 < 64 := by
-      rw [UInt64.lt_iff_toNat_lt, UInt64.toNat_sub a65, u65, u64]
+      rw [UInt64.lt_iff_toNat_lt, UInt64.toNat_sub'' a65, u65, u64]
       refine lt_of_le_of_lt (Nat.sub_le_sub_right d0 _) ?_
       refine lt_of_le_of_lt (Nat.sub_le_sub_right (Nat.sub_le _ _) _) ?_
       norm_num
     rw [UInt64.toNat_shiftLeft d11, d5, Nat.mod_eq_of_lt d12]
     generalize hd : a.toNat - 65 = d
     have d50 : a.toNat = d + 65 := by rw [←hd, Nat.sub_add_cancel d4]
-    simp only [d9, d50, UInt64.toNat_sub a65, u65, Nat.add_sub_cancel, pow_add, ←mul_assoc,
+    simp only [d9, d50, UInt64.toNat_sub'' a65, u65, Nat.add_sub_cancel, pow_add, ←mul_assoc,
       Int.mul_rdiv_cancel d3, d2, Nat.cast_mul]
   · simp only [a65, ite_false]
     have a65' : a.toNat < 65 := by simpa only [not_le, UInt64.lt_iff_toNat_lt, u65] using a65
@@ -220,7 +221,7 @@ lemma coe_add_n (r : UInt128) (s : UInt64) (up : Bool) :
       rw [←ha] at a65' ⊢; exact adjust_shift_le_63 r s up a65'
     have d3 : (r.shiftRightRound (65 - a) up).toNat < 2^64 := lt_of_le_of_lt d2 (by norm_num)
     simp only [UInt128.toNat_lo d3, UInt128.toInt_shiftRightRound,
-      UInt64.toNat_sub (not_le.mp a65).le, u65]
+      UInt64.toNat_sub'' (not_le.mp a65).le, u65]
     rw [←Nat.pow_div a65'.le (by norm_num), Int.rdiv_div (pow_dvd_pow _ a65'.le),
       Nat.cast_pow, Nat.cast_ofNat]
 
@@ -251,7 +252,7 @@ lemma add_n_norm (r : UInt128) (s : UInt64) (up : Bool) :
   rfl
 
 /-- Turn an almost normalized (`n ≤ 2^63`) value into a `Floating`, shifting right by at most 1 -/
-@[irreducible] def small_shift (n s : UInt64) (up : Bool)
+@[irreducible] def small_shift (n s : UInt64)
     (le_n : (⟨n⟩ : Int64) ≠ 0 → (⟨n⟩ : Int64) ≠ .min → s ≠ 0 → 2^62 ≤ n.toNat)
     (n_le : n.toNat ≤ 2^63) : Floating :=
   if n63 : n = 2^63 then
@@ -281,16 +282,16 @@ lemma add_n_norm (r : UInt128) (s : UInt64) (up : Bool) :
   bif l == 127 && s == .max then nan else
   let t := add_adjust l s
   let n := bif 65 ≤ t.2 then r.lo <<< (t.2 - 65) else (r.shiftRightRound (65 - t.2) up).lo
-  small_shift n t.1 up
+  small_shift n t.1
     (by simp only [n, Bool.cond_decide]; apply add_n_norm r s up)
     (by simp only [n, Bool.cond_decide]; exact add_n_le r s up)
 
 /-- `small_shift` is correct -/
-lemma val_small_shift {n s : UInt64} {up : Bool}
+lemma val_small_shift {n s : UInt64}
     {le_n : (⟨n⟩ : Int64) ≠ 0 → (⟨n⟩ : Int64) ≠ .min → s ≠ 0 → 2^62 ≤ n.toNat}
     {n_le : n.toNat ≤ 2^63}
-    (sn : small_shift n s up le_n n_le ≠ nan) :
-    (small_shift n s up le_n n_le).val = (n.toNat : ℝ) * 2^((s.toNat : ℤ) - 2^63) := by
+    (sn : small_shift n s le_n n_le ≠ nan) :
+    (small_shift n s le_n n_le).val = (n.toNat : ℝ) * 2^((s.toNat : ℤ) - 2^63) := by
   rw [small_shift] at sn ⊢
   by_cases n63 : n = 2^63
   · simp only [n63, Bool.cond_decide, dite_true, ne_eq, ite_eq_left_iff, not_forall,
@@ -405,18 +406,18 @@ lemma toNat_hi_sub_128 {x : UInt64} {y : UInt128} (yx : y.toNat ≤ x.toNat * 2^
 -/
 
 /-- Exactly rounded floating point addition, with `0 < x` and special cases removed -/
-@[irreducible, pp_dot, inline] def add_to_128 (x y : Floating) (up : Bool) : UInt128 :=
+@[irreducible, inline] def add_to_128 (x y : Floating) (up : Bool) : UInt128 :=
   let yn := y.n.isNeg
   let z := bif yn then -y.n else y.n
   let y := (⟨0, z.n⟩ : UInt128).shiftRightRound (x.s - y.s) (up != yn)
   bif yn then hi_sub_128 x.n.n y else ⟨y.lo, x.n.n + y.hi⟩
 
 /-- Exactly rounded floating point addition, with `0 < x` and special cases removed -/
-@[irreducible, pp_dot, inline] def pos_add (x y : Floating) (up : Bool) : Floating :=
+@[irreducible, inline] def pos_add (x y : Floating) (up : Bool) : Floating :=
   add_shift_r (add_to_128 x y up) x.s up
 
 /-- Exactly rounded floating point addition, with most special cases removed -/
-@[irreducible, pp_dot, inline] def add_core (x y : Floating) (up : Bool) : Floating :=
+@[irreducible, inline] def add_core (x y : Floating) (up : Bool) : Floating :=
   -- Arrange for x to be positive
   let (z, x, y) := bif x.n.isNeg then (true, -x, -y) else (false, x, y)
   -- Add
@@ -425,11 +426,11 @@ lemma toNat_hi_sub_128 {x : UInt64} {y : UInt128} (yx : y.toNat ≤ x.toNat * 2^
   bif z then -r else r
 
 /-- Absolute value comparison, ignoring special cases -/
-@[irreducible, pp_dot] def add_bigger (x y : Floating) : Bool :=
+@[irreducible] def add_bigger (x y : Floating) : Bool :=
   bif x.s == y.s then y.n.abs ≤ x.n.abs else y.s < x.s
 
 /-- Exactly rounded floating point addition -/
-@[irreducible, pp_dot] def add (x y : Floating) (up : Bool) : Floating :=
+@[irreducible] def add (x y : Floating) (up : Bool) : Floating :=
   -- Handle special cases
   bif x == 0 || y == nan then y else
   bif y == 0 || x == nan then x else
@@ -504,12 +505,12 @@ lemma add_to_128_shift_le {x y : Floating} (xy : x.add_bigger y) {up : Bool}
       decide_eq_true_eq] using xy
   · have yxs : y.s < x.s := (Ne.symm s0).lt_of_le (add_bigger_s xy)
     have yxs' := (UInt64.lt_iff_toNat_lt _ _).mp yxs
-    have s0 : 0 < s.toNat := by rw [←hs, UInt64.toNat_sub yxs.le]; omega
+    have s0 : 0 < s.toNat := by rw [←hs, UInt64.toNat_sub'' yxs.le]; omega
     by_cases x0 : x = 0
     · simp only [x0, s_zero, UInt64.toNat_zero, not_lt_zero'] at yxs'
     have le_x : 2^62 ≤ x.n.n.toNat := by
       rw [←Int64.abs_eq_self' xn]; exact x.norm' x0 (Nat.not_eq_zero_of_lt yxs)
-    rw [←Int.cast_le (α := ℝ)]
+    rw [←Int.cast_le (R := ℝ)]
     simp only [UInt128.toNat_def, UInt64.toNat_zero, add_zero, Nat.cast_mul, Nat.cast_pow,
       Nat.cast_ofNat, Int.cast_mul, Int.cast_ofNat, Int.cast_pow, Int.cast_ofNat]
     refine le_trans ?_ (mul_le_mul_of_nonneg_right (Nat.cast_le.mpr le_x) (by positivity))
@@ -543,7 +544,7 @@ lemma add_to_128_shift_le {x y : Floating} (xy : x.add_bigger y) {up : Bool}
   have e : (2:ℝ)^(64 : ℤ) = 2^64 := zpow_ofNat _ 64
   simp only [zpow_sub₀ t0, div_eq_mul_inv, mul_assoc, mul_eq_mul_left_iff, e]
   simp only [← mul_assoc, mul_comm _ ((2:ℝ)^64)⁻¹, mul_eq_mul_right_iff, inv_eq_zero]
-  rw [inv_mul_cancel (by norm_num)]
+  rw [inv_mul_cancel₀ (by norm_num)]
   simp only [one_mul, true_or]
 
 /-- Common alternative spelling of `val` -/
@@ -593,7 +594,7 @@ lemma val_add_to_128 {x y : Floating} (up : Bool) (yn : y ≠ nan) (y0 : y ≠ 0
       Nat.cast_pow, Nat.cast_ofNat]
   have a := UInt128.approx_shiftRightRound ⟨0, u.n⟩ (x.s - y.s) (up != y.n.isNeg)
   simp only [UInt128.toReal, hz, ← hv', mul_comm _ ((2:ℝ)^64), he, Nat.cast_mul, Nat.cast_pow,
-    Nat.cast_ofNat, UInt64.toNat_sub yxs, mul_div_assoc ((2:ℝ)^64), mem_rounds_singleton,
+    Nat.cast_ofNat, UInt64.toNat_sub'' yxs, mul_div_assoc ((2:ℝ)^64), mem_rounds_singleton,
     zero_lt_two, pow_pos, mul_le_mul_left, Bool.xor_false] at a
   simp only [Bool.not_eq_true', ← Int64.toReal_toInt un, pow_sub₀ _ t0 yxs', ← div_eq_mul_inv, ←
     div_mul, ← mul_div_right_comm, div_le_iff two_pow_pos, le_div_iff two_pow_pos] at a
@@ -731,7 +732,7 @@ lemma le_add {x y : Floating} (n : x.add y true ≠ nan) :
 We use `x - y = x + -y`.
 -/
 
-@[irreducible, pp_dot] def sub (x y : Floating) (up : Bool) : Floating :=
+@[irreducible] def sub (x y : Floating) (up : Bool) : Floating :=
   x.add (-y) up
 
 /-- Definition lemma for easy of use -/

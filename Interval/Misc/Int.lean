@@ -1,5 +1,6 @@
 import Mathlib.Algebra.Order.Floor.Div
 import Mathlib.Data.Real.Basic
+import Mathlib.Tactic.Ring
 import Interval.Misc.Nat
 
 /-!
@@ -57,7 +58,7 @@ lemma Int.rdiv_le_rdiv {a : ℤ} {b : ℕ} {u0 u1 : Bool} (u01 : u0 ≤ u1) :
   induction u0
   · induction u1
     · rfl
-    · rw [←Int.cast_le (α := ℝ)]
+    · rw [←Int.cast_le (R := ℝ)]
       exact le_trans Int.rdiv_le Int.le_rdiv
   · simp only [Bool.eq_true_of_true_le u01, le_refl]
 

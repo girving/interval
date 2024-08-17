@@ -14,7 +14,7 @@ open Pointwise
 open Set
 open scoped Real
 
-variable {𝕜 : Type} [LinearOrderedField 𝕜]
+variable {𝕜 : Type}
 
 /-- Simplify to case assuming not `nan` -/
 lemma mem_if_univ_iff {x : 𝕜} {u : Set 𝕜} {p : Prop} {dp : Decidable p} :
@@ -29,6 +29,8 @@ lemma subset_if_univ_iff {t u : Set 𝕜} {p : Prop} {dp : Decidable p} :
   by_cases n : p
   repeat simp only [n, ite_true, ite_false, subset_univ, not_true_eq_false, IsEmpty.forall_iff,
     not_false_eq_true, forall_true_left]
+
+variable [LinearOrderedField 𝕜]
 
 /-- Reals are either `≤ 0` or `≥ 0` -/
 lemma nonpos_or_nonneg (x : 𝕜) : x ≤ 0 ∨ 0 ≤ x := by

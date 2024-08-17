@@ -35,6 +35,6 @@ namespace Floating
       ←zpow_natCast, Nat.cast_sub s63, Rat.cast_zpow, Rat.cast_ofNat]
   simp only [mul_neg_iff, Int.cast_pos, Int64.coe_pos_iff, two_zpow_not_neg, and_false,
     Int.cast_lt_zero, two_zpow_pos, and_true, false_or, Int64.coe_shiftRightRound,
-    UInt64.toNat_sub s63, UInt64.toNat_2_pow_63, Int64.coe_zero, zpow_zero, mul_one,
+    UInt64.toNat_sub'' s63, UInt64.toNat_2_pow_63, Int64.coe_zero, zpow_zero, mul_one,
     mem_singleton_iff, Int.cast_inj, eq, Rat.floor_cast, Rat.floor_int_div_nat_eq_div]
   rw [Int.rdiv, Nat.cast_pow, Nat.cast_ofNat, cond_false]

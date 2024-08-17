@@ -12,14 +12,14 @@ open scoped Real
 namespace Interval
 
 /-- Scale by changing the exponent -/
-@[irreducible, pp_dot] def scaleB (x : Interval) (t : Int64) : Interval :=
+@[irreducible] def scaleB (x : Interval) (t : Int64) : Interval :=
   mix (x.lo.scaleB t) (x.hi.scaleB t) (by
     intro n0 n1
     simp only [ne_eq, n0, not_false_eq_true, Floating.val_scaleB, n1, gt_iff_lt, two_zpow_pos,
       mul_le_mul_right, le])
 
 /-- Scale by changing the exponent -/
-@[irreducible, pp_dot] def scaleB' (x : Interval) (t : Fixed 0) : Interval :=
+@[irreducible] def scaleB' (x : Interval) (t : Fixed 0) : Interval :=
   bif t == nan then nan else scaleB x t.n
 
 /-- `scaleB` propagates `nan` -/

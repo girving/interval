@@ -76,7 +76,7 @@ lemma mul_norm_correct (n : UInt128) (up : Bool) (n0 : n ≠ 0) (lo : n.toNat �
   have t_le : t.toNat ≤ 126 := by
     rw [←ht, ←Nat.lt_succ_iff, Nat.log2_lt n0]; exact lt_of_le_of_lt lo (by norm_num [mul_n_max])
   have t_le' : t ≤ 126 := by simp only [UInt64.le_iff_toNat_le, u126, t_le]
-  simp only [UInt64.toNat_sub t_le', u126] at hs
+  simp only [UInt64.toNat_sub'' t_le', u126] at hs
   have s_lt : s.toNat < 128 := by rw [←hs]; omega
   have nt' : n.toNat * 2^s.toNat < 2^127 := by
     refine lt_of_lt_of_le (Nat.mul_lt_mul_of_pos_right Nat.lt_log2_self (by positivity)) ?_
@@ -84,7 +84,7 @@ lemma mul_norm_correct (n : UInt128) (up : Bool) (n0 : n ≠ 0) (lo : n.toNat �
     exact pow_le_pow_right (by norm_num) (by omega)
   have nt : n.toNat * 2^s.toNat < 2^128 := lt_trans nt' (by norm_num)
   have b1 : b.toNat ≤ 1 := by rw [←hb, bif_eq_if]; split_ifs; repeat norm_num
-  simp only [UInt64.toNat_sub t_le', u126, Nat.mod_eq_of_lt s_lt, Nat.mod_eq_of_lt nt] at hz
+  simp only [UInt64.toNat_sub'' t_le', u126, Nat.mod_eq_of_lt s_lt, Nat.mod_eq_of_lt nt] at hz
   have z_lt : z.toNat < 2^127 := by rwa [←hz]
   have r_le : z.hi.toNat + b.toNat ≤ 2^63 := by
     rw [UInt128.toNat_def] at z_lt
@@ -137,7 +137,7 @@ lemma mul_norm_correct (n : UInt128) (up : Bool) (n0 : n ≠ 0) (lo : n.toNat �
         norm_num only at lo ⊢
         omega
       have s1' : 1 ≤ s := by simpa only [UInt64.le_iff_toNat_le, UInt64.toNat_one]
-      simp only [UInt64.toNat_sub s1', UInt64.toNat_one, Nat.cast_sub s1, Nat.cast_one,
+      simp only [UInt64.toNat_sub'' s1', UInt64.toNat_one, Nat.cast_sub s1, Nat.cast_one,
         pow_mul_zpow t0, Nat.cast_ofNat, ge_iff_le]
       simp only [← hs, Nat.cast_sub t_le, Nat.cast_ofNat, Nat.cast_one]
       ring_nf

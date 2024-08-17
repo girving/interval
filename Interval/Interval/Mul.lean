@@ -19,7 +19,7 @@ namespace Interval
 
 /-- Multiply two intervals, producing a not necessarily correct interval.
     We define this, prove it correct, then wrap it in `Mul Interval` below. -/
-@[irreducible, inline, pp_dot] def premul (x : Interval) (y : Interval) : Preinterval :=
+@[irreducible, inline] def premul (x : Interval) (y : Interval) : Preinterval :=
   bif x.lo.n.isNeg != x.hi.n.isNeg && y.lo.n.isNeg != x.hi.n.isNeg then  -- x,y have mixed sign
     ⟨min (x.lo.mul y.hi false) (x.hi.mul y.lo false),
      (x.lo.mul y.lo true).max (x.hi.mul y.hi true)⟩
@@ -161,7 +161,7 @@ lemma approx_premul (x : Interval) (y : Interval) : approx x * approx y ⊆ appr
 -/
 
 /-- Multiply two intervals -/
-@[irreducible, pp_dot] def mul (x : Interval) (y : Interval) : Interval :=
+@[irreducible] def mul (x : Interval) (y : Interval) : Interval :=
   (x.premul y).mix' (approx_premul x y (mul_mem_mul x.lo_mem y.lo_mem))
 
 /-- `* = mul` -/
@@ -267,7 +267,7 @@ lemma ne_nan_of_float_mul_float {x : Floating} {y : Floating}
 -/
 
 /-- Multiply times a `Floating` -/
-@[irreducible, pp_dot] def mul_float (x : Interval) (y : Floating) : Interval :=
+@[irreducible] def mul_float (x : Interval) (y : Floating) : Interval :=
   let t := bif y.n.isNeg then (x.hi, x.lo) else (x.lo, x.hi)
   mix (t.1.mul y false) (t.2.mul y true) (by
     intro n0 n1
@@ -330,16 +330,15 @@ lemma approx_mul_float (x : Interval) (y : Floating) :
 -/
 
 /-- Tighter than `mul x x` -/
-@[pp_dot] def sqr (x : Interval) : Interval :=
+def sqr (x : Interval) : Interval :=
   if m : x.lo.n.isNeg != x.hi.n.isNeg then  -- x has mixed sign
     mix 0 ((x.lo.mul x.lo true).max (x.hi.mul x.hi true)) (by
       intro _ n
       simp only [ne_eq, Floating.max_eq_nan, not_or] at n
       simp only [Floating.isNeg_iff, bne_iff_ne, ne_eq, decide_eq_decide] at m
       simp only [Floating.val_zero, Floating.val_max n.1 n.2, le_max_iff]
-      by_cases x0 : x.lo.val < 0
-      · left; exact le_trans (by nlinarith) (Floating.le_mul n.1)
-      · right; exact le_trans (by nlinarith) (Floating.le_mul n.2))
+      left
+      exact le_trans (by nlinarith) (Floating.le_mul n.1))
   else if x0 : x.lo.n.isNeg then
     mix (x.hi.mul x.hi false) (x.lo.mul x.lo true) (by
       intro n0 n1

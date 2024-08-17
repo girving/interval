@@ -6,6 +6,7 @@ import Interval.UInt128
 
 open Classical
 open Set
+open scoped UInt64.CommRing
 
 /-- 128-bit twos complement signed integers -/
 @[ext] structure Int128 where
@@ -14,7 +15,7 @@ open Set
 
 namespace Int128
 
-@[irreducible, pp_dot] def isNeg (x : Int128) : Bool := 2^63 ≤ x.n.hi
+@[irreducible] def isNeg (x : Int128) : Bool := 2^63 ≤ x.n.hi
 
 @[irreducible] def min : Int128 := ⟨⟨0, 2^63⟩⟩
 
@@ -134,7 +135,7 @@ instance : AddCommGroup Int128 where
   add_assoc x y z := by simp only [Int128.ext_iff, n_add, add_assoc]
   zero_add x := by simp only [Int128.ext_iff, n_add, zero_add, n_zero]
   add_zero x := by simp only [Int128.ext_iff, n_add, add_zero, n_zero]
-  add_left_neg x := by simp only [Int128.ext_iff, n_add, n_neg, add_left_neg, n_zero]
+  neg_add_cancel x := by simp only [Int128.ext_iff, n_add, n_neg, neg_add_cancel, n_zero]
   add_comm x y := by simp only [Int128.ext_iff, n_add, add_comm]
   zsmul := zsmulRec
   nsmul := nsmulRec

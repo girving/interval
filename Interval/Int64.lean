@@ -10,6 +10,7 @@ Arithmetic wraps, so beware (not really, our uses are formally checked).
 -/
 
 open Set
+open scoped UInt64.CommRing
 
 /-- 64-bit two's complement integers -/
 @[unbox] structure Int64 where
@@ -17,7 +18,7 @@ open Set
   deriving DecidableEq, BEq
 
 /-- The sign bit of an `Int64` -/
-@[pp_dot] def Int64.isNeg (x : Int64) : Bool := (1 <<< 63 : UInt64) ≤ x.n
+def Int64.isNeg (x : Int64) : Bool := (1 <<< 63 : UInt64) ≤ x.n
 
 def Int64.min : Int64 := ⟨1 <<< 63⟩
 
@@ -84,7 +85,7 @@ instance : CommRing Int64 where
   zero_add x := by simp only [Int64.add_def, Int64.zero_def, zero_add]
   add_comm x y := by simp only [Int64.add_def, add_comm]
   add_assoc x y z := by simp only [Int64.add_def, add_assoc]
-  add_left_neg x := by simp only [Int64.neg_def, Int64.add_def, add_left_neg, Int64.zero_def]
+  neg_add_cancel x := by simp only [Int64.neg_def, Int64.add_def, neg_add_cancel, Int64.zero_def]
   mul_assoc x y z := by simp only [Int64.mul_def, mul_assoc]
   mul_comm x y := by simp only [Int64.mul_def, mul_comm]
   zero_mul x := by simp only [Int64.mul_def, Int64.zero_def, zero_mul]
@@ -372,7 +373,6 @@ lemma Int64.coe_sub_of_le_of_pos {x y : Int64} (yx : y ≤ x) (h : (x - y).isNeg
   generalize x.n.toNat = x at h xs yx
   generalize y.n.toNat = y at h ys yx
   have xc0 : 0 ≤ (x : ℤ) := by omega
-  have yc0 : 0 ≤ (y : ℤ) := by omega
   have xcs : (x : ℤ) < 2^64 := by omega
   simp only [Nat.cast_sub ys.le, Nat.cast_pow, Nat.cast_ofNat]
   by_cases y0 : y = 0
@@ -464,16 +464,13 @@ lemma Int64.toInt_eq_toNat_of_lt {x : Int64} (h : x.n.toNat < 2^63) : (x : ℤ) 
 @[simp] lemma Int64.toNat_add_pow_eq_coe (n : Int64) :
     ((n + 2^63).n.toNat : ℤ) = (n : ℤ) + 2^63 := by
   have e : (2^63 : Int64).n.toNat = 2^63 := by decide
-  simp only [add_def, UInt64.toNat_add, e, UInt64.size_eq_pow, Int.ofNat_emod, Nat.cast_add,
-    Nat.cast_pow, Nat.cast_ofNat, toInt, isNeg_eq_le, bif_eq_if, decide_eq_true_eq, Nat.cast_ite,
-    CharP.cast_eq_zero]
+  rw [add_def, UInt64.toNat_add, e, UInt64.size_eq_pow, Int.ofNat_emod, Nat.cast_add,
+    Nat.cast_pow, Nat.cast_ofNat, toInt, isNeg_eq_le, bif_eq_if, Nat.cast_ite]
   have lt := n.n.toNat_lt
   by_cases b : 2 ^ 63 ≤ n.n.toNat
-  · simp only [b, ite_true]
-    have m : (n.n.toNat : ℤ) + 2^63 = n.n.toNat - 2^63 + 2^64 := by linarith
-    rw [m, Int.add_emod_self, Int.emod_eq_of_lt]
-    all_goals omega
-  · simp only [b, ite_false, sub_zero]
+  · simp only [b, decide_True, ite_true]
+    omega
+  · simp only [b, ite_false, sub_zero, decide_False, Nat.cast_zero]
     rw [Int.emod_eq_of_lt]
     · omega
     · norm_num at b ⊢; omega
@@ -621,7 +618,7 @@ lemma Int64.sub_le {x y : Int64} (y0 : y.isNeg = false) (h : min + y ≤ x) : x 
 -/
 
 /-- Almost absolute value (maps `Int64.min → Int64.min`) -/
-@[pp_dot] def Int64.abs (x : Int64) : UInt64 :=
+def Int64.abs (x : Int64) : UInt64 :=
   bif x.isNeg then -x.n else x.n
 
 @[simp] lemma Int64.abs_zero : (0 : Int64).abs = 0 := rfl
@@ -952,7 +949,7 @@ lemma Int64.coe_shiftRightRound (x : Int64) (s : UInt64) (up : Bool) :
         simp only [UInt64.le_iff_toNat_le, e64, not_le] at s64
         have s63 : s.toNat ≤ 63 := by omega
         have es : (63 - s).toNat = 63 - s.toNat := by
-          rw [UInt64.toNat_sub, e63]
+          rw [UInt64.toNat_sub'', e63]
           simp only [UInt64.le_iff_toNat_le, e63]; omega
         by_cases s0 : s = 0
         · simp only [s0, sub_zero, UInt64.toNat_zero, pow_zero, Int.ediv_one, ite_self]; decide

@@ -6,6 +6,7 @@ import Interval.Floating.Basic
 
 open Set
 open scoped Real
+open scoped UInt64.CommRing
 namespace Floating
 
 /-- Decrease `s` by `g` if possible, saturating at `s = 0`.
@@ -38,7 +39,7 @@ lemma low_le_s' {g s : UInt64} : (lower g s).1.toNat ≤ s.toNat :=
 /-- `lower.2` in terms of `lower.1`, expressed in terms of `ℕ` -/
 lemma low_s_2_eq {g s : UInt64} : (lower g s).2.toNat = s.toNat - (lower g s).1.toNat := by
   have e : (lower g s).2 = s - (lower g s).1 := by rw [lower]
-  rw [e, UInt64.toNat_sub (low_le_s _ s)]
+  rw [e, UInt64.toNat_sub'' (low_le_s _ s)]
 
 @[simp] lemma log2_g_le_62 {n : Int64} (nm : n ≠ .min) : n.abs.log2 ≤ 62 := by
   by_cases n0 : n = 0
@@ -56,7 +57,7 @@ lemma low_s_2_eq {g s : UInt64} : (lower g s).2.toNat = s.toNat - (lower g s).1.
 @[simp] lemma low_d_le_62 {n : Int64} (nm : n ≠ .min) (s : UInt64) :
     (lower (62 - n.abs.log2) s).2.toNat ≤ 62 := by
   refine le_trans (low_d_le _ s) ?_
-  rw [UInt64.toNat_sub (log2_g_le_62 nm), u62]
+  rw [UInt64.toNat_sub'' (log2_g_le_62 nm), u62]
   apply Nat.sub_le
 
 /-- `low` doesn't overflow -/
@@ -65,7 +66,7 @@ lemma low_s_2_eq {g s : UInt64} : (lower g s).2.toNat = s.toNat - (lower g s).1.
   refine lt_of_lt_of_le (Nat.mul_lt_mul_of_lt_of_le (Nat.lt_log2_self (n := n.abs.toNat))
     (Nat.pow_le_pow_of_le_right (by positivity) (low_d_le _ s)) (by positivity)) ?_
   simp only [← Nat.pow_add, ←Nat.add_sub_assoc (log2_g_le_62' nm), UInt64.toNat_log2,
-    UInt64.toNat_sub (log2_g_le_62 nm), u62]
+    UInt64.toNat_sub'' (log2_g_le_62 nm), u62]
   exact Nat.pow_le_pow_of_le_right (by norm_num) (by omega)
 
 /-- `low` doesn't overflow -/
@@ -115,7 +116,7 @@ lemma of_ns_norm {n : Int64} {s : UInt64} (n0 : n ≠ 0) (nm : n ≠ .min) :
   refine Nat.pow_le_pow_of_le_right (by norm_num) ?_
   rw [←hd]
   simp only [Int64.sub_def, sub_sub_cancel]
-  rw [UInt64.toNat_sub (log2_g_le_62 nm), u62]
+  rw [UInt64.toNat_sub'' (log2_g_le_62 nm), u62]
   simp only [UInt64.toNat_log2]
   omega
 
@@ -195,22 +196,22 @@ instance {s : Int64} : CoeHead (Fixed s) Floating where
       approx_eq_singleton (of_ns_ne_nan_iff.mpr nm)] at ax ⊢
     rw [ax, Fixed.val, val_of_ns nm]
     simp only [Int64.toInt, Int64.isNeg_eq_le, bif_eq_if, decide_eq_true_eq, Nat.cast_ite,
-      Nat.cast_pow, Int.cast_sub, Int.cast_ofNat, Int.cast_ite,
-      Int.cast_pow, Int.cast_ofNat, Int.cast_zero, UInt64.toInt, UInt64.toNat_add,
+      Nat.cast_pow, Int.cast_sub, Int.cast_ofNat, Int.cast_ite, Int.cast_pow, Int.cast_ofNat,
+      Int.cast_zero, UInt64.toInt, UInt64.toNat_add',
       UInt64.toNat_2_pow_63, Int.ofNat_emod, Nat.cast_add, mul_eq_mul_left_iff,
       zero_lt_two, ne_eq, not_false_eq_true, zpow_inj, UInt64.size_eq_pow, Nat.cast_pow,
       Nat.cast_two]
     left
     have sp : s.n.toNat < 2^64 := UInt64.toNat_lt_2_pow_64 _
     by_cases le : 2^63 ≤ s.n.toNat
-    · have d0 : (s.n.toNat : ℤ) + 2^63 = (s.n.toNat - 2^63) + 2^64 := by ring
-      have d1 : 0 ≤ (s.n.toNat : ℤ) - 2^63 := by linarith
-      have d2 : (s.n.toNat : ℤ) - 2^63 < 2^64 := by linarith
-      simp only [le, CharP.cast_eq_zero, ite_true, gt_iff_lt, zero_lt_two, ne_eq,
-        OfNat.ofNat_ne_one, not_false_eq_true, zpow_inj, d0, Int.add_emod_self,
-        Int.emod_eq_of_lt d1 d2]
-      ring
+    · simp only [le, CharP.cast_eq_zero, ite_true, gt_iff_lt, zero_lt_two, ne_eq,
+        OfNat.ofNat_ne_one, not_false_eq_true, zpow_inj, Int.add_emod_self]
+      split_ifs
+      all_goals omega
     · simp only [le, CharP.cast_eq_zero, ite_false, sub_zero, zpow_natCast]
       have d0 : 0 ≤ (s.n.toNat : ℤ) + 2^63 := by omega
       have d1 : (s.n.toNat : ℤ) + 2^63 < 2^64 := by linarith
-      simp only [Int.emod_eq_of_lt d0 d1, add_sub_cancel_right, zpow_natCast]
+      have d2 : s.n.toNat + 2^63 < 2^64 := by omega
+      simp only [d2, if_true, Int.emod_eq_of_lt d0 d1, add_sub_cancel_right, zpow_natCast]
+      simp only [Nat.reducePow, tsub_zero, Nat.cast_add, Nat.cast_ofNat, Int.reducePow,
+        add_sub_cancel_right, zpow_natCast]
