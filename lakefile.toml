@@ -1,4 +1,4 @@
-name = "Interval"
+name = "interval"
 defaultTargets = ["Interval"]
 
 [leanOptions]
