@@ -226,7 +226,7 @@ instance : Approx (Fixed s) ℝ where
 @[simp] lemma Fixed.approx_nan : approx (nan : Fixed s) = univ := by
   simp only [approx, nan, ite_true]
 
-@[mono] lemma Fixed.val_mem_approx (x : Fixed s) : x.val ∈ approx x := by
+@[approx] lemma Fixed.val_mem_approx (x : Fixed s) : x.val ∈ approx x := by
   simp only [approx]; split_ifs; repeat simp
 
 @[simp] lemma Fixed.approx_zero : approx (0 : Fixed s) = {0} := by
@@ -882,7 +882,7 @@ lemma Real.cast_natCast (n : ℤ): n ≥ 0 → (n : ℝ) = (n.toNat : ℝ) := by
   simp
 
 /-- `Fixed.ofNat0` is conservative -/
-@[mono] lemma Fixed.approx_ofNat0 (n : ℕ) : ↑n ∈ approx (ofNat0 n) := by
+@[approx] lemma Fixed.approx_ofNat0 (n : ℕ) : ↑n ∈ approx (ofNat0 n) := by
   by_cases nn : (ofNat0 n) = nan
   · simp only [nn, approx_nan, mem_univ]
   rw [ofNat0] at nn ⊢

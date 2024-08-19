@@ -339,7 +339,7 @@ lemma approx_mul (x y : Floating) (up : Bool) :
         simp only [not_lt] at x0
         rw [←neg_mul, neg_mul_comm, abs_of_neg hz, _root_.abs_of_nonneg x0]
     rw [e]
-    exact mul_mem_mul (by mono) (by mono)
+    exact mul_mem_mul (by approx) (by approx)
   · simp only [ze, Bool.xor_false, ite_false]
     simp only [Bool.not_eq_true] at ze
     simp only [ze, Bool.bne_eq_false, decide_eq_decide] at hz
@@ -350,7 +350,7 @@ lemma approx_mul (x y : Floating) (up : Bool) :
       · simp only [x0, false_iff, not_lt] at hz
         rw [_root_.abs_of_nonneg (not_lt.mp x0), _root_.abs_of_nonneg hz]
     rw [e]
-    exact mul_mem_mul (by mono) (by mono)
+    exact mul_mem_mul (by approx) (by approx)
 
 /-!
 ### Additional multiplication lemmas

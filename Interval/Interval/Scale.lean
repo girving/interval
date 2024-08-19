@@ -47,7 +47,7 @@ lemma ne_nan_of_scaleB' {x : Interval} {t : Fixed 0} (n : x.scaleB' t ≠ nan) :
   all_goals simp only [n, nan_scaleB', scaleB'_nan, ne_eq, not_true_eq_false, not_false_eq_true]
 
 /-- `scaleB` is conservative -/
-@[mono] lemma mem_approx_scaleB {x : Interval} {t : Int64} {x' : ℝ}
+@[approx] lemma mem_approx_scaleB {x : Interval} {t : Int64} {x' : ℝ}
     (xm : x' ∈ approx x) : x' * 2^(t : ℤ) ∈ approx (x.scaleB t) := by
   rw [scaleB]
   simp only [approx, lo_eq_nan, mem_ite_univ_left, mem_Icc] at xm ⊢
@@ -61,7 +61,7 @@ lemma ne_nan_of_scaleB' {x : Interval} {t : Fixed 0} (n : x.scaleB' t ≠ nan) :
     mul_le_mul_right, n.2]
 
 /-- `scaleB'` is conservative -/
-@[mono] lemma mem_approx_scaleB' {x : Interval} {t : Fixed 0} {x' t' : ℝ}
+@[approx] lemma mem_approx_scaleB' {x : Interval} {t : Fixed 0} {x' t' : ℝ}
     (xm : x' ∈ approx x) (tm : t' ∈ approx t) : x' * 2^t' ∈ approx (x.scaleB' t) := by
   rw [scaleB']
   by_cases tn : t = nan
@@ -83,7 +83,7 @@ lemma ne_nan_of_scaleB' {x : Interval} {t : Fixed 0} (n : x.scaleB' t ≠ nan) :
     simp only [ne_eq, n0, not_false_eq_true, Floating.val_div2, n1]
     exact div_le_div_of_nonneg_right x.le (by norm_num))
 
-@[mono] lemma mem_approx_div2 {x : Interval} {x' : ℝ} (xm : x' ∈ approx x) :
+@[approx] lemma mem_approx_div2 {x : Interval} {x' : ℝ} (xm : x' ∈ approx x) :
     x' / 2 ∈ approx (div2 x) := by
   rw [div2]
   simp only [approx, lo_eq_nan, mem_ite_univ_left, mem_Icc] at xm ⊢

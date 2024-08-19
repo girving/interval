@@ -2,6 +2,7 @@ import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import Interval.Division
 import Interval.Floating.Floor
 import Interval.Floating.Log2
+import Interval.Interval.Conversion
 import Interval.Interval.Scale
 import Interval.Misc.Array
 
@@ -180,8 +181,8 @@ lemma approx_exp_series (n : ℕ) : Real.exp ∈ approx (exp_series s n) := by
       simp only [div_eq_inv_mul, mul_inv, mul_comm _ ((n:ℚ)⁻¹), Rat.cast_mul, Rat.cast_pow,
         Rat.cast_inv, Rat.cast_natCast, Rat.cast_add, Rat.cast_one]
 
-/-- `mono` friendly version of `approx_exp_series` -/
-@[mono] lemma mem_approx_exp_series {a : ℝ} {x : Interval} (ax : a ∈ approx x) {n : ℕ} :
+/-- `approx` friendly version of `approx_exp_series` -/
+@[approx] lemma mem_approx_exp_series {a : ℝ} {x : Interval} (ax : a ∈ approx x) {n : ℕ} :
     Real.exp a ∈ approx ((exp_series s n).eval x) :=
   approx_exp_series n a x ax
 
@@ -258,8 +259,8 @@ lemma approx_log1p_div_series (n : ℕ) : log1p_div ∈ approx (log1p_div_series
     refine le_trans (le_of_eq ?_) (Floating.le_ofRat en)
     simp only [Rat.cast_div, Rat.cast_pow, Rat.cast_sub, Rat.cast_one]
 
-/-- `mono` friendly version of `approx_log1p_div_series` -/
-@[mono] lemma mem_approx_log1p_div_series {a : ℝ} {x : Interval} (ax : a ∈ approx x) {n : ℕ} :
+/-- `approx` friendly version of `approx_log1p_div_series` -/
+@[approx] lemma mem_approx_log1p_div_series {a : ℝ} {x : Interval} (ax : a ∈ approx x) {n : ℕ} :
     log1p_div a ∈ approx ((log1p_div_series s n).eval x) :=
   approx_log1p_div_series n a x ax
 
@@ -288,7 +289,7 @@ them before we've done the general argument reduction.
   .ofRat (0.5 / 0.693147180559945309417232121458) false
 
 /-- `Interval.log_2` is conservative -/
-@[mono] lemma Interval.approx_log_2 : Real.log 2 ∈ approx Interval.log_2 := by
+@[approx] lemma Interval.approx_log_2 : Real.log 2 ∈ approx Interval.log_2 := by
   have e : Real.log 2 = 2/3 * log1p_div (1/3) + 1/8 * log1p_div (1/8) := by
     simp only [log1p_div, one_div, inv_eq_zero, OfNat.ofNat_ne_zero, div_inv_eq_mul,
       mul_comm (Real.log _), ite_false, ← mul_assoc, ne_eq, not_false_eq_true, div_mul_cancel,
@@ -296,7 +297,7 @@ them before we've done the general argument reduction.
     rw [← Real.log_rpow, ← Real.log_rpow, ← Real.log_mul]
     all_goals norm_num
   rw [Interval.log_2, e, log1p_div_series_38]
-  mono
+  approx
 
 /-!
 ### `exp x` for arbitrary `x`, via argument reduction
@@ -323,7 +324,7 @@ via Taylor series, and form `exp x = exp (y + n log 2) = exp y * 2^n` via shifti
   x.lo.exp ∪ x.hi.exp
 
 /-- `Floating.exp` is conservative -/
-@[mono] lemma Floating.mem_approx_exp {x : Floating} {x' : ℝ} (xm : x' ∈ approx x) :
+@[approx] lemma Floating.mem_approx_exp {x : Floating} {x' : ℝ} (xm : x' ∈ approx x) :
     Real.exp x' ∈ approx x.exp := by
   rw [Floating.exp]
   generalize hn : floor ((mul x untrusted_inv_log_2 false).add (ofRat (1 / 2) false) false) = n
@@ -336,7 +337,7 @@ via Taylor series, and form `exp x = exp (y + n log 2) = exp y * 2^n` via shifti
     rw [Real.exp_sub, Real.exp_mul, Real.exp_log (by norm_num),
       div_mul_cancel₀ _ (Real.rpow_pos_of_pos (by norm_num) _).ne']
   rw [e, exp_series_16]
-  mono
+  approx
 
 /-- `Floating.exp` propagates `nan` -/
 @[simp] lemma Floating.exp_nan : (nan : Floating).exp = nan := by
@@ -344,18 +345,18 @@ via Taylor series, and form `exp x = exp (y + n log 2) = exp y * 2^n` via shifti
   simp only [beq_self_eq_true, nan_mul, Interval.nan_sub, Series.eval_nan, cond_true]
 
 /-- `Interval.exp` is conservative (`⊆` version) -/
-@[mono] lemma Interval.approx_exp {x : Interval} : Real.exp '' approx x ⊆ approx x.exp := by
+@[approx] lemma Interval.approx_exp {x : Interval} : Real.exp '' approx x ⊆ approx x.exp := by
   rw [Interval.exp]
   by_cases xn : x = nan
   · simp only [xn, approx_nan, image_univ, Real.range_exp, lo_nan, Floating.exp_nan, hi_nan,
       union_nan, subset_univ]
   rw [approx_eq_Icc xn]
   refine subset_trans Real.exp_monotone.image_Icc_subset (Icc_subset_approx ?_ ?_)
-  · apply Interval.approx_union_left; mono
-  · apply Interval.approx_union_right; mono
+  · apply Interval.approx_union_left; approx
+  · apply Interval.approx_union_right; approx
 
 /-- `Interval.exp` is conservative (`∈` version) -/
-@[mono] lemma Interval.mem_approx_exp {x : Interval} {a : ℝ} (ax : a ∈ approx x) :
+@[approx] lemma Interval.mem_approx_exp {x : Interval} {a : ℝ} (ax : a ∈ approx x) :
     Real.exp a ∈ approx x.exp :=
   Interval.approx_exp (mem_image_of_mem _ ax)
 
@@ -396,7 +397,7 @@ set the final precision.
   x.lo.log ∪ x.hi.log
 
 /-- `Floating.log` is conservative -/
-@[mono] lemma Floating.mem_approx_log {x : Floating} {x' : ℝ} (xm : x' ∈ approx x) :
+@[approx] lemma Floating.mem_approx_log {x : Floating} {x' : ℝ} (xm : x' ∈ approx x) :
     Real.log x' ∈ approx x.log := by
   rw [Floating.log, log1p_div_series_38]
   generalize x.untrusted_log_shift = n
@@ -415,9 +416,9 @@ set the final precision.
     ring
   have ym : y' ∈ approx y := by
     rw [←hy, ←hy']
-    mono
+    approx
   rw [e]
-  mono
+  approx
 
 /-- `Floating.log` turns nonpositives to `nan` -/
 @[simp] lemma Floating.log_nonpos {x : Floating} (x0 : x.val ≤ 0) : x.log = nan := by
@@ -430,7 +431,7 @@ set the final precision.
   log_nonpos val_nan_lt_zero.le
 
 /-- `Interval.log` is conservative (`⊆` version) -/
-@[mono] lemma Interval.approx_log {x : Interval} : Real.log '' approx x ⊆ approx x.log := by
+@[approx] lemma Interval.approx_log {x : Interval} : Real.log '' approx x ⊆ approx x.log := by
   rw [Interval.log]
   by_cases n : x.lo = nan ∨ x.hi = nan ∨ x.lo.val ≤ 0
   · rcases n with n | n | n; repeat simp [n]
@@ -444,11 +445,11 @@ set the final precision.
     exact ⟨Real.log_le_log l0 m0, Real.log_le_log (by linarith) m1⟩
   rw [e]
   refine subset_trans le (Icc_subset_approx ?_ ?_)
-  · apply Interval.approx_union_left; mono
-  · apply Interval.approx_union_right; mono
+  · apply Interval.approx_union_left; approx
+  · apply Interval.approx_union_right; approx
 
 /-- `Interval.log` is conservative (`∈` version) -/
-@[mono] lemma Interval.mem_approx_log {x : Interval} {a : ℝ} (ax : a ∈ approx x) :
+@[approx] lemma Interval.mem_approx_log {x : Interval} {a : ℝ} (ax : a ∈ approx x) :
     Real.log a ∈ approx x.log :=
   Interval.approx_log (mem_image_of_mem _ ax)
 
@@ -474,20 +475,20 @@ These are easy now that we have `exp` and `log`.
   (x.log * y).exp
 
 /-- `Interval.pow` is conservative -/
-@[mono] lemma Interval.mem_approx_pow {x : Interval} {y : Interval} {x' y' : ℝ}
+@[approx] lemma Interval.mem_approx_pow {x : Interval} {y : Interval} {x' y' : ℝ}
     (xm : x' ∈ approx x) (ym : y' ∈ approx y) : x' ^ y' ∈ approx (x.pow y) := by
   rw [Interval.pow]
   by_cases x0 : 0 < x'
-  · rw [Real.rpow_def_of_pos x0]; mono
+  · rw [Real.rpow_def_of_pos x0]; approx
   · simp only [not_lt] at x0
     rw [Interval.log_nonpos x0 xm, Interval.nan_mul, Interval.exp_nan]
     simp only [approx_nan, mem_univ]
 
 /-- `Interval.pow` is conservative for `ℕ` powers -/
-@[mono] lemma Interval.mem_approx_pow_nat {x : Interval} {n : ℕ} {x' : ℝ}
+@[approx] lemma Interval.mem_approx_pow_nat {x : Interval} {n : ℕ} {x' : ℝ}
     (xm : x' ∈ approx x) : x' ^ n ∈ approx (x.pow (.ofNat n)) := by
   simp only [← Real.rpow_natCast]
-  mono
+  approx
 
 /-!
 ### Square root
@@ -500,10 +501,10 @@ This is an extremely slow way of computing square roots.
   x.pow (Interval.div2 1)
 
 /-- `Interval.sqrt` is conservative -/
-@[mono] lemma Interval.mem_approx_sqrt {x : Interval} {a : ℝ}
+@[approx] lemma Interval.mem_approx_sqrt {x : Interval} {a : ℝ}
     (ax : a ∈ approx x) : Real.sqrt a ∈ approx x.sqrt := by
   rw [Interval.sqrt, Real.sqrt_eq_rpow]
-  mono
+  approx
 
 /-!
 ### Unit tests

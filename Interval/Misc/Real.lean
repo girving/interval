@@ -3,6 +3,7 @@ import Mathlib.Data.Real.Basic
 import Mathlib.Data.Set.Pointwise.Basic
 import Mathlib.Data.Set.Pointwise.Interval
 import Mathlib.Tactic.Linarith.Frontend
+import Interval.Tactic.Approx
 
 open Classical
 open Pointwise
@@ -107,8 +108,8 @@ lemma Set.inv_Icc {a b : 𝕜} (a0 : 0 < a) (b0 : 0 < b) : (Icc a b)⁻¹ = Icc 
   · simp only [not_le] at x0
     simp only [le_inv x0 a0, inv_le b0 x0]
 
-/-- `mono` friendly version of `Set.mem_inv` -/
-@[mono] lemma Set.mem_inv_of_mem {x : 𝕜} {s : Set 𝕜} (m : x ∈ s) : x⁻¹ ∈ s⁻¹ := by
+/-- `approx` friendly version of `Set.mem_inv` -/
+@[approx] lemma Set.mem_inv_of_mem {x : 𝕜} {s : Set 𝕜} (m : x ∈ s) : x⁻¹ ∈ s⁻¹ := by
   rw [Set.mem_inv, inv_inv]; exact m
 
 /-- `pow` and `zpow` multiply via addition -/

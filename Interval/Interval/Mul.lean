@@ -180,13 +180,13 @@ instance : ApproxMul Interval ℝ where
 /-- `Interval` approximates `ℝ` as a ring -/
 instance : ApproxRing Interval ℝ where
 
-/-- `approx_mul` in `mono` form, `⊆` version -/
-@[mono] lemma subset_approx_mul {a b : Set ℝ} {x : Interval} {y : Interval}
+/-- `approx_mul` in `approx` form, `⊆` version -/
+@[approx] lemma subset_approx_mul {a b : Set ℝ} {x : Interval} {y : Interval}
     (as : a ⊆ approx x) (bs : b ⊆ approx y) : a * b ⊆ approx (x * y) :=
   subset_trans (mul_subset_mul as bs) (approx_mul x y)
 
-/-- `approx_mul` in `mono` form, `∈` version -/
-@[mono] lemma mem_approx_mul {a b : ℝ} {x : Interval} {y : Interval}
+/-- `approx_mul` in `approx` form, `∈` version -/
+@[approx] lemma mem_approx_mul {a b : ℝ} {x : Interval} {y : Interval}
     (am : a ∈ approx x) (bm : b ∈ approx y) : a * b ∈ approx (x * y) :=
   subset_approx_mul (singleton_subset_iff.mpr am) (singleton_subset_iff.mpr bm)
     (mul_mem_mul rfl rfl)
@@ -233,14 +233,14 @@ lemma approx_float_mul_float (x : Floating) (y : Floating) :
     hi_mix nm]
   exact ⟨Floating.mul_le n2, Floating.le_mul n3⟩
 
-/-- `approx_float_mul_float` in `mono` form, `⊆` version -/
-@[mono] lemma subset_approx_float_mul_float {a b : Set ℝ} {x : Floating} {y : Floating}
+/-- `approx_float_mul_float` in `approx` form, `⊆` version -/
+@[approx] lemma subset_approx_float_mul_float {a b : Set ℝ} {x : Floating} {y : Floating}
     (as : a ⊆ approx x) (bs : b ⊆ approx y) :
     a * b ⊆ approx (float_mul_float x y) :=
   subset_trans (mul_subset_mul as bs) (approx_float_mul_float x y)
 
-/-- `approx_float_mul_float` in `mono` form, `∈` version -/
-@[mono] lemma mem_approx_float_mul_float {a b : ℝ} {x : Floating} {y : Floating}
+/-- `approx_float_mul_float` in `approx` form, `∈` version -/
+@[approx] lemma mem_approx_float_mul_float {a b : ℝ} {x : Floating} {y : Floating}
     (am : a ∈ approx x) (bm : b ∈ approx y) : a * b ∈ approx (float_mul_float x y) :=
   subset_approx_float_mul_float (singleton_subset_iff.mpr am) (singleton_subset_iff.mpr bm)
     (mul_mem_mul rfl rfl)
@@ -314,13 +314,13 @@ lemma approx_mul_float (x : Interval) (y : Floating) :
     simp only [image_mul_right_Icc xle (not_lt.mp ys), Icc_subset_Icc_iff le]
     exact ⟨il0 m.1, ih1 m.2⟩
 
-/-- `approx_mul_float` in `mono` form, `⊆` version -/
-@[mono] lemma subset_approx_mul_float {a b : Set ℝ} {x : Interval} {y : Floating}
+/-- `approx_mul_float` in `approx` form, `⊆` version -/
+@[approx] lemma subset_approx_mul_float {a b : Set ℝ} {x : Interval} {y : Floating}
     (as : a ⊆ approx x) (bs : b ⊆ approx y) : a * b ⊆ approx (mul_float x y) :=
   subset_trans (mul_subset_mul as bs) (approx_mul_float x y)
 
-/-- `approx_mul_float` in `mono` form, `∈` version -/
-@[mono] lemma mem_approx_mul_float {a b : ℝ} {x : Interval} {y : Floating}
+/-- `approx_mul_float` in `approx` form, `∈` version -/
+@[approx] lemma mem_approx_mul_float {a b : ℝ} {x : Interval} {y : Floating}
     (am : a ∈ approx x) (bm : b ∈ approx y) : a * b ∈ approx (mul_float x y) :=
   subset_approx_mul_float (singleton_subset_iff.mpr am) (singleton_subset_iff.mpr bm)
     (mul_mem_mul rfl rfl)
@@ -356,7 +356,7 @@ def sqr (x : Interval) : Interval :=
       exact le_trans (Floating.mul_le n0) (le_trans (by nlinarith) (Floating.le_mul n1)))
 
 /-- `sqr` respects `approx` -/
-@[mono] lemma approx_sqr (x : Interval) : (fun x ↦ x^2) '' approx x ⊆ approx x.sqr := by
+@[approx] lemma approx_sqr (x : Interval) : (fun x ↦ x^2) '' approx x ⊆ approx x.sqr := by
   -- Record Floating.mul bounds
   generalize mll0 : x.lo.mul x.lo false = ll0
   generalize mll1 : x.lo.mul x.lo true = ll1
@@ -401,5 +401,5 @@ def sqr (x : Interval) : Interval :=
       · right; nlinarith
 
 /-- `sqr` respects `approx`, `∈` version -/
-@[mono] lemma mem_approx_sqr (a : ℝ) (x : Interval) (ax : a ∈ approx x) : a^2 ∈ approx x.sqr := by
+@[approx] lemma mem_approx_sqr (a : ℝ) (x : Interval) (ax : a ∈ approx x) : a^2 ∈ approx x.sqr := by
   apply approx_sqr; use a

@@ -64,7 +64,7 @@ namespace Floating
   simp only [ext_iff, n_abs, Int64.abs_eq_neg' xn, Int64.neg_def, n_neg, s_abs, s_neg, and_self]
 
 /-- `abs` is conservative -/
-@[mono] lemma mem_approx_abs {a : ℝ} {x : Floating} (ax : a ∈ approx x) : |a| ∈ approx x.abs := by
+@[approx] lemma mem_approx_abs {a : ℝ} {x : Floating} (ax : a ∈ approx x) : |a| ∈ approx x.abs := by
   by_cases n : x = nan
   · simp only [n, abs_nan, approx_nan, mem_univ]
   · simp only [ne_eq, n, not_false_eq_true, approx_eq_singleton, mem_singleton_iff, abs_eq_nan,

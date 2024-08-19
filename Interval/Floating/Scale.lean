@@ -24,7 +24,7 @@ namespace Floating
   bif t == nan then nan else scaleB x t.n
 
 /-- `scaleB` is conservative -/
-@[mono] lemma mem_approx_scaleB {x : Floating} (t : Int64) {x' : ℝ}
+@[approx] lemma mem_approx_scaleB {x : Floating} (t : Int64) {x' : ℝ}
     (xm : x' ∈ approx x) : x' * 2^(t : ℤ) ∈ approx (x.scaleB t) := by
   rw [scaleB]
   have t0 : 0 < (2 : ℝ) := by norm_num
@@ -93,7 +93,7 @@ lemma val_scaleB {x : Floating} {t : Int64} (n : x.scaleB t ≠ nan) :
 @[irreducible] def div2 (x : Floating) : Floating := x.scaleB (-1)
 
 /-- `div2` is conservative -/
-@[mono] lemma mem_approx_div2 {x : Floating} {x' : ℝ} (xm : x' ∈ approx x) :
+@[approx] lemma mem_approx_div2 {x : Floating} {x' : ℝ} (xm : x' ∈ approx x) :
     x' / 2 ∈ approx x.div2 := by
   have e : x' / 2 = x' * 2^(-1 : ℤ) := by
     simp only [div_eq_mul_inv, Int.reduceNeg, zpow_neg, zpow_one]

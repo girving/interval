@@ -99,11 +99,11 @@ lemma mul_def {z w : Box} : z * w = ⟨z.re * w.re - z.im * w.im, z.re * w.im + 
     and_self]
 
 /-- Prove `re ∈` via full `∈` -/
-@[mono] lemma mem_approx_re {z : ℂ} {w : Box} (zw : z ∈ approx w) : z.re ∈ approx w.re := by
+@[approx] lemma mem_approx_re {z : ℂ} {w : Box} (zw : z ∈ approx w) : z.re ∈ approx w.re := by
   simp only [approx, mem_image2_iff] at zw; exact zw.1
 
 /-- Prove `im ∈` via full `∈` -/
-@[mono] lemma mem_approx_im {z : ℂ} {w : Box} (zw : z ∈ approx w) : z.im ∈ approx w.im := by
+@[approx] lemma mem_approx_im {z : ℂ} {w : Box} (zw : z ∈ approx w) : z.im ∈ approx w.im := by
   simp only [approx, mem_image2_iff] at zw; exact zw.2
 
 /-- `star` is conservative -/
@@ -148,21 +148,21 @@ instance : ApproxMul Box ℂ where
     simp only [Box.instApprox, mul_subset_iff, Box.mem_image2_iff, and_imp, Complex.mul_re,
       Complex.mul_im, Box.mul_def]
     intro a ar ai b br bi
-    exact ⟨by mono, by mono⟩
+    exact ⟨by approx, by approx⟩
 
 /-- `Interval * Box` multiplication approximates `ℂ` -/
-@[mono] lemma _root_.Interval.approx_mul_box (x : Interval) (z : Box) :
+@[approx] lemma _root_.Interval.approx_mul_box (x : Interval) (z : Box) :
     (Complex.ofReal '' approx x) * approx z ⊆ approx (x.mul_box z) := by
   simp only [Box.instApprox, mul_subset_iff, Box.mem_image2_iff, and_imp, Complex.mul_re,
     Complex.mul_im, Interval.mul_box]
   intro a ⟨t,tx,ta⟩ b br bi
   simp only [← ta, Complex.ofReal_eq_coe, Complex.ofReal_re, Complex.ofReal_im, zero_mul, sub_zero,
     add_zero]
-  exact ⟨by mono, by mono⟩
+  exact ⟨by approx, by approx⟩
 
-/-- `mono` friendly version of `Interval.approx_mul_box` -/
-@[mono] lemma _root_.Interval.subset_approx_mul_box {p : Set ℝ} {q : Set ℂ} {x : Interval} {z : Box}
-    (px : p ⊆ approx x) (qz : q ⊆ approx z) :
+/-- `approx` friendly version of `Interval.approx_mul_box` -/
+@[approx] lemma _root_.Interval.subset_approx_mul_box {p : Set ℝ} {q : Set ℂ} {x : Interval}
+    {z : Box} (px : p ⊆ approx x) (qz : q ⊆ approx z) :
     (Complex.ofReal '' p) * q ⊆ approx (x.mul_box z) :=
   subset_trans (mul_subset_mul (image_mono px) qz) (Interval.approx_mul_box _ _)
 
@@ -170,7 +170,7 @@ instance : ApproxMul Box ℂ where
 noncomputable instance : ApproxRing Box ℂ where
 
 /-- `Box` squaring approximates `ℂ` -/
-@[mono] lemma approx_sqr (z : Box) : (fun z ↦ z^2) '' approx z ⊆ approx z.sqr := by
+@[approx] lemma approx_sqr (z : Box) : (fun z ↦ z^2) '' approx z ⊆ approx z.sqr := by
   simp only [instApprox, image_image2, Box.mem_image2_iff, subset_def, Box.sqr, mem_image2]
   rintro w ⟨r,rz,i,iz,e⟩
   refine ⟨r^2 - i^2, ?_, 2*r*i, ?_, ?_⟩
@@ -187,7 +187,7 @@ noncomputable instance : ApproxRing Box ℂ where
     ring
 
 /-- `Box` squaring approximates `ℂ`, `∈` version -/
-@[mono] lemma mem_approx_sqr {z' : ℂ} {z : Box} (m : z' ∈ approx z) : z'^2 ∈ approx z.sqr := by
+@[approx] lemma mem_approx_sqr {z' : ℂ} {z : Box} (m : z' ∈ approx z) : z'^2 ∈ approx z.sqr := by
   apply approx_sqr; use z'
 
 /-!
@@ -199,14 +199,14 @@ def normSq (z : Box) : Interval :=
   z.re.sqr + z.im.sqr
 
 /-- `normSq` is conservative -/
-@[mono] lemma mem_approx_normSq {z' : ℂ} {z : Box} (m : z' ∈ approx z) :
+@[approx] lemma mem_approx_normSq {z' : ℂ} {z : Box} (m : z' ∈ approx z) :
     Complex.abs z' ^ 2 ∈ approx z.normSq := by
   rw [normSq]
   simp only [Complex.sq_abs, Complex.normSq, ←pow_two, MonoidWithZeroHom.coe_mk, ZeroHom.coe_mk]
-  mono
+  approx
 
 /-- `normSq` is conservative -/
-@[mono] lemma mem_approx_normSq' {z' : ℂ} {z : Box} (m : z' ∈ approx z) :
+@[approx] lemma mem_approx_normSq' {z' : ℂ} {z : Box} (m : z' ∈ approx z) :
     Complex.normSq z' ∈ approx z.normSq := by
   simp only [Complex.normSq_eq_abs]
   exact mem_approx_normSq m
@@ -216,14 +216,14 @@ lemma sqrt_normSq_le_abs {z' : ℂ} {z : Box} (m : z' ∈ approx z) (n : z.normS
     Real.sqrt z.normSq.lo.val ≤ Complex.abs z' := by
   simp only [Real.sqrt_le_iff, apply_nonneg, true_and]
   apply Interval.lo_le n
-  mono
+  approx
 
 /-- Upper bounds on `normSq` produce upper bounds on contained radii -/
 lemma abs_le_sqrt_normSq {z' : ℂ} {z : Box} (m : z' ∈ approx z) (n : z.normSq ≠ nan) :
     Complex.abs z' ≤ Real.sqrt z.normSq.hi.val := by
   apply Real.le_sqrt_of_sq_le
   apply Interval.le_hi n
-  mono
+  approx
 
 /-!
 ### Conversion
@@ -237,6 +237,6 @@ noncomputable instance : Coe (ℚ × ℚ) ℂ where
 def ofRat (z : ℚ × ℚ) : Box :=
   ⟨.ofRat z.1, .ofRat z.2⟩
 
-@[mono] lemma approx_ofRat (z : ℚ × ℚ) : ↑z ∈ approx (ofRat z) := by
+@[approx] lemma approx_ofRat (z : ℚ × ℚ) : ↑z ∈ approx (ofRat z) := by
   simp only [instApprox, ofRat, mem_image2, Complex.mk.injEq, exists_eq_right_right,
     Interval.approx_ofRat, true_and, exists_eq_right, Complex.ofRat]

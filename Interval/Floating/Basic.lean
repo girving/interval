@@ -126,7 +126,7 @@ lemma val_nan : (nan : Floating).val = -(2 ^ 63) * 2 ^ (2 ^ 63 - 1) := by
 @[simp] lemma approx_eq_singleton {x : Floating} (n : x ≠ nan) : approx x = {x.val} := by
   simp only [approx, n, ite_false]
 
-@[simp, mono] lemma val_mem_approx {x : Floating} : x.val ∈ approx x := by
+@[simp, approx] lemma val_mem_approx {x : Floating} : x.val ∈ approx x := by
   by_cases n : x = nan
   · simp only [n, approx_nan, mem_univ]
   · simp only [ne_eq, n, not_false_eq_true, approx_eq_singleton, mem_singleton_iff]

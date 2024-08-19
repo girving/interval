@@ -129,7 +129,7 @@ def inv_guess (x : Floating) : Floating :=
       omega }
 
 /-- `inv_region` is conservative -/
-@[mono] lemma approx_inv_region {x : Floating} (x0 : 0 < x.val) :
+@[approx] lemma approx_inv_region {x : Floating} (x0 : 0 < x.val) :
     x.val⁻¹ ∈ approx (inv_region x) := by
   rw [inv_region]
   simp only [UInt64.pow_eq_zero, zero_sub, bif_eq_if, beq_iff_eq]
@@ -170,14 +170,14 @@ def inv_guess (x : Floating) : Floating :=
   c + r * (1 - Interval.float_mul_float x c)
 
 /-- `inv_step'` is conservative -/
-@[mono] lemma approx_inv_step' {x : Floating} {r : Interval} (c : Floating) (x0 : 0 < x.val)
+@[approx] lemma approx_inv_step' {x : Floating} {r : Interval} (c : Floating) (x0 : 0 < x.val)
     (xr : x.val⁻¹ ∈ approx r) : x.val⁻¹ ∈ approx (inv_step' x r c) := by
   rw [inv_step']
   simp only [approx, mem_ite_univ_left, mem_Icc]
   intro n
   simp only [lo_eq_nan] at n
   rcases ne_nan_of_add n with ⟨cn,ran⟩
-  rcases ne_nan_of_mul ran with ⟨rn,sn⟩
+  rcases ne_nan_of_mul ran with ⟨rn,_⟩
   have xn := x.ne_nan_of_nonneg x0.le
   simp only [mem_inv, Floating.approx_eq_singleton xn, approx, inv_eq_iff_eq_inv,
     xn, if_false, r.lo_ne_nan rn, inv_singleton, mem_Icc] at xr
@@ -186,7 +186,7 @@ def inv_guess (x : Floating) : Floating :=
   simp only [←approx_eq_Icc n, ←approx_eq_Icc rn, image_subset_iff]
   intro z m
   simp only [mem_preimage]
-  mono
+  approx
 
 /-- One step of Newton's method for the reciprocal.
     We trust that `1/x ∈ r`, but do not trust the guess `c`. -/
@@ -223,7 +223,7 @@ instance : Inv Interval where inv := inv
 lemma inv_def (x : Interval) : x⁻¹ = inv x := rfl
 
 /-- `Interval.inv_pos` is conservative -/
-@[mono] lemma approx_inv_pos {x : Interval} (l0 : 0 < x.lo.val) :
+@[approx] lemma approx_inv_pos {x : Interval} (l0 : 0 < x.lo.val) :
     (approx x)⁻¹ ⊆ approx (x.inv_pos l0) := by
   rw [inv_pos]
   have xn : x ≠ nan := by
@@ -278,10 +278,10 @@ lemma div_def (x y : Interval) : x / y = x * y⁻¹ := rfl
 /-- `Interval.div` is conservative -/
 noncomputable instance : ApproxDiv Interval ℝ where
   approx_div x y := by
-    rw [div_def, div_eq_mul_inv]; mono
+    rw [div_def, div_eq_mul_inv]; approx
 
 /-- `Box / Interval` is conservative -/
-@[mono] lemma _root_.Box.approx_div_scalar {z : Box} {x : Interval} :
+@[approx] lemma _root_.Box.approx_div_scalar {z : Box} {x : Interval} :
     approx z / Complex.ofReal '' approx x ⊆ approx (z.div_scalar x) := by
   rw [Box.div_scalar, div_eq_inv_mul]
   refine subset_trans (mul_subset_mul ?_ subset_rfl) (Interval.approx_mul_box _ _)
@@ -305,7 +305,7 @@ noncomputable instance : ApproxInv Box ℂ where
     apply approx_mul_box
     apply mul_mem_mul
     · apply mem_image_of_mem
-      mono
+      approx
     · exact mem_approx_star m
 
 /-!

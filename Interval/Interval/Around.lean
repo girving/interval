@@ -23,11 +23,11 @@ namespace Around
 
 variable {c : ℝ}
 
--- Teach `mono` about `Around`
-attribute [mono] Around.mem
+-- Teach `approx` about `Around`
+attribute [approx] Around.mem
 
 /-- `Around` intersections are always valid -/
 instance : Inter (Around c) where
   inter x y := {
     i := x.i.inter y.i ⟨c, x.mem, y.mem⟩
-    mem := by mono }
+    mem := by approx }

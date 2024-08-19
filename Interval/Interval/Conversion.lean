@@ -40,19 +40,20 @@ instance : OfScientific Interval where
 instance {n : ℕ} [n.AtLeastTwo] : OfNat Interval n := ⟨.ofNat n⟩
 
 /-- `.ofNat` is conservative -/
-@[mono] lemma approx_ofNat (n : ℕ) : ↑n ∈ approx (.ofNat n : Interval) := by
+@[approx] lemma approx_ofNat (n : ℕ) : ↑n ∈ approx (Interval.ofNat n) := by
   rw [ofNat]; simp only [approx, mem_ite_univ_left, mem_Icc]
   intro m; simp only [lo_eq_nan] at m
   simp only [lo_mix m, hi_mix m]
   simp only [mix_eq_nan, not_or] at m
   exact ⟨Floating.ofNat_le m.1, Floating.le_ofNat m.2⟩
 
-/-- `approx_ofInt` for integer literals -/
-@[mono] lemma ofNat_mem_approx_ofNat {n : ℕ} [n.AtLeastTwo] :
-    OfNat.ofNat n ∈ approx (Interval.ofNat (OfNat.ofNat n)) := approx_ofNat _
+/-- `approx_ofInt` for integer literals.
+`no_index` is required because of https://github.com/leanprover/lean4/issues/2867. -/
+@[approx] lemma ofNat_mem_approx_ofNat {n : ℕ} [n.AtLeastTwo] :
+    no_index (OfNat.ofNat n) ∈ approx (Interval.ofNat (no_index (OfNat.ofNat n))) := approx_ofNat _
 
 /-- `.ofInt` is conservative -/
-@[mono] lemma approx_ofInt (n : ℤ) : ↑n ∈ approx (.ofInt n : Interval) := by
+@[approx] lemma approx_ofInt (n : ℤ) : ↑n ∈ approx (Interval.ofInt n) := by
   rw [ofInt]; simp only [approx, mem_ite_univ_left, mem_Icc]
   intro m; simp only [lo_eq_nan] at m
   simp only [lo_mix m, hi_mix m]
@@ -60,26 +61,28 @@ instance {n : ℕ} [n.AtLeastTwo] : OfNat Interval n := ⟨.ofNat n⟩
   exact ⟨Floating.ofInt_le m.1, Floating.le_ofInt m.2⟩
 
 /-- `.ofRat` is conservative -/
-@[mono] lemma approx_ofRat (x : ℚ) : ↑x ∈ approx (.ofRat x : Interval) := by
+@[approx] lemma approx_ofRat (x : ℚ) : ↑x ∈ approx (Interval.ofRat x) := by
   rw [ofRat]; simp only [approx, mem_ite_univ_left, mem_Icc]
   intro m; simp only [lo_eq_nan] at m
   simp only [lo_mix m, hi_mix m]
   simp only [mix_eq_nan, not_or] at m
   exact ⟨Floating.ofRat_le m.1, Floating.le_ofRat m.2⟩
 
-/-- `approx_ofRat` for rational literals `a / b` -/
-@[mono] lemma ofNat_div_mem_approx_ofRat {a b : ℕ} [a.AtLeastTwo] [b.AtLeastTwo] :
-    OfNat.ofNat a / OfNat.ofNat b ∈
-      approx (.ofRat (OfNat.ofNat a / OfNat.ofNat b) : Interval) := by
+/-- `approx_ofRat` for rational literals `a / b`.
+`no_index` is required because of https://github.com/leanprover/lean4/issues/2867. -/
+@[approx] lemma ofNat_div_mem_approx_ofRat {a b : ℕ} [a.AtLeastTwo] [b.AtLeastTwo] :
+    no_index (OfNat.ofNat a) / no_index (OfNat.ofNat b) ∈
+      approx (Interval.ofRat (no_index (OfNat.ofNat a) / no_index (OfNat.ofNat b))) := by
   convert approx_ofRat _; simp only [Rat.cast_div, Rat.cast_ofNat]
 
-/-- `approx_ofRat` for rational literals `1 / b` -/
-@[mono] lemma one_div_ofNat_mem_approx_ofRat {b : ℕ} [b.AtLeastTwo] :
-    1 / OfNat.ofNat b ∈ approx (.ofRat (1 / OfNat.ofNat b) : Interval) := by
+/-- `approx_ofRat` for rational literals `1 / b`.
+`no_index` is required because of https://github.com/leanprover/lean4/issues/2867. -/
+@[approx] lemma one_div_ofNat_mem_approx_ofRat {b : ℕ} [b.AtLeastTwo] :
+    1 / no_index (OfNat.ofNat b) ∈ approx (Interval.ofRat (1 / no_index (OfNat.ofNat b))) := by
   convert approx_ofRat _; simp only [one_div, Rat.cast_inv, Rat.cast_ofNat]
 
 /-- `ofRat` conversion is conservative -/
-@[mono] lemma approx_ofScientific (x : ℕ) (u : Bool) (t : ℕ) :
+@[approx] lemma approx_ofScientific (x : ℕ) (u : Bool) (t : ℕ) :
     OfScientific.ofScientific x u t ∈
       approx (OfScientific.ofScientific x u t : Interval) := by
   simp only [OfScientific.ofScientific]

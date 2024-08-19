@@ -94,10 +94,10 @@ instance : Repr Interval where
 @[simp] lemma approx_nan : approx (nan : Interval) = univ := by
   simp only [approx, nan, ite_true, inter_self, true_or]
 
--- Basic `mono` lemmas
-@[mono, simp] lemma mem_approx_zero : 0 ∈ approx (0 : Interval) := by
+-- Basic `approx` lemmas
+@[approx, simp] lemma mem_approx_zero : 0 ∈ approx (0 : Interval) := by
   simp only [approx_zero, mem_singleton]
-@[mono, simp] lemma mem_approx_one : 1 ∈ approx (1 : Interval) := by
+@[approx, simp] lemma mem_approx_one : 1 ∈ approx (1 : Interval) := by
   simp only [approx_one, mem_singleton]
 
 /-- `x.lo = nan` if `x = nan` -/
@@ -357,13 +357,14 @@ where intersections are guaranteed nonempty.
       max_le_iff, le_refl, true_and, and_true, le_total]
   · simp only [inter, Floating.val_min, le_min_iff, inf_le_left, inf_le_right, and_self]
 
-/-- `mono ⊆` version of `approx_inter` -/
-@[mono] lemma subset_approx_inter {s : Set ℝ} {x y : Interval} {t : (approx x ∩ approx y).Nonempty}
-    (sx : s ⊆ approx x) (sy : s ⊆ approx y) : s ⊆ approx (x.inter y t) :=
+/-- `approx ⊆` version of `approx_inter` -/
+@[approx] lemma subset_approx_inter {s : Set ℝ} {x y : Interval}
+    {t : (approx x ∩ approx y).Nonempty} (sx : s ⊆ approx x) (sy : s ⊆ approx y) :
+    s ⊆ approx (x.inter y t) :=
   subset_trans (subset_inter sx sy) approx_inter
 
-/-- `mono ∈` version of `approx_inter` -/
-@[mono] lemma mem_approx_inter {a : ℝ} {x y : Interval} {t : (approx x ∩ approx y).Nonempty}
+/-- `approx ∈` version of `approx_inter` -/
+@[approx] lemma mem_approx_inter {a : ℝ} {x y : Interval} {t : (approx x ∩ approx y).Nonempty}
     (ax : a ∈ approx x) (ay : a ∈ approx y) : a ∈ approx (x.inter y t) := by
   simp only [←singleton_subset_iff] at ax ay ⊢; exact subset_approx_inter ax ay
 
@@ -496,8 +497,8 @@ instance : Coe Floating Interval where
   · rw [mix]
     simp only [n, or_self, dite_false, ext_iff, lo_coe, hi_coe, and_self]
 
-/-- Teach `mono` how to convert `a ∈ approx ↑x` to `a ∈ approx x` -/
-@[mono] lemma mem_approx_coe {a : ℝ} {x : Floating} (ax : a ∈ approx x) :
+/-- Teach `approx` how to convert `a ∈ approx ↑x` to `a ∈ approx x` -/
+@[approx] lemma mem_approx_coe {a : ℝ} {x : Floating} (ax : a ∈ approx x) :
     a ∈ approx (x : Interval) := by rwa [approx_coe]
 
 /-!
@@ -533,7 +534,7 @@ instance : Coe Floating Interval where
   simp only [abs_eq_nan]
 
 /-- `abs` is conservative -/
-@[mono] lemma approx_abs {x : Interval} : _root_.abs '' approx x ⊆ approx x.abs := by
+@[approx] lemma approx_abs {x : Interval} : _root_.abs '' approx x ⊆ approx x.abs := by
   by_cases n : x = nan
   · simp only [n, approx_nan, image_univ, abs_nan, subset_univ]
   have na : x.abs ≠ nan := by simp only [ne_eq, abs_eq_nan, n, not_false_eq_true]
@@ -570,7 +571,7 @@ instance : Coe Floating Interval where
     · simp only [abs_of_nonneg as]; right; linarith
 
 /-- `abs` respects `approx`, `∈` version -/
-@[mono] lemma mem_approx_abs {a : ℝ} {x : Interval} (ax : a ∈ approx x) :
+@[approx] lemma mem_approx_abs {a : ℝ} {x : Interval} (ax : a ∈ approx x) :
     |a| ∈ approx x.abs :=
   approx_abs (mem_image_of_mem _ ax)
 

@@ -15,7 +15,7 @@ namespace Floating
   ⟨x.n.shiftRightRound (2^63 - x.s) false⟩
 
 /-- `floor` is conservative -/
-@[mono] lemma mem_approx_floor {x : Floating} : ↑⌊x.val⌋ ∈ approx x.floor := by
+@[approx] lemma mem_approx_floor {x : Floating} : ↑⌊x.val⌋ ∈ approx x.floor := by
   rw [floor]
   simp only [bif_eq_if, Bool.or_eq_true, beq_iff_eq, decide_eq_true_eq]
   by_cases xn : x = nan

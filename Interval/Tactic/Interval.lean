@@ -152,9 +152,9 @@ elab "interval" : tactic => do
           -- Perform interval calculation
           close op (← `(tactic| native_decide))
           -- Prove conservativeness
-          let mono ← `(tactic| mono)
-          close a0 mono
-          close a1 mono
+          let approx ← `(tactic| approx)
+          close a0 approx
+          close a1 approx
         | _ => throwError "expected 3 goals, got {gs}"
 
 end IntervalTactic

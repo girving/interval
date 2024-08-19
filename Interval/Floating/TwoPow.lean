@@ -25,7 +25,7 @@ namespace Floating
     norm := by intro _ _ _; decide }
 
 /-- `two_pow` is conservative -/
-@[mono] lemma mem_approx_two_pow (n : Fixed 0) : 2^n.val ∈ approx (two_pow n) := by
+@[approx] lemma mem_approx_two_pow (n : Fixed 0) : 2^n.val ∈ approx (two_pow n) := by
   rw [two_pow]
   simp only [bif_eq_if, Bool.or_eq_true, beq_iff_eq, decide_eq_true_eq]
   by_cases b : n = nan ∨ n.n.n + (2^63 : UInt64) < 62
