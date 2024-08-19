@@ -47,10 +47,15 @@ instance {n : ℕ} [n.AtLeastTwo] : OfNat Interval n := ⟨.ofNat n⟩
   simp only [mix_eq_nan, not_or] at m
   exact ⟨Floating.ofNat_le m.1, Floating.le_ofNat m.2⟩
 
-/-- `approx_ofInt` for integer literals.
+/-- `approx_ofNat` for integer literals.
 `no_index` is required because of https://github.com/leanprover/lean4/issues/2867. -/
 @[approx] lemma ofNat_mem_approx_ofNat {n : ℕ} [n.AtLeastTwo] :
     no_index (OfNat.ofNat n) ∈ approx (Interval.ofNat (no_index (OfNat.ofNat n))) := approx_ofNat _
+
+/-- `approx_ofNat` for integer literals.
+`no_index` is required because of https://github.com/leanprover/lean4/issues/2867. -/
+@[approx] lemma ofNat_mem_approx_ofNat' {n : ℕ} [n.AtLeastTwo] :
+    no_index (OfNat.ofNat n) ∈ approx (no_index (OfNat.ofNat n : Interval)) := approx_ofNat _
 
 /-- `.ofInt` is conservative -/
 @[approx] lemma approx_ofInt (n : ℤ) : ↑n ∈ approx (Interval.ofInt n) := by
