@@ -65,11 +65,11 @@
    "type": "git",
    "subDir": null,
    "scope": "leanprover-community",
-   "rev": "ee9adf282e4a53845c94b42073dd67b8d816dfa1",
+   "rev": "f904bf86aba8d67ce1af61011ada6583cf5866fa",
    "name": "mathlib",
    "manifestFile": "lake-manifest.json",
    "inputRev": "master",
    "inherited": false,
    "configFile": "lakefile.lean"}],
- "name": "Interval",
+ "name": "interval",
  "lakeDir": ".lake"}
