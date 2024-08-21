@@ -1,6 +1,8 @@
 Conservative interval arithmetic in Lean
 ========================================
 
+[![build](https://github.com/girving/interval/actions/workflows/lean.yml/badge.svg)](https://github.com/girving/interval/actions/workflows/lean.yml)
+
 We implement conservative interval arithmetic in Lean, on top of a software implementation of
 floating point (since Lean's `Float` is untrusted). The key types are
 
