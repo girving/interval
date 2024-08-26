@@ -17,15 +17,24 @@ namespace Interval
   mix (.ofNat n false) (.ofNat n true)
     (fun n0 n1 ↦ le_trans (Floating.ofNat_le n0) (Floating.le_ofNat n1))
 
+instance instNatCastInterval : NatCast Interval where
+  natCast := Interval.ofNat
+
 /-- `ℤ` converts to `Interval` -/
 @[irreducible] def ofInt (n : ℤ) : Interval :=
   mix (.ofInt n false) (.ofInt n true)
     (fun n0 n1 ↦ le_trans (Floating.ofInt_le n0) (Floating.le_ofInt n1))
 
+instance instIntCastInterval : IntCast Interval where
+  intCast := Interval.ofInt
+
 /-- `ℚ` converts to `Interval` -/
 @[irreducible] def ofRat (x : ℚ) : Interval :=
   mix (.ofRat x false) (.ofRat x true)
     (fun n0 n1 ↦ le_trans (Floating.ofRat_le n0) (Floating.le_ofRat n1))
+
+instance instCoeRatInterval : Coe ℚ Interval where
+  coe := Interval.ofRat
 
 /-- Conversion from `ofScientific`.
     Warning: This is slow for large exponents, as it builds large `ℚ` values. -/
