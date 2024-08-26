@@ -17,13 +17,16 @@ namespace Interval
   mix (.ofNat n false) (.ofNat n true)
     (fun n0 n1 ↦ le_trans (Floating.ofNat_le n0) (Floating.le_ofNat n1))
 
-instance instCoeNatInterval : Coe ℕ Interval where
-  coe := Interval.ofNat
+instance instNatCastInterval : NatCast Interval where
+  natCast := Interval.ofNat
 
 /-- `ℤ` converts to `Interval` -/
 @[irreducible] def ofInt (n : ℤ) : Interval :=
   mix (.ofInt n false) (.ofInt n true)
     (fun n0 n1 ↦ le_trans (Floating.ofInt_le n0) (Floating.le_ofInt n1))
+
+instance instIntCastInterval : IntCast Interval where
+  intCast := Interval.ofInt
 
 /-- `ℚ` converts to `Interval` -/
 @[irreducible] def ofRat (x : ℚ) : Interval :=
