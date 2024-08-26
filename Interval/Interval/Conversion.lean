@@ -102,6 +102,16 @@ instance {n : ℕ} [n.AtLeastTwo] : OfNat Interval n := ⟨.ofNat n⟩
   simp only [OfScientific.ofScientific]
   apply approx_ofRat
 
+@[approx] lemma mem_approx_natCast (n : ℕ) : (n : ℝ) ∈ approx (n : Interval) := by
+  have : approx (n : Interval) = approx (Interval.ofNat n) := by simp [Nat.cast, NatCast.natCast]
+  rw [this]
+  approx
+
+@[approx] lemma mem_approx_intCast (n : ℤ) : (n : ℝ) ∈ approx (n : Interval) := by
+  have : approx (n : Interval) = approx (Interval.ofInt n) := by simp [Int.cast, IntCast.intCast]
+  rw [this]
+  approx
+
 /-- `n.lo ≤ n` -/
 lemma ofNat_le (n : ℕ) : (ofNat n).lo.val ≤ n := by
   by_cases m : ofNat n = nan
