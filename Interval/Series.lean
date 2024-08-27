@@ -17,8 +17,6 @@ open Classical
 open Set
 open scoped Real
 
-variable {s t : Int64}
-
 /-!
 ### Sums of Taylor series
 -/
@@ -71,7 +69,7 @@ lemma approx_taylor_sum (c : Array (Interval)) (c' : ℕ → ℝ) (x : Interval)
 -/
 
 /-- A power series approximation within an interval `[-r,r]` around `0` -/
-structure Series (s : Int64) where
+structure Series where
   /-- Lower bound on the radius of accuracy -/
   radius : Floating
   /-- Power series coefficients -/
@@ -80,23 +78,23 @@ structure Series (s : Int64) where
   error : Floating
 
 /-- Evaluation of a `Series` at a point.  For now, we use a slow linear loop. -/
-@[irreducible] def Series.eval (p : Series s) (x : Interval) : Interval :=
+@[irreducible] def Series.eval (p : Series) (x : Interval) : Interval :=
   let a := x.abs
   bif a.hi == nan || p.radius < a.hi then nan else
   (taylor_sum p.coeffs x).grow p.error
 
 /-- `Series` objects approximate functions -/
-instance : Approx (Series s) (ℝ → ℝ) where
+instance : Approx (Series) (ℝ → ℝ) where
   approx p := {f | ∀ (x : ℝ) (y : Interval), x ∈ approx y → f x ∈ approx (p.eval y)}
 
 /-- `Series.eval` propagates `nan` -/
-@[simp] lemma Series.eval_nan {p : Series s} : p.eval (nan : Interval) = nan := by
+@[simp] lemma Series.eval_nan {p : Series} : p.eval (nan : Interval) = nan := by
   rw [Series.eval]
   simp only [Interval.abs_nan, Interval.hi_nan, beq_self_eq_true, Floating.n_nan, Bool.true_or,
     cond_true]
 
 /-- `Approx` proof given an effective Taylor series bound -/
-lemma Series.approx_of_taylor (p : Series s) (f : ℝ → ℝ) (a : ℕ → ℝ) (b : ℝ)
+lemma Series.approx_of_taylor (p : Series) (f : ℝ → ℝ) (a : ℕ → ℝ) (b : ℝ)
     (pf : p.radius ≠ nan → ∀ x : ℝ,
       |x| ≤ p.radius.val → |f x - ∑ n in Finset.range p.coeffs.size, a n * x ^ n| ≤ b)
     (ac : ∀ n : Fin p.coeffs.size, a n ∈ approx p.coeffs[n.1])
@@ -134,7 +132,7 @@ https://en.wikipedia.org/wiki/Natural_logarithm#Series for a better one with exp
 def exp_series_radius : ℚ := 0.346574
 
 /-- A power series approximation for `exp` -/
-@[irreducible] def exp_series (s : Int64) (n : ℕ) : Series s where
+@[irreducible] def exp_series (n : ℕ) : Series where
   radius := .ofRat exp_series_radius false
   coeffs := (Array.range n).map (fun n ↦ .ofRat (Nat.factorial n)⁻¹)
   error := bif n == 0 then nan
@@ -145,18 +143,18 @@ def exp_series_radius : ℚ := 0.346574
     a[i] = a[i.1] := rfl
 
 /-- Our power series for `exp` is correct -/
-lemma approx_exp_series (n : ℕ) : Real.exp ∈ approx (exp_series s n) := by
-  have nn : (exp_series s n).coeffs.size = n := by rw [exp_series, Array.size_map, Array.size_range]
+lemma approx_exp_series (n : ℕ) : Real.exp ∈ approx (exp_series n) := by
+  have nn : (exp_series n).coeffs.size = n := by rw [exp_series, Array.size_map, Array.size_range]
   by_cases n0 : n = 0
   · intro a x _
-    have e : (exp_series s 0).error = nan := by
+    have e : (exp_series 0).error = nan := by
       rw [exp_series]
       simp only [beq_self_eq_true, pow_zero, CharP.cast_eq_zero, zero_add, Nat.factorial_zero,
         Nat.cast_one, mul_zero, div_zero, cond_true]
     simp only [n0, Series.eval, bif_eq_if, Floating.val_lt_val, Bool.or_eq_true, beq_iff_eq,
       Interval.hi_eq_nan, Interval.abs_eq_nan, decide_eq_true_eq, e, Interval.grow_nan, ite_self,
       Interval.approx_nan, mem_univ]
-  · apply (exp_series s n).approx_of_taylor
+  · apply (exp_series n).approx_of_taylor
     · intro rn x xr
       rw [exp_series] at xr rn; simp only at xr
       have xr' : |x| ≤ exp_series_radius := le_trans xr (Floating.ofRat_le rn)
@@ -183,11 +181,11 @@ lemma approx_exp_series (n : ℕ) : Real.exp ∈ approx (exp_series s n) := by
 
 /-- `approx` friendly version of `approx_exp_series` -/
 @[approx] lemma mem_approx_exp_series {a : ℝ} {x : Interval} (ax : a ∈ approx x) {n : ℕ} :
-    Real.exp a ∈ approx ((exp_series s n).eval x) :=
+    Real.exp a ∈ approx ((exp_series n).eval x) :=
   approx_exp_series n a x ax
 
 /-- 16 terms are about enough for 64 bits of precision -/
-@[irreducible] def exp_series_16 := exp_series (-62) 16
+@[irreducible] def exp_series_16 := exp_series 16
 
 /-- `log1p_div_series` will be accurate on `[-1/3 - ε, 1/3 + ε]` -/
 def log_series_radius : ℚ := 1/3 + 1/10000
@@ -227,18 +225,18 @@ lemma log1p_div_bound {x : ℝ} (x1 : |x| < 1) (n : ℕ) :
     simpa only [mul_comm_div, ←mul_div_assoc]
 
 /-- A power series approximation for `log1p_div` -/
-@[irreducible] def log1p_div_series (s : Int64) (n : ℕ) : Series s where
+@[irreducible] def log1p_div_series (n : ℕ) : Series where
   radius := .ofRat log_series_radius false
   coeffs := (Array.range n).map (fun n : ℕ ↦ .ofRat ((-1)^n / (n + 1)))
   error := .ofRat (log_series_radius ^ n / (1 - log_series_radius)) true
 
 /-- Our power series for `log1p_div` is correct -/
-lemma approx_log1p_div_series (n : ℕ) : log1p_div ∈ approx (log1p_div_series s n) := by
-  have nn : (log1p_div_series s n).coeffs.size = n := by
+lemma approx_log1p_div_series (n : ℕ) : log1p_div ∈ approx (log1p_div_series n) := by
+  have nn : (log1p_div_series n).coeffs.size = n := by
     rw [log1p_div_series, Array.size_map, Array.size_range]
   have r0 : 0 ≤ log_series_radius := by rw [log_series_radius]; norm_num
   have r1 : 0 < 1 - (log_series_radius : ℝ) := by rw [log_series_radius]; norm_num
-  apply (log1p_div_series s n).approx_of_taylor (a := fun n ↦ (-1)^n / (n + 1))
+  apply (log1p_div_series n).approx_of_taylor (a := fun n ↦ (-1)^n / (n + 1))
       (b := log_series_radius ^ n / (1 - log_series_radius))
   · intro rn x xr
     rw [log1p_div_series] at xr rn; simp only at xr
@@ -261,11 +259,11 @@ lemma approx_log1p_div_series (n : ℕ) : log1p_div ∈ approx (log1p_div_series
 
 /-- `approx` friendly version of `approx_log1p_div_series` -/
 @[approx] lemma mem_approx_log1p_div_series {a : ℝ} {x : Interval} (ax : a ∈ approx x) {n : ℕ} :
-    log1p_div a ∈ approx ((log1p_div_series s n).eval x) :=
+    log1p_div a ∈ approx ((log1p_div_series n).eval x) :=
   approx_log1p_div_series n a x ax
 
 /-- The series for `log1p_div` converges very slowly, so we need ~38 terms -/
-@[irreducible] def log1p_div_series_38 := log1p_div_series (-62) 38
+@[irreducible] def log1p_div_series_38 := log1p_div_series 38
 
 /-!
 ### `log 2` and `(log 2)⁻¹` estimates
