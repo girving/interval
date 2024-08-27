@@ -209,7 +209,7 @@ lemma val_of_nonneg {x : Floating} (x0 : 0 ≤ x.val) :
 @[irreducible] def min_norm : Floating :=
   ⟨⟨2^62⟩, 0, by decide, by decide, by decide⟩
 
-@[simp] lemma min_norm_ne_nan : min_norm ≠ nan := by native_decide
+@[simp] lemma min_norm_ne_nan : min_norm ≠ nan := by unfold min_norm nan; decide
 
 @[simp] lemma val_min_norm : min_norm.val = 2^(62 - 2^63 : ℤ) := by
   have t0 : (2 : ℝ) ≠ 0 := by norm_num
