@@ -17,8 +17,6 @@ open Classical
 open Set
 open scoped Real
 
-variable {t : Int64}
-
 /-!
 ### Sums of Taylor series
 -/
