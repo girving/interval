@@ -84,7 +84,7 @@ structure Series where
   (taylor_sum p.coeffs x).grow p.error
 
 /-- `Series` objects approximate functions -/
-instance : Approx (Series) (ℝ → ℝ) where
+instance : Approx Series (ℝ → ℝ) where
   approx p := {f | ∀ (x : ℝ) (y : Interval), x ∈ approx y → f x ∈ approx (p.eval y)}
 
 /-- `Series.eval` propagates `nan` -/
