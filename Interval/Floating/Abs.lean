@@ -31,7 +31,7 @@ namespace Floating
 @[simp] lemma s_abs {x : Floating} : x.abs.s = x.s := by rw [abs]
 
 /-- `abs` preserves `nan` -/
-@[simp] lemma abs_nan : (nan : Floating).abs = nan := by native_decide
+@[simp] lemma abs_nan : (nan : Floating).abs = nan := by simp only [abs, nan]; decide
 
 /-- `abs` preserves `nan` -/
 @[simp] lemma abs_eq_nan {x : Floating} : x.abs = nan ↔ x = nan := by

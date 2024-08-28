@@ -119,7 +119,7 @@ lemma le_def {x y : Floating} : x ≤ y ↔ ¬(y < x) := by
   simp only [le_def, neg_lt_neg ym xm]
 
 /-- `nan` appears negative -/
-@[simp] lemma nan_lt_zero : (nan : Floating) < 0 := by native_decide
+@[simp] lemma nan_lt_zero : (nan : Floating) < 0 := by simp only [nan, LT.lt, blt]; decide
 
 /-- Our ordering is antireflexive -/
 lemma not_lt_self (x : Floating) : ¬x < x := by
