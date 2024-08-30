@@ -60,7 +60,7 @@ lemma ext_iff {x y : Floating} : x = y ↔ x.n = y.n ∧ x.s = y.s := by
 instance : Nan Floating where
   nan := ⟨.min, .max, by decide, by decide, by decide⟩
 
-/-- The `ℝ` that a `Fixed` represents, if it's not `nan` -/
+/-- The `ℝ` that a `Floating` represents, if it's not `nan` -/
 noncomputable def val (x : Floating) : ℝ :=
   ((x.n : ℤ) : ℝ) * (2 : ℝ)^(x.s.toInt - 2^63)
 
