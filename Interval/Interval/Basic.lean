@@ -3,6 +3,7 @@ import Mathlib.Data.Set.Pointwise.Interval
 import Interval.Floating.Add
 import Interval.Floating.Abs
 import Interval.Floating.Order
+import Interval.Floating.Scale
 import Interval.Misc.Real
 
 open Classical
@@ -71,10 +72,6 @@ instance : One Interval where
 
 /-- The width of an interval -/
 def size (x : Interval) : Floating := x.hi.sub x.lo true
-
-/-- We print `Interval` as an approximate floating point interval -/
-instance : Repr Interval where
-  reprPrec x _ := bif x = nan then "nan" else "[" ++ repr x.lo ++ "," ++ repr x.hi ++ "]"
 
 /-!
 #### Basic lemmas
@@ -159,6 +156,36 @@ lemma hi_mem {x : Interval} : x.hi.val ∈ approx x := by
 /-- `approx` is a finite interval if we're not `nan` -/
 lemma approx_eq_Icc {x : Interval} (n : x ≠ nan) : approx x = Icc x.lo.val x.hi.val := by
   simp only [approx, lo_eq_nan, n, ite_false]
+
+/-!
+### Printing via conversion to `Decimal`
+-/
+
+/-- Convert to a decimal interval -/
+def decimal (x : Interval) (prec : ℕ) : Decimal.Interval :=
+  ⟨x.lo.decimal prec false, x.hi.decimal prec true,
+    le_trans (x.lo.decimal_le _) (le_trans x.le (x.hi.le_decimal _))⟩
+
+/-- Convert to a decimal ball for `Repr` -/
+def decimalBall (x : Interval) : Decimal.Ball :=
+  (x.decimal 25).ball.prec 1
+
+/-- Decimal conversion is conservative, except at `nan` -/
+lemma approx_decimal (x : Interval) (prec : ℕ) (n : x ≠ nan) :
+    approx x ⊆ approx (x.decimal prec) := by
+  simp only [approx, x.lo_ne_nan n, if_false, decimal]
+  exact Icc_subset_Icc (x.lo.decimal_le _) (x.hi.le_decimal _)
+
+/-- Decimal ball conversion is conservative, except at `nan` -/
+lemma approx_decimalBall (x : Interval) (n : x ≠ nan) : approx x ⊆ approx x.decimalBall := by
+  refine subset_trans (x.approx_decimal 25 n) (subset_trans ?_ (Decimal.Ball.approx_prec _ _))
+  simp only [Decimal.Interval.approx_ball, subset_refl]
+
+/-- We print `Interval` as an approximate floating point interval -/
+instance : Repr Interval where
+  reprPrec x p :=
+    bif x == nan then "nan" else
+    reprPrec x.decimalBall p
 
 /-!
 ### Propagate nans into both bounds

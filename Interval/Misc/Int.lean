@@ -1,3 +1,4 @@
+import Mathlib.Algebra.Order.Field.Power
 import Mathlib.Algebra.Order.Floor.Div
 import Mathlib.Data.Real.Basic
 import Mathlib.Tactic.Ring
@@ -197,9 +198,26 @@ lemma Int.cast_neg_ceilDiv_eq_ediv (a b : ℕ) : -((a ⌈/⌉ b : ℕ) : ℤ) = 
 lemma Int.cast_ceilDiv_eq_neg_ediv (a b : ℕ) : ((a ⌈/⌉ b : ℕ) : ℤ) = -((-a) / b) := by
   rw [←Int.cast_neg_ceilDiv_eq_ediv, neg_neg]
 
-/-- `natAbs = toNat` if we nonnegative -/
+/-- `natAbs = toNat` if we're nonnegative -/
 lemma Int.natAbs_eq_toNat {a : ℤ} (a0 : 0 ≤ a) : a.natAbs = a.toNat := by
   simp only [←Nat.cast_inj (R := ℤ), natCast_natAbs, a0, toNat_of_nonneg, abs_eq_self]
+
+/-- `natAbs = toNat -` if we're nonpositive -/
+lemma Int.natAbs_eq_toNat_neg {a : ℤ} (a0 : a ≤ 0) : a.natAbs = (-a).toNat := by
+  obtain ⟨_, e⟩ := Int.exists_eq_neg_ofNat a0
+  simp [e]
+
+/-- Coercion of `natAbs` to any linearly ordered ring is equal to `a` for nonnegative `a` -/
+lemma Int.coe_natAbs_eq_self {R : Type*} [LinearOrderedRing R] {a : ℤ} (h : 0 ≤ a) :
+    (a.natAbs : R) = a := by
+  obtain ⟨n, rfl⟩ := Int.eq_ofNat_of_zero_le h
+  simp [Int.natAbs_eq_toNat]
+
+/-- Coercion of `natAbs` to any linearly ordered ring is equal to `-a` for nonpositive `a` -/
+lemma Int.coe_natAbs_eq_neg {R : Type*} [LinearOrderedRing R] {a : ℤ} (h : a ≤ 0) :
+    (a.natAbs : R) = -a := by
+  obtain ⟨n, rfl⟩ := Int.exists_eq_neg_ofNat h
+  simp [Int.natAbs_eq_toNat]
 
 lemma Int.emod_mul_eq_mul_emod' (a n m : ℤ) (n0 : 0 ≤ n) (m0 : 0 < m) :
     a * n % (m * n) = a % m * n := by
@@ -231,3 +249,26 @@ lemma Int.emod_mul_eq_mul_emod (a n : ℤ) (n0 : 0 < n) : a * n % n^2 = a % n * 
     to reduce notational clutter. -/
 theorem Int.induction_overlap {p : ℤ → Prop} (hi : ∀ n : ℕ, p n) (lo : ∀ n : ℕ, p (-n)) :
     ∀ n : ℤ, p n := by intro n; induction' n with n; exact hi n; exact lo (_ + 1)
+
+section ZPow
+attribute [bound] Nat.floor_le_floor Nat.ceil_le_ceil zpow_nonneg zpow_pos_of_pos
+
+variable {𝕜 : Type*} [LinearOrderedSemifield 𝕜]
+
+lemma zpow_anti {a : 𝕜} (a0 : 0 < a) (a1 : a ≤ 1) : Antitone fun n : ℤ ↦ a ^ n := by
+  intro n m nm
+  by_cases e0 : n = m
+  · simp [e0]
+  · by_cases e1 : a = 1
+    · simp [e1]
+    · exact (zpow_strictAnti a0 (Ne.lt_of_le e1 a1) (Ne.lt_of_le e0 nm)).le
+
+/-- `bound` lemma for branching on `1 ≤ a ∨ a ≤ 1` when proving `a ^ n ≤ a ^ m` -/
+@[bound] lemma Bound.zpow_le_zpow_right_of_le_one_or_one_le {a : 𝕜} {n m : ℤ}
+    (h : 1 ≤ a ∧ n ≤ m ∨ 0 < a ∧ a ≤ 1 ∧ m ≤ n) :
+    a ^ n ≤ a ^ m := by
+  rcases h with ⟨a1, nm⟩ | ⟨a0, a1, mn⟩
+  · exact zpow_le_of_le a1 nm
+  · exact zpow_anti a0 a1 mn
+
+end ZPow

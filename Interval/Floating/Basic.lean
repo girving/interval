@@ -6,6 +6,7 @@ import Interval.Int64
 import Interval.UInt128
 import Interval.Misc.Int
 import Interval.Misc.Real
+import Interval.Misc.Decimal
 
 open Pointwise
 
@@ -228,6 +229,27 @@ lemma val_of_nonneg {x : Floating} (x0 : 0 ≤ x.val) :
 @[irreducible] def toFloat (x : Floating) : Float :=
   bif x == nan then Float.nan else x.n.toFloat.scaleB (x.s.toInt - 2^63)
 
+/-!
+### Print `Floating` in 7 significant digits, rounding down arbitrarily
+-/
+
+/-- Convert to `Decimal` with a given precision and rounding. Ignores `nan` and takes `abs`. -/
+@[irreducible] def decimal (x : Floating) (prec : ℕ) (up : Bool) : Decimal :=
+  .ofBinary x.n.toInt (x.s.toInt - 2^63) prec up
+
+/-- `decimal` rounds down if desired -/
+lemma decimal_le (x : Floating) (prec : ℕ) : (x.decimal prec false).val ≤ x.val := by
+  rw [decimal, val]
+  apply Decimal.ofBinary_le
+
+/-- `decimal` rounds up if desired -/
+lemma le_decimal (x : Floating) (prec : ℕ) : x.val ≤ (x.decimal prec true).val := by
+  rw [decimal, val]
+  apply Decimal.le_ofBinary
+
 /-- We print `Fixed s` as an approximate floating point number -/
 instance : Repr Floating where
-  reprPrec x _ := x.toFloat.toStringFull
+  reprPrec x _ :=
+    bif x == nan then "nan" else
+    let y := x.n.toInt
+    toString (repr (Decimal.ofBinary y (x.s.toInt - 2^63) 7 false))

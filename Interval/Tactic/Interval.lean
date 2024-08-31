@@ -123,9 +123,13 @@ def close (g : MVarId) (tac : Lean.Syntax) : TacticM Unit := do
 instance : Lean.ToMessageData Ineq where
   toMessageData i := i.str
 
+/-- Necessary to avoid kernel errors for some reason -/
+@[irreducible] def _root_.Interval.toMessageData (x : Interval) : Lean.MessageData :=
+  .ofFormat (repr x)
+
 /-- Delegate `toMessageData` to `repr` for `Interval` -/
 instance : Lean.ToMessageData Interval where
-  toMessageData x := reprStr x
+  toMessageData x := x.toMessageData
 
 /-- Unsafe native evaluation of interval expressions -/
 unsafe def eval (x : Q(Interval)) : MetaM Interval :=
