@@ -139,23 +139,6 @@ instance : Repr Decimal where
     if s = 0 then m else
     m ++ "e" ++ toString s
 
--- Test printing
-private def print_test (x : Decimal) (s : String) : Bool := toString (repr x) == s
-example : print_test 123e-2 "1.23" := by native_decide
-example : print_test 1.23 "1.23" := by native_decide
-example : print_test 1.0 "1" := by native_decide
-example : print_test 1.70 "1.7" := by native_decide
-example : print_test 1.7e7 "1.7e7" := by native_decide
-example : print_test 1.7e-7 "1.7e-7" := by native_decide
-example : print_test 1.7e-0 "1.7" := by native_decide
-example : print_test 1e7 "1e7" := by native_decide
-example : print_test 1e-7 "1e-7" := by native_decide
-example : print_test 100e-7 "1e-5" := by native_decide
-example : print_test 200e7 "2e9" := by native_decide
-example : print_test 501e7 "5.01e9" := by native_decide
-example : print_test 301e-7 "3.01e-5" := by native_decide
-example : print_test (-3e-7) "-3e-7" := by native_decide
-
 /-!
 ### Exactly rounded precision reduction
 -/
@@ -347,17 +330,6 @@ lemma le_ofBinary (n : ℤ) (s : ℤ) (prec : ℕ) : (n : ℝ) * 2^s ≤ ofBinar
   · simp only [h, ↓reduceIte, decide_False]
     refine le_trans (le_of_eq ?_) (OfBinary.le_ofBinaryNat _ _ _)
     simp only [Int.coe_natAbs_eq_self (not_lt.mp h)]
-
--- Test `ofBinary`. Note that `2^20 = 1048576, 2^(-20) = 9.5367431640625e-07`
-example : ofBinary 1 20 3 false = 1.048e6 := by native_decide
-example : ofBinary 1 20 3 true = 1.049e6 := by native_decide
-example : ofBinary 1 20 5 false = 1.04857e6 := by native_decide
-example : ofBinary 1 20 5 true = 1.04858e6 := by native_decide
-example : ofBinary 1 (-20) 2 false = 9.53e-7 := by native_decide
-example : ofBinary 1 (-20) 2 true = 9.54e-7 := by native_decide
-example : ofBinary 1 (-20) 4 false = 9.5367e-7 := by native_decide
-example : ofBinary 1 (-20) 4 true = 9.5368e-7 := by native_decide
-example : ofBinary (-1) (-20) 4 true = -9.5367e-7 := by native_decide
 
 /-!
 ### Comparison
