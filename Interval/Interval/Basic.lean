@@ -73,6 +73,10 @@ instance : One Interval where
 /-- The width of an interval -/
 def size (x : Interval) : Floating := x.hi.sub x.lo true
 
+/-- Use `nan` for `Inhabited` to indicate an error -/
+instance : Inhabited Interval where
+  default := nan
+
 /-!
 #### Basic lemmas
 -/
