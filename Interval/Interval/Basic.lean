@@ -181,7 +181,8 @@ lemma approx_decimalBall (x : Interval) (n : x ≠ nan) : approx x ⊆ approx x.
   refine subset_trans (x.approx_decimal 25 n) (subset_trans ?_ (Decimal.Ball.approx_prec _ _))
   simp only [Decimal.Interval.approx_ball, subset_refl]
 
-/-- We print `Interval` as an approximate floating point interval -/
+/-- We print `Interval` conservatively as `value ± error`/
+Uses a verified implementation to compute these values. -/
 instance : Repr Interval where
   reprPrec x p :=
     bif x == nan then "nan" else
