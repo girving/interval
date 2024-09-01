@@ -1,18 +1,17 @@
 import Interval.Series
 
-
-open Interval
-
 /-!
-### Unit tests for Interval: `exp`, `log` and `pow`
+### Unit tests for series computations: `exp`, `log` and `pow`
 
 We test only the width of the resulting intervals, since their correctness is proved above.
 
 I'm not happy with the precision we reach, but I will set debugging that aside for now.
 -/
 
+open Interval
+
 /-- `exp` series tests (for small `x`) -/
-def exp_series_test (x : ℚ) (e : Float := 1e-17) : Bool :=
+def exp_series_test (x : ℚ) (e : Float := 4e-19) : Bool :=
   (exp_series_16.eval (.ofRat x)).size.toFloat < e
 lemma exp_series_test1 : exp_series_test 0 := by native_decide
 lemma exp_series_test2 : exp_series_test (1/7) := by native_decide
@@ -21,7 +20,7 @@ lemma exp_series_test4 : exp_series_test 0.34656 := by native_decide
 lemma exp_series_test5 : exp_series_test (-0.34656) := by native_decide
 
 /-- `log1p_div` series tests (for small `x`) -/
-def log1p_div_series_test (x : ℚ) (e : Float := 2e-17) : Bool :=
+def log1p_div_series_test (x : ℚ) (e : Float := 3e-18) : Bool :=
   (log1p_div_series_38.eval (.ofRat x)).size.toFloat < e
 lemma log1p_div_series_test1 : log1p_div_series_test 0 := by native_decide
 lemma log1p_div_series_test2 : log1p_div_series_test (1/7) := by native_decide
@@ -35,12 +34,12 @@ lemma untrusted_inv_log_2_test : untrusted_inv_log_2.toFloat * 0.693147180559945
   native_decide
 
 /-- `exp` tests -/
-def exp_test (x : ℚ) (e : Float) : Bool :=
+def exp_test (x : ℚ) (e : Interval) : Bool :=
   let y := (Interval.ofRat x).exp
-  y.size.toFloat ≤ e * y.lo.toFloat
-example : exp_test 0 1e-18 := by native_decide
-example : exp_test 10 1e-16 := by native_decide
-example : exp_test (-10) 1e-15 := by native_decide
+  y.size ≤ e.hi.mul y.lo true
+example : exp_test 0 3.3e-19 := by native_decide
+example : exp_test 10 4e-17 := by native_decide
+example : exp_test (-10) 6e-17 := by native_decide
 
 /-- `log` tests -/
 def log_test (x : ℚ) (e : Float) : Bool := (Interval.ofRat x).log.size.toFloat ≤ e

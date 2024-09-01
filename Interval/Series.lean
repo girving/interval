@@ -22,47 +22,57 @@ open scoped Real
 -/
 
 /-- Sum an `Interval` Taylor series, spitting out `x^n` and the result.
-    For now, we use a slow linear loop. -/
-@[irreducible] def taylor_sum' (c : Array (Interval)) (x p t : Interval) (offset steps : ℕ)
+    For now, we use a slow linear loop. We add smaller terms together first to improve precision. -/
+def taylor_sum' (c : Array Interval) (x p e : Interval) (offset steps : ℕ)
     (_ : offset + steps ≤ c.size) :
     Interval :=
   match steps with
-  | 0 => t
-  | steps+1 => taylor_sum' c x (p * x) (t + c[offset]'(by omega) * p) (offset+1) steps (by omega)
+  | 0 => e
+  | steps+1 => c[offset]'(by omega) * p + taylor_sum' c x (p * x) e (offset+1) steps (by omega)
 
 /-- Sum an `Interval` Taylor series -/
-@[irreducible] def taylor_sum (c : Array (Interval)) (x : Interval) : Interval :=
-  taylor_sum' c x 1 0 0 c.size (by omega)
+@[irreducible] def taylor_sum (c : Array Interval) (x e : Interval) : Interval :=
+  taylor_sum' c x 1 e 0 c.size (by omega)
 
 /-- `taylor_sum'` is conservative -/
-lemma approx_taylor_sum' (c : Array (Interval)) (c' : ℕ → ℝ) (x p t : Interval) (x' p' t' : ℝ)
+lemma approx_taylor_sum' (c : Array Interval) (c' : ℕ → ℝ) (x p e : Interval) (x' p' e' : ℝ)
     (offset steps : ℕ) (os : offset + steps ≤ c.size)
     (ac : ∀ k : Fin c.size, c' k ∈ approx (c[k]))
-    (xx : x' ∈ approx x) (pp : p' ∈ approx p) (tt : t' ∈ approx t) :
-    t' + ∑ k in Finset.range steps, c' (offset + k) * p' * x' ^ k ∈
-      approx (taylor_sum' c x p t offset steps os) := by
-  induction' steps with steps h generalizing p p' t t' offset
-  · rw [taylor_sum']; simp only [Nat.zero_eq, Finset.range_zero, Finset.sum_empty, add_zero, tt]
-  · rw [taylor_sum']
-    simp only [Finset.sum_range_succ', pow_zero, mul_one, add_zero, add_comm (Finset.sum _ _),
-      ←add_assoc, pow_succ, ←mul_assoc _ x', mul_assoc _ _ x', add_right_comm _ _ (1:ℕ)]
-    conv =>
-      left; right; right; ext
-      conv => right; rw [mul_comm]
-      conv => rw [mul_assoc]; right; rw [←mul_assoc]
-      rw [←mul_assoc]
-    apply h
-    · exact mem_approx_mul pp xx
-    · exact mem_approx_add tt (mem_approx_mul (ac ⟨_, by omega⟩) pp)
+    (xx : x' ∈ approx x) (pp : p' ∈ approx p) (ee : e' ∈ approx e) :
+    (∑ k in Finset.range steps, c' (offset + k) * p' * x' ^ k) + e' ∈
+      approx (taylor_sum' c x p e offset steps os) := by
+  induction' steps with steps h generalizing p p' offset
+  · simp only [Finset.range_zero, Finset.sum_empty, add_zero, taylor_sum', zero_add]
+    approx
+  · simp only [Finset.sum_range_succ', pow_zero, mul_one, add_zero, add_comm (Finset.sum _ _),
+      ← add_assoc, pow_succ, ←mul_assoc _ x', mul_assoc _ _ x', add_right_comm _ _ (1:ℕ),
+      taylor_sum']
+    simp only [add_assoc _ _ e']
+    apply mem_approx_add (mem_approx_mul (ac ⟨offset, by omega⟩) pp)
+    specialize h (p * x) (p' * x') (offset + 1) (by omega) (by approx)
+    simp only [mul_assoc, mul_comm (x' ^ _)] at h ⊢
+    exact h
 
 /-- `taylor_sum` is conservative -/
-lemma approx_taylor_sum (c : Array (Interval)) (c' : ℕ → ℝ) (x : Interval) (x' : ℝ)
-    (ac : ∀ k : Fin c.size, c' k ∈ approx (c[k])) (xx : x' ∈ approx x) :
-    ∑ k in Finset.range c.size, c' k * x' ^ k ∈ approx (taylor_sum c x) := by
-  have h := approx_taylor_sum' c c' x 1 0 x' 1 0 0 c.size (by omega) ac xx
+lemma approx_taylor_sum (c : Array Interval) (c' : ℕ → ℝ) (x e : Interval) (x' e' : ℝ)
+    (ac : ∀ k : Fin c.size, c' k ∈ approx (c[k])) (xx : x' ∈ approx x) (ee : e' ∈ approx e) :
+    (∑ k in Finset.range c.size, c' k * x' ^ k) + e' ∈ approx (taylor_sum c x e) := by
+  have h := approx_taylor_sum' c c' x 1 e x' 1 e' 0 c.size (by omega) ac xx (by approx) ee
   simp only [Interval.approx_one, Interval.approx_zero, mem_singleton_iff, zero_add, mul_one,
     forall_true_left] at h
-  rw [taylor_sum]; exact h
+  rw [taylor_sum]
+  exact h
+
+/-- `taylor_sum'` propagates `nan` -/
+@[simp] lemma taylor_sum_nan' (c : Array Interval) (x p : Interval) (offset steps : ℕ)
+    (h : offset + steps ≤ c.size) : taylor_sum' c x p nan offset steps h = nan := by
+  induction' steps with steps n generalizing p offset
+  · simp [taylor_sum']
+  · rw [taylor_sum', n _ _ (by omega), Interval.add_nan]
+
+/-- `taylor_sum` propagates `nan` -/
+@[simp] lemma taylor_sum_nan (c : Array Interval) (x : Interval) : taylor_sum c x nan = nan := by
+  rw [taylor_sum]; simp
 
 /-!
 ### Generic `Series` machinery
@@ -73,7 +83,7 @@ structure Series where
   /-- Lower bound on the radius of accuracy -/
   radius : Floating
   /-- Power series coefficients -/
-  coeffs : Array (Interval)
+  coeffs : Array Interval
   /-- Upper bound on the error within `[-r,r]` -/
   error : Floating
 
@@ -81,7 +91,7 @@ structure Series where
 @[irreducible] def Series.eval (p : Series) (x : Interval) : Interval :=
   let a := x.abs
   bif a.hi == nan || p.radius < a.hi then nan else
-  (taylor_sum p.coeffs x).grow p.error
+  taylor_sum p.coeffs x ((0 : Interval).grow p.error)
 
 /-- `Series` objects approximate functions -/
 instance : Approx Series (ℝ → ℝ) where
@@ -118,7 +128,10 @@ lemma Series.approx_of_taylor (p : Series) (f : ℝ → ℝ) (a : ℕ → ℝ) (
   specialize pf rn x xa
   simp only [eval, bif_eq_if, Floating.val_lt_val, not_lt.mpr ry, decide_False, Bool.or_false,
     beq_iff_eq, Interval.hi_eq_nan, Interval.abs_eq_nan, yn', ite_false]
-  exact Interval.approx_grow pf be (approx_taylor_sum _ _ _ _ ac xy)
+  rw [← add_sub_cancel (∑ n in Finset.range p.coeffs.size, a n * x ^ n) (f x)]
+  apply approx_taylor_sum _ _ _ _ _ _ ac xy
+  rw [← sub_zero (f x - ∑ n in Finset.range p.coeffs.size, a n * x ^ n)] at pf
+  exact Interval.approx_grow pf be (by approx)
 
 /-!
 ### `Series` approximations for `exp` and `log`
@@ -151,9 +164,8 @@ lemma approx_exp_series (n : ℕ) : Real.exp ∈ approx (exp_series n) := by
       rw [exp_series]
       simp only [beq_self_eq_true, pow_zero, CharP.cast_eq_zero, zero_add, Nat.factorial_zero,
         Nat.cast_one, mul_zero, div_zero, cond_true]
-    simp only [n0, Series.eval, bif_eq_if, Floating.val_lt_val, Bool.or_eq_true, beq_iff_eq,
-      Interval.hi_eq_nan, Interval.abs_eq_nan, decide_eq_true_eq, e, Interval.grow_nan, ite_self,
-      Interval.approx_nan, mem_univ]
+    simp only [n0, Series.eval, Floating.val_lt_val, e, Interval.grow_nan, taylor_sum_nan,
+      Bool.cond_self, Interval.approx_nan, mem_univ]
   · apply (exp_series n).approx_of_taylor
     · intro rn x xr
       rw [exp_series] at xr rn; simp only at xr
