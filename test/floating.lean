@@ -1,6 +1,6 @@
 import Interval
 
-open Interval
+open Floating
 
 /-!
 ### Unit tests

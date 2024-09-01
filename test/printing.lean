@@ -1,7 +1,9 @@
-import Interval
+import Interval.Interval.Basic
+import Interval.Interval.Conversion
+import Interval.Series
+import Mathlib.Tactic.Basic
 
-open Interval
-
+section Decimal
 
 /-!
 ## Print `Decimal`
@@ -24,7 +26,6 @@ example : Decimal.print_test 501e7 "5.01e9" := by native_decide
 example : Decimal.print_test 301e-7 "3.01e-5" := by native_decide
 example : Decimal.print_test (-3e-7) "-3e-7" := by native_decide
 
-
 /--
 info: 3.01e-5
 -/
@@ -41,13 +42,16 @@ info: 1.23456789012341234123412341234123412341234234123412341234123412341234e9
 #guard_msgs in #eval (
     1234567890.12341234123412341234123412341234234123412341234123412341234 : Decimal)
 
+end Decimal
+
 
 /-!
 ## Print `Interval`
 -/
 
+section Interval
+
 -- #eval repr (0 : Interval) -- STACK OVERFLOW
-#eval (0 : Interval) + (1 : Interval)
 
 private def Interval.print (x : Interval) : String := toString (repr x)
 
@@ -82,3 +86,5 @@ info: 1.23456789012341234122e9 ± 1.3e-10
 -/
 #guard_msgs in #eval (
     1234567890.12341234123412341234123412341234234123412341234123412341234 : Interval)
+
+end Interval

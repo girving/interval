@@ -1,5 +1,4 @@
-import Interval
-import Mathlib.Tactic.Basic
+import Interval.Series
 
 open Real in
 /-- Arbitrary function that uses a lot of definitions from the library. -/

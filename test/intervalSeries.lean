@@ -1,4 +1,4 @@
-import Interval
+import Interval.Series
 
 
 open Interval

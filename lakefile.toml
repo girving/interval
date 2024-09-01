@@ -1,5 +1,7 @@
 name = "interval"
 defaultTargets = ["Interval"]
+testDriver = "IntervalTest"
+
 
 [leanOptions]
 pp.unicode.fun = true
@@ -12,3 +14,8 @@ scope = "leanprover-community"
 
 [[lean_lib]]
 name = "Interval"
+
+[[lean_lib]]
+name = "IntervalTest"
+globs = ["test.+"]
+leanOptions = {linter.unusedVariables = false}
