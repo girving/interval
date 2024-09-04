@@ -51,11 +51,9 @@ end Decimal
 
 section Interval
 
--- #eval repr (0 : Interval) -- STACK OVERFLOW
-
 private def Interval.print (x : Interval) : String := toString (repr x)
 
--- #eval Interval.print 0 == "0"
+#guard Interval.print 0 == "0"
 #guard Interval.print nan == "nan"
 #guard Interval.print 1 == "1"
 #guard Interval.print 1.0 == "1"
