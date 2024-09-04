@@ -285,6 +285,7 @@ lemma exists_t' (n : ℕ) (s : ℤ) (t : ℤ) (prec : ℕ) (up : Bool) :
 
 /-- Convert binary to `Decimal`, rounding to a desired decimal precision -/
 def ofBinaryNat (n : ℕ) (s : ℤ) (prec : ℕ) (up : Bool) : Decimal :=
+  bif n == 0 then 0 else
   let t := t_underestimate n s prec
   let t := t + Nat.find (exists_t' n s t prec up)
   ⟨m_of_t n s t up, t⟩
@@ -292,14 +293,20 @@ def ofBinaryNat (n : ℕ) (s : ℤ) (prec : ℕ) (up : Bool) : Decimal :=
 /-- `ofBinaryNat` rounds down if desired -/
 lemma ofBinaryNat_le (n : ℕ) (s : ℤ) (prec : ℕ) : ofBinaryNat n s prec false ≤ (n : ℝ) * 2^s := by
   simp only [ofBinaryNat, Decimal.val_eq]
-  rw [← le_div_iff (by positivity)]
-  apply m_of_t_le
+  by_cases n0 : n = 0
+  · simp [n0, zero_def]
+  · simp only [bif_eq_if, beq_iff_eq, n0, ↓reduceIte, Int.cast_natCast]
+    rw [← le_div_iff (by positivity)]
+    apply m_of_t_le
 
 /-- `ofBinaryNat` rounds up if desired -/
 lemma le_ofBinaryNat (n : ℕ) (s : ℤ) (prec : ℕ) : (n : ℝ) * 2^s ≤ ofBinaryNat n s prec true := by
   simp only [ofBinaryNat, Decimal.val_eq]
-  rw [← div_le_iff (by positivity)]
-  apply le_m_of_t
+  by_cases n0 : n = 0
+  · simp [n0, zero_def]
+  · simp only [bif_eq_if, beq_iff_eq, n0, ↓reduceIte, Int.cast_natCast]
+    rw [← div_le_iff (by positivity)]
+    apply le_m_of_t
 
 end OfBinary
 
@@ -432,6 +439,9 @@ structure Ball : Type where
 
 instance : Approx Interval ℝ where approx x := Icc x.lo x.hi
 instance : Approx Ball ℝ where approx x := Icc (x.c - x.r) (x.c + x.r)
+
+instance : Zero Interval where zero := ⟨0, 0, le_refl _⟩
+instance : Zero Ball where zero := ⟨0, 0, by simp only [val_zero, le_refl]⟩
 
 def Interval.mk' (x y : Decimal) : Interval :=
   if h : x ≤ y then ⟨x, y, by simpa [le_iff] using h⟩
