@@ -1,4 +1,8 @@
-import Interval
+import Interval.Misc.Decimal
+
+/-!
+# Unit tests for `Decimal`
+-/
 
 open Decimal
 

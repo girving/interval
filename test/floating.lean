@@ -1,13 +1,13 @@
-import Interval
-
-open Floating
+import Interval.Floating.Log2
 
 /-!
-### Unit tests
+### Unit tests for `Floating`
 
 For now we only test `Floating.log2`, not prove it correct.  We can add the
 proofs if we start using it in trusted settings.
 -/
+
+open Floating
 
 example : log2 (ofNat (2^157) false) == 157 := by native_decide
 example : log2 (ofInt (-2^157) false) == 157 := by native_decide

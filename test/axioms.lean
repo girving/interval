@@ -1,5 +1,9 @@
 import Interval.Series
 
+/-!
+# Verify that `Interval` proofs do not depend on `native_decide`
+-/
+
 open Real in
 /-- Arbitrary function that uses a lot of definitions from the library. -/
 noncomputable def f (x : ℝ) : ℝ :=
@@ -10,12 +14,12 @@ open Interval in
 def Interval.f (x : Interval) : Interval :=
   2 * x + (1 / x) + x⁻¹ + exp x + log x + x.pow 6 + x * x
 
-lemma example_lemma_noNativedecide (x : ℝ) (x' : Interval) (hx : x ∈ approx x') :
+lemma without_native_decide (x : ℝ) (x' : Interval) (hx : x ∈ approx x') :
     f x ∈ approx (x'.f) := by
   simp only [f, Interval.f]
   approx
 
-/-- info: 'example_lemma_noNativedecide' depends on axioms:
+/-- info: 'without_native_decide' depends on axioms:
 [propext, Classical.choice, Quot.sound]
 -/
-#guard_msgs in #print axioms example_lemma_noNativedecide
+#guard_msgs in #print axioms without_native_decide

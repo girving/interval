@@ -1,10 +1,10 @@
-import Interval
-
-open Interval
+import Interval.Division
 
 /-!
-### Division
+### Division unit tests
 -/
+
+open Interval
 
 /-- We don't verify anything about `inv_guess`, but we do need some tests -/
 def guess_test (x : Float) (e : Float := 1e-10) : Bool :=
@@ -16,7 +16,6 @@ example : guess_test 0.999 (1e-9) := by native_decide
 example : guess_test 0.67862 := by native_decide
 example : guess_test 1e-4 := by native_decide
 example : guess_test 7 := by native_decide
-
 
 /-- `Interval.inv` is provably conservative, but we need to test that it's accurate -/
 def inv_test (l h : Float) (e : Float := 1e-100) : Bool :=
