@@ -27,10 +27,10 @@ private def repr_test (x : Interval) : String := reprStr x
 #guard repr_test 501e7 == "5.01e9"
 #guard repr_test 301e-7 == "3.00999999999999999994e-5 ± 1.8e-24"
 #guard repr_test (-3e-7) == "-2.99999999999999999996e-7 ± 2.7e-26"
-#guard repr_test (.exp 1) == "2.718281828459045235 ± 1.2e-17"
+#guard repr_test (.exp 1) == "2.71828182845904523542 ± 2.3e-19"
 
 /--
-info: 2.718281828459045235 ± 1.2e-17
+info: 2.71828182845904523542 ± 2.3e-19
 -/
 #guard_msgs in
 #eval Interval.exp 1

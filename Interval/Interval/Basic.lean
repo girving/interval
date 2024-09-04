@@ -317,6 +317,13 @@ instance : Union Interval where
   simp only [Union.union, lo_nan, Floating.val_le_val, Floating.val_nan_le, min_eq_left,
     hi_nan, Floating.nan_max, ext_iff, and_self]
 
+/-- Union propagates `nan` -/
+lemma ne_nan_of_union {x y : Interval} (n : x ∪ y ≠ nan) : x ≠ nan ∧ y ≠ nan := by
+  contrapose n
+  simp only [ne_eq, not_not, not_and_or] at n ⊢
+  rcases n with n | n
+  all_goals simp [n]
+
 /-- `union` is commutative -/
 lemma union_comm {x y : Interval} : x ∪ y = y ∪ x := by
   simp only [Union.union, ext_iff, min_comm, Floating.max_comm]

@@ -2,6 +2,7 @@ import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import Interval.Division
 import Interval.Floating.Floor
 import Interval.Floating.Log2
+import Interval.Interval.Constants
 import Interval.Interval.Conversion
 import Interval.Interval.Scale
 import Interval.Misc.Array
@@ -278,38 +279,6 @@ lemma approx_log1p_div_series (n : ℕ) : log1p_div ∈ approx (log1p_div_series
 @[irreducible] def log1p_div_series_38 := log1p_div_series 38
 
 /-!
-### `log 2` and `(log 2)⁻¹` estimates
-
-We need these for argument reduction in `exp` and `log` below, and in particular need to derive
-them before we've done the general argument reduction.
--/
-
-/-- `log 2` -/
-@[irreducible] def Interval.log_2 : Interval :=
-  -- log 2 = 2 * log (4/3) + log (9/8) = 2/3 * log1p_div (1/3) + 1/8 * log1p_div (1/8)
-  .ofRat (2/3) * log1p_div_series_38.eval (ofRat (1/3)) +
-    .ofRat (1/8) * log1p_div_series_38.eval (ofRat (1/8))
-
-/-- Untrusted rational approximation to `(log 2)⁻¹` -/
-@[irreducible] def untrusted_inv_log_2 : Floating :=
-  .ofRat (1 / 0.693147180559945309417232121458) false
-
-/-- Untrusted rational approximation to `(log 2)⁻¹ / 2` -/
-@[irreducible] def untrusted_inv_log_2_div_2 : Floating :=
-  .ofRat (0.5 / 0.693147180559945309417232121458) false
-
-/-- `Interval.log_2` is conservative -/
-@[approx] lemma Interval.approx_log_2 : Real.log 2 ∈ approx Interval.log_2 := by
-  have e : Real.log 2 = 2/3 * log1p_div (1/3) + 1/8 * log1p_div (1/8) := by
-    simp only [log1p_div, one_div, inv_eq_zero, OfNat.ofNat_ne_zero, div_inv_eq_mul,
-      mul_comm (Real.log _), ite_false, ← mul_assoc, ne_eq, not_false_eq_true, div_mul_cancel,
-      inv_mul_cancel, one_mul]
-    rw [← Real.log_rpow, ← Real.log_rpow, ← Real.log_mul]
-    all_goals norm_num
-  rw [Interval.log_2, e, log1p_div_series_38]
-  approx
-
-/-!
 ### `exp x` for arbitrary `x`, via argument reduction
 
 To compute `exp x`, we choose `n` s.t. `y = x - n log 2 ∈ [-log 2 / 2, log 2 / 2]`, compute `exp y`
@@ -324,9 +293,8 @@ via Taylor series, and form `exp x = exp (y + n log 2) = exp y * 2^n` via shifti
   --   `x / log 2 - n ∈ [-1/2, 1/2]`
   --   `n ∈ x/log 2 + [-1/2, 1/2]`
   --   `n = floor(x/log 2 + 1/2)`
-  -- We're not going to trust that `n` is correct, so we needn't trust our `(log 2)⁻¹` estimate.
-  let n := ((x.mul untrusted_inv_log_2 false).add (.ofRat (1/2) false) false).floor
-  let y : Interval := x - Interval.log_2.mul_float n
+  let n := ((x.mul Floating.inv_log_two false).add (.ofRat (1/2) false) false).floor
+  let y : Interval := x - Interval.log_two.mul_float n
   (exp_series_16.eval y).scaleB' n
 
 /-- `exp x` for potentially large `x`, via argument reduction -/
@@ -337,7 +305,7 @@ via Taylor series, and form `exp x = exp (y + n log 2) = exp y * 2^n` via shifti
 @[approx] lemma Floating.mem_approx_exp {x : Floating} {x' : ℝ} (xm : x' ∈ approx x) :
     Real.exp x' ∈ approx x.exp := by
   rw [Floating.exp]
-  generalize hn : floor ((mul x untrusted_inv_log_2 false).add (ofRat (1 / 2) false) false) = n
+  generalize hn : floor ((mul x Floating.inv_log_two false).add (ofRat (1 / 2) false) false) = n
   simp only [bif_eq_if, beq_iff_eq]
   by_cases xn : x = nan
   · simp only [xn, Interval.coe_nan, Interval.nan_sub, Series.eval_nan, ite_true,
@@ -400,7 +368,7 @@ set the final precision.
   bif x ≤ 0 then nan else
   let n := x.untrusted_log_shift
   let y := ((x : Interval).scaleB' (-n)) - 1
-  y * log1p_div_series_38.eval y + Interval.log_2.mul_float n
+  y * log1p_div_series_38.eval y + Interval.log_two.mul_float n
 
 /-- `log x` for arbitrary `x`, via argument reduction -/
 @[irreducible] def Interval.log (x : Interval) : Interval :=
