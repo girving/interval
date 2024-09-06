@@ -35,39 +35,48 @@ lemma Convert.n_mod (x : Convert) : x.n % 2^64 = x.n := by
   norm_num only at h ⊢
   omega
 
+/-- `Convert.finish` is valid` -/
+lemma Convert.valid_finish (x : Convert) : Valid ⟨x.n⟩ x.s where
+  zero_same := by
+    intro n0; contrapose n0; clear n0
+    simp only [Int64.ext_iff, Int64.n_zero, UInt64.eq_zero_iff_toNat_eq_zero, UInt64.toNat_cast,
+      UInt64.size_eq_pow, e]
+    have h := x.norm
+    norm_num [mem_Ico] at h
+    omega
+  nan_same := by
+    intro nm; contrapose nm; clear nm
+    simp only [Int64.ext_iff, Int64.n_min, UInt64.eq_iff_toNat_eq, UInt64.toNat_cast,
+      UInt64.size_eq_pow, UInt64.toNat_2_pow_63, e]
+    have h := x.norm
+    norm_num [mem_Ico] at h ⊢
+    omega
+  norm := by
+    intro _ _ _
+    have h := x.norm
+    simp only [mem_Ico] at h
+    have e : x.n % 2^64 = x.n := x.n_mod
+    rw [Int64.abs_eq_self']
+    · simp only [UInt64.le_iff_toNat_le, up62, UInt64.toNat_cast, UInt64.size_eq_pow, e,
+        x.norm.1]
+    · simp only [Int64.isNeg_eq_le, UInt64.toNat_cast, UInt64.size_eq_pow, e,
+        decide_eq_false_iff_not, not_le, x.norm.2]
+  where
+  e : x.n % 2^64 = x.n := x.n_mod
+
 /-- Build a `Floating` out of `n * 2^(s - 2^63)`, rounding if required -/
 @[irreducible] def Convert.finish (x : Convert) (up : Bool) : Floating :=
-  if s0 : x.s < 0 then bif up then min_norm else 0 else
+  if x.s < 0 then bif up then min_norm else 0 else
   if 2^64 ≤ x.s then nan else
-  have e : x.n % 2^64 = x.n := x.n_mod
   { n := ⟨x.n⟩
     s := x.s
-    zero_same := by
-      intro n0; contrapose n0; clear n0
-      simp only [Int64.ext_iff, Int64.n_zero, UInt64.eq_zero_iff_toNat_eq_zero, UInt64.toNat_cast,
-        UInt64.size_eq_pow, e]
-      have h := x.norm
-      norm_num [mem_Ico] at h
-      omega
-    nan_same := by
-      intro nm; contrapose nm; clear nm
-      simp only [Int64.ext_iff, Int64.n_min, UInt64.eq_iff_toNat_eq, UInt64.toNat_cast,
-        UInt64.size_eq_pow, UInt64.toNat_2_pow_63, e]
-      have h := x.norm
-      norm_num [mem_Ico] at h ⊢
-      omega
-    norm := by
-      intro _ _ _
-      have h := x.norm
-      simp only [mem_Ico] at h
-      rw [Int64.abs_eq_self']
-      · simp only [UInt64.le_iff_toNat_le, up62, UInt64.toNat_cast, UInt64.size_eq_pow, e, x.norm.1]
-      · simp only [Int64.isNeg_eq_le, UInt64.toNat_cast, UInt64.size_eq_pow, e,
-          decide_eq_false_iff_not, not_le, x.norm.2] }
+    v := x.valid_finish }
+
+lemma valid_convert_tweak : 2 ^ 62 ∈ Ico (2 ^ 62) (2 ^ 63) := by decide
 
 /-- Build a `Floating` out of `n * 2^(s - 2^63)`, rounding if required -/
 @[irreducible] def convert_tweak (n : ℕ) (s : ℤ) (norm : n ∈ Icc (2^62) (2^63)) : Convert :=
-  if e : n = 2^63 then ⟨2^62, s + 1, by decide⟩
+  if e : n = 2^63 then ⟨2^62, s + 1, valid_convert_tweak⟩
   else ⟨n, s, norm.1, norm.2.lt_of_ne e⟩
 
 /-- `Convert.finish` is correct -/
@@ -136,23 +145,29 @@ lemma approx_convert {a : ℝ} {n : ℕ} {s : ℤ} {norm : n ∈ Icc (2^62) (2^6
 ## Conversion from `ℕ`
 -/
 
+lemma ofNat_norm {n : ℕ} {up : Bool}
+    : let t := n.log2
+      let s := t - 62
+      ¬t ≤ 62 → n.shiftRightRound s up ∈ Icc (2 ^ 62) (2 ^ 63) := by
+  intro t s t62
+  simp only [Nat.shiftRightRound_eq_rdiv, mem_Icc]
+  by_cases n0 : n = 0
+  · simp only [t, n0, Nat.log2_zero, zero_le, not_true_eq_false] at t62
+  · constructor
+    · apply Nat.le_rdiv_of_mul_le (pow_pos (by norm_num) _)
+      rw [←pow_add, ←Nat.le_log2 n0]
+      omega
+    · refine Nat.rdiv_le_of_le_mul (le_trans Nat.lt_log2_self.le ?_)
+      rw [←pow_add]
+      exact pow_le_pow_right (by norm_num) (by omega)
+
 /-- Conversion from `ℕ` to `Floating`, rounding up or down -/
 @[irreducible] def ofNat (n : ℕ) (up : Bool) : Floating :=
   let t := n.log2
   -- If `t ≤ 62`, use `of_ns` to shift left.  If `t > 62`, shift right.
   if t62 : t ≤ 62 then of_ns n (2^63) else
   let s := t - 62
-  let x := convert_tweak (n.shiftRightRound s up) (s + 2^63) (by
-    simp only [Nat.shiftRightRound_eq_rdiv, mem_Icc]
-    by_cases n0 : n = 0
-    · simp only [t, n0, Nat.log2_zero, zero_le, not_true_eq_false] at t62
-    · constructor
-      · apply Nat.le_rdiv_of_mul_le (pow_pos (by norm_num) _)
-        rw [←pow_add, ←Nat.le_log2 n0]
-        omega
-      · refine Nat.rdiv_le_of_le_mul (le_trans Nat.lt_log2_self.le ?_)
-        rw [←pow_add]
-        exact pow_le_pow_right (by norm_num) (by omega))
+  let x := convert_tweak (n.shiftRightRound s up) (s + 2^63) (ofNat_norm t62)
   x.finish up
 
 /-- Conversion from `ℕ` literals to `Floating`, rounding down arbitrarily.
@@ -215,13 +230,20 @@ lemma approx_ofNat (n : ℕ) (up : Bool) : ↑n ∈ rounds (approx (.ofNat n up 
       exact one_le_zpow_of_nonneg (by norm_num) (by omega)
 
 /-- `approx_ofNat`, down version -/
-lemma ofNat_le {n : ℕ} (h : (ofNat n false) ≠ nan) : (ofNat n false).val ≤ n := by
+lemma ofNat_le {n : ℕ} (h : ofNat n false ≠ nan) : (ofNat n false).val ≤ n := by
   simpa only [approx, h, ite_false, Bool.not_false, mem_rounds_singleton, ite_true] using
     approx_ofNat n false
 
 /-- `approx_ofNat`, up version -/
-lemma le_ofNat {n : ℕ} (h : (ofNat n true) ≠ nan) : n ≤ (ofNat n true).val := by
+lemma le_ofNat {n : ℕ} (h : ofNat n true ≠ nan) : n ≤ (ofNat n true).val := by
   simpa only [approx, h, ite_false, Bool.not_true, mem_rounds_singleton] using approx_ofNat n true
+
+/-- Combined version, for use in `Interval` construction -/
+lemma ofNat_le_ofNat {n : ℕ} (h : ofNat n true ≠ nan) :
+    (ofNat n false).val ≤ (ofNat n true).val := by
+  by_cases a : ofNat n false = nan
+  · simp only [a, val_le_val, val_nan_le]
+  · exact le_trans (ofNat_le a) (le_ofNat h)
 
 /-!
 ## Conversion from `ℤ`
@@ -257,9 +279,62 @@ lemma le_ofInt {n : ℤ} (h : (ofInt n true) ≠ nan) : n ≤ (ofInt n true).val
   simpa only [approx, h, ite_false, Bool.not_true, mem_rounds_singleton] using
     approx_ofInt n true
 
+/-- Combined version, for use in `Interval` construction -/
+lemma ofInt_le_ofInt {n : ℤ} (h : ofInt n true ≠ nan) :
+    (ofInt n false).val ≤ (ofInt n true).val := by
+  by_cases a : ofInt n false = nan
+  · simp only [a, val_le_val, val_nan_le]
+  · exact le_trans (ofInt_le a) (le_ofInt h)
+
 /-!
 ## Conversion from `ℚ`
 -/
+
+/-- `ofRat_abs` gives the right input to `convert_tweak` -/
+lemma ofRat_norm {x : ℚ} {up : Bool} (x0 : ¬x = 0)
+  : let r := x.log2
+    let n := x.num.natAbs
+    let p := if r ≤ 62 then (n <<< (62 - r).toNat, x.den) else (n, x.den <<< (r - 62).toNat)
+    p.1.rdiv p.2 up ∈ Icc (2 ^ 62) (2 ^ 63) := by
+  intro r n p
+  simp only [p, r, n, mem_Icc, Nat.shiftLeft_eq]
+  generalize hr : x.log2 = r
+  generalize hn : x.num.natAbs = n
+  have d0 : 0 < (x.den : ℚ) := Nat.cast_pos.mpr x.den_pos
+  have ae : (n : ℚ) / x.den = |x| := by rw [Rat.abs_eq_div, hn]
+  have t0 : (2 : ℚ) ≠ 0 := by norm_num
+  by_cases r62 : r ≤ 62
+  · simp only [r62, ite_true]
+    constructor
+    · apply Nat.le_rdiv_of_mul_le x.den_pos
+      simp only [←Nat.cast_le (α := ℚ), Nat.cast_mul, Nat.cast_pow, Nat.cast_two, ←zpow_natCast,
+        ←le_div_iff d0, ←div_mul_eq_mul_div, ae, ←div_le_iff two_zpow_pos]
+      simp only [←zpow_sub₀ t0, Int.toNat_of_nonneg (sub_nonneg.mpr r62)]
+      ring_nf; rw [←hr]
+      exact Rat.log2_self_le x0
+    · apply Nat.rdiv_le_of_le_mul
+      simp only [←Nat.cast_le (α := ℚ), Nat.cast_mul, Nat.cast_pow, Nat.cast_two, ←zpow_natCast,
+        ←div_le_iff d0, ←div_mul_eq_mul_div, ae, ←le_div_iff two_zpow_pos]
+      simp only [←zpow_sub₀ t0, Int.toNat_of_nonneg (sub_nonneg.mpr r62)]
+      ring_nf; rw [←hr, add_comm]
+      exact Rat.lt_log2_self.le
+  · simp only [r62, ite_false]
+    replace r62 := (not_le.mp r62).le
+    constructor
+    · apply Nat.le_rdiv_of_mul_le (mul_pos x.den_pos two_pow_pos)
+      simp only [←mul_assoc, mul_comm _ (2^(_:ℤ).toNat), ←pow_add, ←Nat.cast_le (α := ℚ),
+        ←le_div_iff d0, ae, Nat.cast_mul, Nat.cast_pow, Nat.cast_two]
+      simp only [←zpow_natCast, ←zpow_sub₀ t0, Int.toNat_of_nonneg (sub_nonneg.mpr r62),
+        Nat.cast_add]
+      ring_nf; rw [←hr]
+      exact Rat.log2_self_le x0
+    · apply Nat.rdiv_le_of_le_mul
+      simp only [←mul_assoc, mul_comm _ (2^(_:ℤ).toNat), ←pow_add, ←Nat.cast_le (α := ℚ),
+        ←div_le_iff d0, ae, Nat.cast_mul, Nat.cast_pow, Nat.cast_two]
+      simp only [←zpow_natCast, ←zpow_sub₀ t0, Int.toNat_of_nonneg (sub_nonneg.mpr r62),
+        Nat.cast_add]
+      ring_nf; rw [←hr, add_comm]
+      exact Rat.lt_log2_self.le
 
 /-- Conversion from `ℚ`, taking absolute values and rounding up or down -/
 @[irreducible, inline] def ofRat_abs (x : ℚ) (up : Bool) : Floating :=
@@ -272,45 +347,7 @@ lemma le_ofInt {n : ℤ} (h : (ofInt n true) ≠ nan) : n ≤ (ofInt n true).val
   --   `y = y * 2^(62 - r)`
   --   `s = r - 62 + 2^63`
   let p := if r ≤ 62 then (n <<< (62 - r).toNat, x.den) else (n, x.den <<< (r - 62).toNat)
-  let c := convert_tweak (p.1.rdiv p.2 up) (r - 62 + 2^63) (by
-    simp only [p, r, n, mem_Icc, Nat.shiftLeft_eq]
-    generalize hr : x.log2 = r
-    generalize hn : x.num.natAbs = n
-    have d0 : 0 < (x.den : ℚ) := Nat.cast_pos.mpr x.den_pos
-    have ae : (n : ℚ) / x.den = |x| := by rw [Rat.abs_eq_div, hn]
-    have t0 : (2 : ℚ) ≠ 0 := by norm_num
-    by_cases r62 : r ≤ 62
-    · simp only [r62, ite_true]
-      constructor
-      · apply Nat.le_rdiv_of_mul_le x.den_pos
-        simp only [←Nat.cast_le (α := ℚ), Nat.cast_mul, Nat.cast_pow, Nat.cast_two, ←zpow_natCast,
-          ←le_div_iff d0, ←div_mul_eq_mul_div, ae, ←div_le_iff two_zpow_pos]
-        simp only [←zpow_sub₀ t0, Int.toNat_of_nonneg (sub_nonneg.mpr r62)]
-        ring_nf; rw [←hr]
-        exact Rat.log2_self_le x0
-      · apply Nat.rdiv_le_of_le_mul
-        simp only [←Nat.cast_le (α := ℚ), Nat.cast_mul, Nat.cast_pow, Nat.cast_two, ←zpow_natCast,
-          ←div_le_iff d0, ←div_mul_eq_mul_div, ae, ←le_div_iff two_zpow_pos]
-        simp only [←zpow_sub₀ t0, Int.toNat_of_nonneg (sub_nonneg.mpr r62)]
-        ring_nf; rw [←hr, add_comm]
-        exact Rat.lt_log2_self.le
-    · simp only [r62, ite_false]
-      replace r62 := (not_le.mp r62).le
-      constructor
-      · apply Nat.le_rdiv_of_mul_le (mul_pos x.den_pos two_pow_pos)
-        simp only [←mul_assoc, mul_comm _ (2^(_:ℤ).toNat), ←pow_add, ←Nat.cast_le (α := ℚ),
-          ←le_div_iff d0, ae, Nat.cast_mul, Nat.cast_pow, Nat.cast_two]
-        simp only [←zpow_natCast, ←zpow_sub₀ t0, Int.toNat_of_nonneg (sub_nonneg.mpr r62),
-          Nat.cast_add]
-        ring_nf; rw [←hr]
-        exact Rat.log2_self_le x0
-      · apply Nat.rdiv_le_of_le_mul
-        simp only [←mul_assoc, mul_comm _ (2^(_:ℤ).toNat), ←pow_add, ←Nat.cast_le (α := ℚ),
-          ←div_le_iff d0, ae, Nat.cast_mul, Nat.cast_pow, Nat.cast_two]
-        simp only [←zpow_natCast, ←zpow_sub₀ t0, Int.toNat_of_nonneg (sub_nonneg.mpr r62),
-          Nat.cast_add]
-        ring_nf; rw [←hr, add_comm]
-        exact Rat.lt_log2_self.le)
+  let c := convert_tweak (p.1.rdiv p.2 up) (r - 62 + 2^63) (ofRat_norm x0)
   c.finish up
 
 /-- Conversion from `ℚ`, rounding up or down -/
@@ -380,6 +417,13 @@ lemma ofRat_le {x : ℚ} (h : ofRat x false ≠ nan) : (ofRat x false).val ≤ x
 /-- `approx_ofRat`, up version -/
 lemma le_ofRat {x : ℚ} (h : ofRat x true ≠ nan) : x ≤ (ofRat x true).val := by
   simpa only [approx, h, ite_false, Bool.not_true, mem_rounds_singleton] using approx_ofRat x true
+
+/-- Combined version, for use in `Interval` construction -/
+lemma ofRat_le_ofRat {x : ℚ} (h : ofRat x true ≠ nan) :
+    (ofRat x false).val ≤ (ofRat x true).val := by
+  by_cases a : ofRat x false = nan
+  · simp only [a, val_le_val, val_nan_le]
+  · exact le_trans (ofRat_le a) (le_ofRat h)
 
 /-!
 ## Conversion from `Float`

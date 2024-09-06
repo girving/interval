@@ -14,15 +14,21 @@ namespace Floating
 ### Exact powers of two
 -/
 
+/-- `two_pow` is valid -/
+lemma valid_two_pow {n : Fixed 0} :
+    let s : UInt64 := n.n.n + (2^63 : UInt64)
+    Valid (2^62) (s - 62) where
+  zero_same := by intro n; contrapose n; clear n; decide
+  nan_same := by intro n; contrapose n; clear n; decide
+  norm := by intro _ _ _; decide
+
 /-- Exact powers of two -/
 @[irreducible] def two_pow (n : Fixed 0) : Floating :=
   let s : UInt64 := n.n.n + (2^63 : UInt64)
   bif n == nan || s < 62 then nan else
   { n := 2^62
     s := s - 62
-    zero_same := by intro n; contrapose n; clear n; decide
-    nan_same := by intro n; contrapose n; clear n; decide
-    norm := by intro _ _ _; decide }
+    v := valid_two_pow }
 
 /-- `two_pow` is conservative -/
 @[approx] lemma mem_approx_two_pow (n : Fixed 0) : 2^n.val ∈ approx (two_pow n) := by
@@ -49,13 +55,17 @@ namespace Floating
 ### The special case of `n = 2^62`
 -/
 
+/-- `two_pow_special` is valid -/
+lemma valid_two_pow_special {s : UInt64} : Valid (2^62) s where
+  zero_same := by intro n; contrapose n; clear n; decide
+  nan_same := by intro n; contrapose n; clear n; decide
+  norm := by intro _ _ _; decide
+
 /-- Build `2^62 * 2^(s - 2^63)` -/
 @[irreducible] def two_pow_special (s : UInt64) : Floating where
   n := 2^62
   s := s
-  zero_same := by intro n; contrapose n; clear n; decide
-  nan_same := by intro n; contrapose n; clear n; decide
-  norm := by intro _ _ _; decide
+  v := valid_two_pow_special
 
 /-- `two_pow_special` never makes `nan` -/
 @[simp] lemma two_pow_special_ne_nan (s : UInt64) : two_pow_special s ≠ nan := by

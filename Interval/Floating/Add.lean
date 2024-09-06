@@ -251,6 +251,27 @@ lemma add_n_norm (r : UInt128) (s : UInt64) (up : Bool) :
     UInt128.zero_shiftRightRound, ite_self]
   rfl
 
+/-- `small_shift` is valid -/
+lemma valid_small_shift0 {s : UInt64} : Valid (2^62) (s+1) where
+  zero_same := by intro z; contrapose z; clear z; decide
+  nan_same := by intro n; contrapose n; clear n; decide
+  norm := by intro _ _ _; decide
+
+/-- `small_shift` is valid -/
+lemma valid_small_shift1 {n s : UInt64} (n63 : n ≠ 2^63) (n0 : n ≠ 0)
+    (le_n : (⟨n⟩ : Int64) ≠ 0 → (⟨n⟩ : Int64) ≠ .min → s ≠ 0 → 2^62 ≤ n.toNat)
+    (n_le : n.toNat ≤ 2^63)
+    : Valid ⟨n⟩ s where
+  zero_same := by
+    intro z; clear n63; contrapose n0; rw [Int64.ext_iff] at z; exact not_not.mpr z
+  nan_same := by intro m; rw [Int64.ext_iff] at m; exfalso; exact n63 m
+  norm := by
+    intro n0 nm s0
+    rw [Int64.abs_eq_self', UInt64.le_iff_toNat_le, up62]
+    · exact le_n n0 nm s0
+    · simpa only [UInt64.eq_iff_toNat_eq, UInt64.toNat_2_pow_63, Int64.isNeg_eq_le,
+        decide_eq_false_iff_not, not_le, n_le.lt_iff_ne, ne_eq] using n63
+
 /-- Turn an almost normalized (`n ≤ 2^63`) value into a `Floating`, shifting right by at most 1 -/
 @[irreducible] def small_shift (n s : UInt64)
     (le_n : (⟨n⟩ : Int64) ≠ 0 → (⟨n⟩ : Int64) ≠ .min → s ≠ 0 → 2^62 ≤ n.toNat)
@@ -259,21 +280,12 @@ lemma add_n_norm (r : UInt128) (s : UInt64) (up : Bool) :
     bif s = .max then nan else {
       n := 2^62
       s := s + 1
-      zero_same := by intro z; contrapose z; clear z; decide
-      nan_same := by intro n; contrapose n; clear n; decide
-      norm := by intro _ _ _; decide }
+      v := valid_small_shift0 }
   else if n0 : n = 0 then 0
   else {
     n := ⟨n⟩
     s := s
-    zero_same := by intro z; clear n63; contrapose n0; rw [Int64.ext_iff] at z; exact not_not.mpr z
-    nan_same := by intro m; rw [Int64.ext_iff] at m; exfalso; exact n63 m
-    norm := by
-      intro n0 nm s0
-      rw [Int64.abs_eq_self', UInt64.le_iff_toNat_le, up62]
-      · exact le_n n0 nm s0
-      · simpa only [UInt64.eq_iff_toNat_eq, UInt64.toNat_2_pow_63, Int64.isNeg_eq_le,
-          decide_eq_false_iff_not, not_le, n_le.lt_iff_ne, ne_eq] using n63 }
+    v := valid_small_shift1 n63 n0 le_n n_le }
 
 /-- Turn an `r * 2^(s - 64 - 2^63)` value into a `Floating` -/
 @[irreducible] def add_shift_r (r : UInt128) (s : UInt64) (up : Bool) :

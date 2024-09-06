@@ -9,10 +9,8 @@ open Set
 open scoped Real
 namespace Floating
 
-/-- Absolute value -/
-@[irreducible] def abs (x : Floating) : Floating where
-  n := ⟨x.n.abs⟩
-  s := x.s
+/-- `abs` is valid -/
+lemma valid_abs {x : Floating} : Valid ⟨x.n.abs⟩ x.s where
   zero_same := by
     intro h; apply x.zero_same
     simpa only [Int64.ext_iff, Int64.n_zero, Int64.abs_eq_zero_iff] using h
@@ -25,6 +23,12 @@ namespace Floating
       Int64.abs_eq_zero_iff, Ne, Int64.abs_eq_pow_iff] at n0 nm ⊢
     refine x.norm ?_ ?_ s0
     repeat simpa only [ne_eq, Int64.ext_iff, Int64.n_zero]
+
+/-- Absolute value -/
+@[irreducible] def abs (x : Floating) : Floating where
+  n := ⟨x.n.abs⟩
+  s := x.s
+  v := valid_abs
 
 -- Definition lemmas
 @[simp] lemma n_abs {x : Floating} : x.abs.n = ⟨x.n.abs⟩ := by rw [abs]

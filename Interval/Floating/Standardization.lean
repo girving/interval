@@ -120,6 +120,18 @@ lemma of_ns_norm {n : Int64} {s : UInt64} (n0 : n ≠ 0) (nm : n ≠ .min) :
   simp only [UInt64.toNat_log2]
   omega
 
+/-- `of_ns` is valid -/
+lemma valid_of_ns {n : Int64} {s : UInt64} (nm : n ≠ .min) (n0 : n ≠ 0) :
+    let t := lower (62 - n.abs.log2) s
+    Valid (n <<< t.2) t.1 := {
+  zero_same := by
+    intro z; contrapose z; clear z
+    simp only [←Int64.coe_eq_coe, Int64.coe_zero, coe_low_s nm, mul_eq_zero, not_or,
+      pow_eq_zero_iff', OfNat.ofNat_ne_zero, ne_eq, false_and, not_false_eq_true, and_true]
+    simp only [Int64.coe_eq_zero, n0, not_false_eq_true]
+  nan_same := by simp only [of_ns_ne_nan nm, IsEmpty.forall_iff]
+  norm := of_ns_norm n0 nm }
+
 /-- Construct a `Floating` given possibly non-standardized `n, s` -/
 @[irreducible] def of_ns (n : Int64) (s : UInt64) : Floating :=
   if nm : n = .min then nan else
@@ -128,13 +140,7 @@ lemma of_ns_norm {n : Int64} {s : UInt64} (n0 : n ≠ 0) (nm : n ≠ .min) :
   let t := lower (62 - n.abs.log2) s
   { n := n <<< t.2
     s := t.1
-    zero_same := by
-      intro z; contrapose z; clear z
-      simp only [←Int64.coe_eq_coe, Int64.coe_zero, coe_low_s nm, mul_eq_zero, not_or,
-        pow_eq_zero_iff', OfNat.ofNat_ne_zero, ne_eq, false_and, not_false_eq_true, and_true]
-      simp only [Int64.coe_eq_zero, n0, not_false_eq_true]
-    nan_same := by simp only [of_ns_ne_nan nm, IsEmpty.forall_iff]
-    norm := of_ns_norm n0 nm }
+    v := valid_of_ns nm n0 }
 
 /-- `of_ns` propagates `nan` -/
 @[simp] lemma of_ns_nan (s : UInt64) : of_ns .min s = nan := by

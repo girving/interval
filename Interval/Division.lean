@@ -102,6 +102,25 @@ def inv_guess (x : Floating) : Floating :=
   let y := ((1 : UInt64) <<< 63) / (x.n.n >>> 30)
   .of_ns ⟨y⟩ t
 
+/-- `inv_region` is valid -/
+lemma valid_inv_region {x : Floating}
+    : let t : UInt64 := 2^64 - 62 - 63
+      ¬t < x.s →
+        Valid (Floating.two_pow_special (t - x.s)) (Floating.two_pow_special (t - x.s + 1)) := by
+  intro t ts
+  exact {
+    norm := by simp only [Floating.two_pow_special_ne_nan]
+    le' := by
+      intro _ _
+      simp only [t, UInt64.pow_eq_zero, zero_sub, not_lt] at ts
+      have o : (-62 - 63 - x.s).toNat ≠ 2 ^ 64 - 1 := by
+        rw [UInt64.toNat_sub'' ts]
+        exact ne_of_lt (lt_of_le_of_lt (Nat.sub_le _ _) (by decide))
+      simp only [t, UInt64.pow_eq_zero, zero_sub, Floating.val_two_pow_special]
+      apply zpow_le_of_le (by norm_num)
+      simp only [UInt64.toNat_add_one o, UInt64.toNat_sub'' ts]
+      omega }
+
 /-- Conservative region that includes `x⁻¹` -/
 @[irreducible] def inv_region (x : Floating) : Interval :=
   bif x.s == 0 then nan else  -- Bail if we're denormalized
@@ -116,17 +135,7 @@ def inv_guess (x : Floating) : Floating :=
   if ts : t < x.s then nan else  -- Bail if our result would be denormalized
   { lo := Floating.two_pow_special (t - x.s)
     hi := Floating.two_pow_special (t - x.s + 1)
-    norm := by simp only [Floating.two_pow_special_ne_nan]
-    le' := by
-      intro _ _
-      simp only [t, UInt64.pow_eq_zero, zero_sub, not_lt] at ts
-      have o : (-62 - 63 - x.s).toNat ≠ 2 ^ 64 - 1 := by
-        rw [UInt64.toNat_sub'' ts]
-        exact ne_of_lt (lt_of_le_of_lt (Nat.sub_le _ _) (by decide))
-      simp only [t, UInt64.pow_eq_zero, zero_sub, Floating.val_two_pow_special]
-      apply zpow_le_of_le (by norm_num)
-      simp only [UInt64.toNat_add_one o, UInt64.toNat_sub'' ts]
-      omega }
+    v := valid_inv_region ts }
 
 /-- `inv_region` is conservative -/
 @[approx] lemma approx_inv_region {x : Floating} (x0 : 0 < x.val) :

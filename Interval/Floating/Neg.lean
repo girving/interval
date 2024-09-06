@@ -8,16 +8,19 @@ open Set
 open scoped Real
 namespace Floating
 
+lemma valid_neg {x : Floating} : Valid (-x.n) x.s where
+  zero_same := by intro h; simp only [neg_eq_zero] at h; exact x.zero_same h
+  nan_same := by intro h; simp only [Int64.neg_eq_min] at h; exact x.nan_same h
+  norm := by
+    intro z n d
+    simp only [ne_eq, neg_eq_zero, Int64.neg_eq_min] at z n
+    simp only [ne_eq, not_false_eq_true, Int64.abs_neg, z, n, x.norm, d]
+
 instance : Neg Floating where
   neg x := {
     n := -x.n
     s := x.s
-    zero_same := by intro h; simp only [neg_eq_zero] at h; exact x.zero_same h
-    nan_same := by intro h; simp only [Int64.neg_eq_min] at h; exact x.nan_same h
-    norm := by
-      intro z n d
-      simp only [ne_eq, neg_eq_zero, Int64.neg_eq_min] at z n
-      simp only [ne_eq, not_false_eq_true, Int64.abs_neg, z, n, x.norm, d] }
+    v := valid_neg }
 
 @[simp] lemma n_neg {x : Floating} : (-x).n = -x.n := rfl
 @[simp] lemma s_neg {x : Floating} : (-x).s = x.s := rfl

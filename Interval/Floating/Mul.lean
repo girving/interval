@@ -172,29 +172,34 @@ lemma mul_norm_correct (n : UInt128) (up : Bool) (n0 : n ≠ 0) (lo : n.toNat �
 ### The definition of multiplication
 -/
 
+/-- `mul_finish` is valid -/
+lemma valid_mul_finish (n : UInt64) (s : Int128) (norm : n.toNat ∈ Ico (2^62) (2^63)) :
+    Valid ⟨n⟩ s.n.lo where
+  zero_same := by
+    intro n0
+    simp only [Int64.ext_iff, Int64.n_zero] at n0
+    simp only [n0, UInt64.toNat_zero, mem_Ico, nonpos_iff_eq_zero, gt_iff_lt, zero_lt_two,
+      pow_pos, and_true] at norm
+  nan_same := by
+    intro nm
+    simp only [Int64.ext_iff, Int64.n_min] at nm
+    simp only [nm, UInt64.toNat_2_pow_63, mem_Ico, lt_self_iff_false, and_false] at norm
+  norm := by
+    intro _ _ _
+    simp only [mem_Ico] at norm
+    rw [Int64.abs_eq_self']
+    · simp only [UInt64.le_iff_toNat_le, up62, norm.1]
+    · simp only [Int64.isNeg_eq_le, decide_eq_false_iff_not, not_le, norm.2]
+
 /-- Build a `Floating` with value `n * 2^s`, rounding if necessary -/
 @[irreducible, inline] def mul_finish (n : UInt64) (s : Int128) (up : Bool)
     (norm : n.toNat ∈ Ico (2^62) (2^63)) : Floating :=
   bif s.n.hi == 0 then { -- Exponent is already 64 bits, so not much to do
     n := ⟨n⟩
     s := s.n.lo
-    zero_same := by
-      intro n0
-      simp only [Int64.ext_iff, Int64.n_zero] at n0
-      simp only [n0, UInt64.toNat_zero, mem_Ico, nonpos_iff_eq_zero, gt_iff_lt, zero_lt_two,
-        pow_pos, and_true] at norm
-    nan_same := by
-      intro nm
-      simp only [Int64.ext_iff, Int64.n_min] at nm
-      simp only [nm, UInt64.toNat_2_pow_63, mem_Ico, lt_self_iff_false, and_false] at norm
-    norm := by
-      intro _ _ _
-      simp only [mem_Ico] at norm
-      rw [Int64.abs_eq_self']
-      · simp only [UInt64.le_iff_toNat_le, up62, norm.1]
-      · simp only [Int64.isNeg_eq_le, decide_eq_false_iff_not, not_le, norm.2] }
+    v := valid_mul_finish _ _ norm }
   else bif s.isNeg then bif up then min_norm else 0  -- Flush denormals for now
-  else nan -- Overflow, exponent too big
+  else nan -- Overflow, exponent too big }
 
 /-- Twos complement, 128-bit exponent `e = xs + ys + t + 64 - 2^63` -/
 @[irreducible, inline] def mul_exponent (xs ys t : UInt64) : Int128 :=

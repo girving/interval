@@ -4,9 +4,10 @@ import Interval.Fixed
 import Interval.Misc.Float
 import Interval.Int64
 import Interval.UInt128
-import Interval.Misc.Int
-import Interval.Misc.Real
 import Interval.Misc.Decimal
+import Interval.Misc.Int
+import Interval.Misc.Raw
+import Interval.Misc.Real
 
 open Pointwise
 
@@ -23,21 +24,58 @@ open scoped Real
 ## `Floating` basics
 -/
 
-/-- Floating point number -/
-@[unbox] structure Floating where
-  /-- Unscaled value -/
-  n : Int64
-  /-- Binary exponent + `2^63` -/
-  s : UInt64
+/-- Validity of a `Floating` as a single type -/
+structure Floating.Valid (n : Int64) (s : UInt64) : Prop where
   /-- `0` has a single, standardized representation -/
   zero_same : n = 0 → s = 0
   /-- `nan` has a single, standardized representation -/
   nan_same : n = .min → s = .max
   /-- If we're not `0`, `nan`, or denormalized, the high bit of `n` is set -/
   norm : n ≠ 0 → n ≠ .min → s ≠ 0 → 2^62 ≤ n.abs
+
+/-- Floating point number -/
+@[unbox] structure Floating where
+  /-- Unscaled value -/
+  n : Int64
+  /-- Binary exponent + `2^63` -/
+  s : UInt64
+  /-- We're valid and normalized -/
+  v : Floating.Valid n s
   deriving DecidableEq
 
 namespace Floating
+
+-- Direct access to the fields of `Floating.Valid`
+lemma zero_same (x : Floating) : x.n = 0 → x.s = 0 := x.v.zero_same
+lemma nan_same (x : Floating) : x.n = .min → x.s = .max := x.v.nan_same
+lemma norm (x : Floating) : x.n ≠ 0 → x.n ≠ .min → x.s ≠ 0 → 2^62 ≤ x.n.abs := x.v.norm
+
+/-- Computational version of `Floating.Valid` -/
+def valid (n : Int64) (s : UInt64) : Bool :=
+  bif n == 0 then s == 0 else
+  bif n == .min then s == .max else
+  s == 0 || ((1 : UInt64) <<< 62) ≤ n.abs
+
+/-- `Floating.valid` decides `Floating.Valid` -/
+lemma valid_iff {n : Int64} {s : UInt64} : Valid n s ↔ valid n s = true := by
+  rw [valid]
+  have e : (2 : UInt64)^62 = (1 : UInt64) <<< 62 := rfl
+  simp only [Bool.cond_eq_true_distrib, beq_iff_eq, Bool.or_eq_true, decide_eq_true_eq]
+  constructor
+  · intro ⟨zs, ns, norm⟩
+    split_ifs
+    all_goals simp_all
+    by_cases s0 : s = 0
+    all_goals simp_all [s0]
+  · split_ifs
+    · intro s0; refine ⟨by simp_all, by simp_all, by simp_all⟩
+    · intro s0; refine ⟨by simp_all, by simp_all, by simp_all⟩
+    · intro s0; refine ⟨by simp_all, by simp_all, by intro _ _ s0; simp_all⟩
+
+/-- `Valid` is decidable -/
+instance (n : Int64) (s : UInt64) : Decidable (Valid n s) :=
+  if v : valid n s then .isTrue (valid_iff.mpr v)
+  else .isFalse (valid_iff.not.mpr v)
 
 instance : BEq Floating where
   beq x y := x.n == y.n && x.s == y.s
@@ -59,7 +97,7 @@ lemma ext_iff {x y : Floating} : x = y ↔ x.n = y.n ∧ x.s = y.s := by
 
 /-- Standard floating point nan -/
 instance : Nan Floating where
-  nan := ⟨.min, .max, by decide, by decide, by decide⟩
+  nan := ⟨.min, .max, by decide⟩
 
 /-- The `ℝ` that a `Floating` represents, if it's not `nan` -/
 noncomputable def val (x : Floating) : ℝ :=
@@ -71,11 +109,11 @@ instance : Approx Floating ℝ where
 
 /-- `0 : Floating` -/
 instance : Zero Floating where
-  zero := ⟨0, 0, by decide, by decide, by decide⟩
+  zero := ⟨0, 0, by decide⟩
 
 /-- `1 : Floating` -/
 instance : One Floating where
-  one := ⟨2^62, 2^63 - 62, by decide, by decide, by decide⟩
+  one := ⟨2^62, 2^63 - 62, by decide⟩
 
 -- Definition lemmas
 @[simp] lemma n_zero : (0 : Floating).n = 0 := rfl
@@ -253,3 +291,7 @@ instance : Repr Floating where
     bif x == nan then "nan" else
     let y := x.n.toInt
     toString (repr (Decimal.ofBinary y (x.s.toInt - 2^63) 7 false))
+
+/-- Print raw representation of a `Floating` -/
+instance : Repr (Raw Floating) where
+  reprPrec x _ := f!"⟨⟨{x.val.n.n}⟩, ⟨{x.val.s}⟩, _⟩"

@@ -20,19 +20,51 @@ open scoped Real
 #### Type definition and basic lemmas
 -/
 
-/-- Floating point intervals -/
+/-- Validity of an `Interval` as a single type -/
+structure Interval.Valid (lo hi : Floating) : Prop where
+  /-- None or both of our bounds are `nan` -/
+  norm : lo = nan ↔ hi = nan
+  /-- The interval is nontrivial -/
+  le' : lo ≠ nan → hi ≠ nan → lo.val ≤ hi.val
+
+ /-- Floating point intervals -/
 @[unbox] structure Interval where
   /-- Lower bound -/
   lo : Floating
   /-- Upper bound -/
   hi : Floating
-  /-- None or both of our bounds are `nan` -/
-  norm : lo = nan ↔ hi = nan
-  /-- The interval is nontrivial -/
-  le' : lo ≠ nan → hi ≠ nan → lo.val ≤ hi.val
+  /-- The interval `[lo,hi]` is valid -/
+  v : Interval.Valid lo hi
   deriving DecidableEq
 
 namespace Interval
+
+-- Direct access to the fields of `Interval.Valid`
+lemma norm (x : Interval) : x.lo = nan ↔ x.hi = nan := x.v.norm
+lemma le' (x : Interval) : x.lo ≠ nan → x.hi ≠ nan → x.lo.val ≤ x.hi.val := x.v.le'
+
+/-- Computational version of `Interval.Valid` -/
+def valid (lo hi : Floating) : Bool :=
+  bif lo == nan then hi == nan else
+  hi != nan && lo.ble hi
+
+/-- `Interval.valid` decides `Interval.Valid` -/
+lemma valid_iff {lo hi : Floating} : Valid lo hi ↔ valid lo hi = true := by
+  rw [valid]
+  simp only [Floating.ble_eq_le, Floating.val_le_val, Bool.cond_eq_true_distrib, beq_iff_eq,
+    Bool.and_eq_true, bne_iff_ne, ne_eq, decide_eq_true_eq]
+  constructor
+  · intro ⟨norm, le⟩
+    split_ifs
+    all_goals simp_all
+  · split_ifs
+    · intro _; refine ⟨by simp_all, by simp_all⟩
+    · intro ⟨_,_⟩; refine ⟨by simp_all, by simp_all⟩
+
+/-- `Valid` is decidable -/
+instance (lo hi : Floating) : Decidable (Valid lo hi) :=
+  if v : valid lo hi then .isTrue (valid_iff.mpr v)
+  else .isFalse (valid_iff.not.mpr v)
 
 instance : BEq Interval where
   beq x y := x.lo == y.lo && x.hi == y.hi
@@ -192,17 +224,26 @@ instance : Repr Interval where
     bif x == nan then "nan" else
     reprPrec x.decimalBall p
 
+/-- Print raw representation of an `Interval` -/
+instance : Repr (Raw Interval) where
+  reprPrec x _ := "⟨" ++ repr (raw x.val.lo) ++ ", " ++ repr (raw x.val.hi) ++ ", _⟩"
+
 /-!
 ### Propagate nans into both bounds
 -/
+
+/-- `mix` is valid -/
+lemma valid_mix {lo hi : Floating} (le : lo ≠ nan → hi ≠ nan → lo.val ≤ hi.val)
+    (n : ¬(lo = nan ∨ hi = nan)) : Valid lo hi where
+  norm := by simp only [not_or] at n; simp only [n]
+  le' := le
 
 /-- Assemble the interval `[lo,hi]`, propagating nans into both components -/
 @[irreducible] def mix (lo hi : Floating) (le : lo ≠ nan → hi ≠ nan → lo.val ≤ hi.val) : Interval :=
   if n : lo = nan ∨ hi = nan then nan else {
     lo := lo
     hi := hi
-    norm := by simp only [not_or] at n; simp only [n]
-    le' := le }
+    v := valid_mix le n }
 
 /-- `mix` propagates `nan` -/
 @[simp] lemma mix_nan (x : Floating)
@@ -264,16 +305,21 @@ lemma mix_induction {lo hi : Floating} {le : lo ≠ nan → hi ≠ nan → lo.va
 ### Negation
 -/
 
+/-- `-x` is valid -/
+lemma valid_neg {x : Interval} : Valid (-x.hi) (-x.lo) where
+  norm := by simp only [Floating.neg_eq_nan_iff, x.norm]
+  le' := by
+    intro n0 n1
+    simp only [ne_eq, Floating.neg_eq_nan_iff] at n0 n1
+    simp only [ne_eq, n0, not_false_eq_true, Floating.val_neg, n1, neg_le_neg_iff,
+      x.le' n1 n0]
+
 /-- Negation -/
 instance : Neg Interval where
   neg x := {
     lo := -x.hi
     hi := -x.lo
-    norm := by simp only [Floating.neg_eq_nan_iff, x.norm]
-    le' := by
-      intro n0 n1
-      simp only [ne_eq, Floating.neg_eq_nan_iff] at n0 n1
-      simp only [ne_eq, n0, not_false_eq_true, Floating.val_neg, n1, neg_le_neg_iff, x.le' n1 n0] }
+    v := valid_neg }
 
 @[simp] lemma neg_nan : -(nan : Interval) = nan := rfl
 @[simp] lemma lo_neg {x : Interval} : (-x).lo = -x.hi := rfl
@@ -296,16 +342,20 @@ instance : InvolutiveNeg Interval where
 ### Union
 -/
 
+/-- Union is valid -/
+lemma valid_union {x y : Interval} : Valid (min x.lo y.lo) (x.hi.max y.hi) where
+  norm := by simp only [Floating.min_eq_nan, lo_eq_nan, Floating.max_eq_nan, hi_eq_nan]
+  le' := by
+    intro _ n; simp only [ne_eq, Floating.max_eq_nan, hi_eq_nan, not_or] at n
+    simp only [Floating.val_min, Floating.val_max (x.hi_ne_nan n.1) (y.hi_ne_nan n.2),
+      le_max_iff, min_le_iff, le, true_or, or_true, or_self]
+
 /-- Union -/
 instance : Union Interval where
   union x y := {
     lo := min x.lo y.lo
     hi := x.hi.max y.hi  -- Use the version that propagates `nan`
-    norm := by simp only [Floating.min_eq_nan, lo_eq_nan, Floating.max_eq_nan, hi_eq_nan]
-    le' := by
-      intro _ n; simp only [ne_eq, Floating.max_eq_nan, hi_eq_nan, not_or] at n
-      simp only [Floating.val_min, Floating.val_max (x.hi_ne_nan n.1) (y.hi_ne_nan n.2),
-        le_max_iff, min_le_iff, le, true_or, or_true, or_self] }
+    v := valid_union }
 
 /-- Union propagates `nan` -/
 @[simp] lemma union_nan {x : Interval} : x ∪ nan = nan := by
@@ -355,10 +405,9 @@ we expect intersection to mainly be used a tool inside routines such as Newton's
 where intersections are guaranteed nonempty.
 -/
 
-/-- Intersection, requiring a proof that the intersection is nontrivial -/
-@[irreducible] def inter (x y : Interval) (t : (approx x ∩ approx y).Nonempty) : Interval where
-  lo := x.lo.max y.lo
-  hi := min x.hi y.hi
+/-- Intersections are valid -/
+lemma valid_inter {x y : Interval} (t : (approx x ∩ approx y).Nonempty)
+    : Valid (x.lo.max y.lo) (min x.hi y.hi) where
   norm := by simp only [Floating.max_eq_nan, lo_eq_nan, Floating.min_eq_nan, hi_eq_nan]
   le' := by
     intro n _
@@ -368,6 +417,12 @@ where intersections are guaranteed nonempty.
     rcases t with ⟨a,ax,ay⟩
     simp only [approx, lo_eq_nan, n.1, ite_false, mem_Icc, n.2] at ax ay
     exact ⟨by linarith, by linarith⟩
+
+/-- Intersection, requiring a proof that the intersection is nontrivial -/
+@[irreducible] def inter (x y : Interval) (t : (approx x ∩ approx y).Nonempty) : Interval where
+  lo := x.lo.max y.lo
+  hi := min x.hi y.hi
+  v := valid_inter t
 
 /-- `inter` propagates `nan` -/
 @[simp] lemma inter_nan {x : Interval} {t : (approx x ∩ approx nan).Nonempty} :
@@ -501,12 +556,16 @@ lemma sign_cases (x : Interval) :
 ### `Floating → Interval` coersion
 -/
 
+/-- `Floating → Interval` is valid -/
+lemma valid_coe_floating {x : Floating} : Valid x x where
+  norm := by simp only
+  le' := by simp only [le_refl, implies_true]
+
 /-- `Floating` converts to `Interval` -/
 @[coe] def _root_.Floating.toInterval (x : Floating) : Interval where
   lo := x
   hi := x
-  norm := by simp only
-  le' := by simp only [le_refl, implies_true]
+  v := valid_coe_floating
 
 /-- `Fixed s` converts to `Interval` -/
 instance : Coe Floating Interval where
@@ -750,17 +809,21 @@ lemma abs_pos_of_not_zero_mem {x : Interval} (z : 0 ∉ approx x) : 0 < x.abs.lo
 ### Grow an interval by an upper error bound
 -/
 
+/-- `error` is valid -/
+lemma valid_error {e : Floating} (e0 : ¬e.n.isNeg) : Valid (-e) e where
+  norm := by simp only [Floating.neg_eq_nan_iff]
+  le' := by
+    intro _ n
+    simp only [Floating.isNeg_iff, decide_eq_true_eq, not_lt] at e0
+    simp only [Floating.val_neg n, neg_le_self_iff, e0]
+
 /-- A symmetric error interval around zero: `[-e, e]` -/
 @[irreducible] def error (e : Floating) : Interval :=
   bif e == nan then nan else
   if e0 : e.n.isNeg then 0 else {
     lo := -e
     hi := e
-    norm := by simp only [Floating.neg_eq_nan_iff]
-    le' := by
-      intro _ n
-      simp only [Floating.isNeg_iff, decide_eq_true_eq, not_lt] at e0
-      simp only [Floating.val_neg n, neg_le_self_iff, e0] }
+    v := valid_error e0 }
 
 -- Grow an interval by an error bound -/
 @[irreducible] def grow (x : Interval) (e : Floating) : Interval :=
