@@ -114,20 +114,16 @@ end Log2
 /-- Optimal `Interval` approximation of `(log 2)⁻¹` -/
 @[irreducible] def inv_log_two : Interval := Log2.inv_mid
 
-set_option trace.profiler true in
-set_option trace.profiler.useHeartbeats true in
 @[approx] lemma approx_log_half : Real.log (1/2) ∈ approx log_half := by
   rw [(by fast_decide : log_half = Log2.interval)]
   exact approx_of_rat_ball Log2.close
-
-#exit
 
 @[approx] lemma approx_log_two : Real.log 2 ∈ approx log_two := by
   rw [(by norm_num : (2:ℝ) = (1/2)⁻¹), Real.log_inv, log_two]
   approx
 
 @[approx] lemma approx_inv_log_two : (Real.log 2)⁻¹ ∈ approx inv_log_two := by
-  rw [(by native_decide : inv_log_two = Log2.inv_interval)]
+  rw [(by fast_decide : inv_log_two = Log2.inv_interval)]
   exact approx_of_rat_ball Log2.inv_close
 
 /-- For use in untrusted contexts, `inv_log_two.hi` is closer to the true value -/

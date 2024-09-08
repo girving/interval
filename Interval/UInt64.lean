@@ -657,3 +657,20 @@ lemma UInt64.toNat_complement (x : UInt64) : (~~~x).toNat = 2^64 - 1 - x.toNat :
       have lt : x.toNat < 2^64 := toNat_lt_2_pow_64 x
       have f : x.toNat + 1 % 2^64 = 2^64 := by omega
       simp only [f, Nat.mod_self]
+
+/-!
+### Kernel-friendly version of `Nat.log2`
+-/
+
+lemma UInt64.fast_log2_lt (n : UInt64) : n.val.val.fast_log2 < UInt64.size := by
+  rw [Nat.fast_log2_eq]
+  exact le_trans n.log2_lt_64 (by decide)
+
+@[irreducible] def UInt64.fast_log2 (n : UInt64) : UInt64 :=
+  ⟨⟨n.val.val.fast_log2, n.fast_log2_lt⟩⟩
+
+@[simp, csimp] lemma UInt64.fast_log2_eq : fast_log2 = log2 := by
+  ext n
+  rw [UInt64.fast_log2]
+  simp only [Nat.fast_log2_eq, val_val_eq_toNat, toNat_log2]
+  rfl

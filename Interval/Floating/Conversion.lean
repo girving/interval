@@ -146,16 +146,17 @@ lemma approx_convert {a : ℝ} {n : ℕ} {s : ℤ} {norm : n ∈ Icc (2^62) (2^6
 -/
 
 lemma ofNat_norm {n : ℕ} {up : Bool}
-    : let t := n.log2
+    : let t := n.fast_log2
       let s := t - 62
       ¬t ≤ 62 → n.shiftRightRound s up ∈ Icc (2 ^ 62) (2 ^ 63) := by
   intro t s t62
+  simp only [t, s, Nat.fast_log2_eq] at s t62 ⊢
   simp only [Nat.shiftRightRound_eq_rdiv, mem_Icc]
   by_cases n0 : n = 0
-  · simp only [t, n0, Nat.log2_zero, zero_le, not_true_eq_false] at t62
+  · simp only [n0, Nat.log2_zero, zero_le, not_true_eq_false] at t62
   · constructor
     · apply Nat.le_rdiv_of_mul_le (pow_pos (by norm_num) _)
-      rw [←pow_add, ←Nat.le_log2 n0]
+      rw [← pow_add, ← Nat.le_log2 n0]
       omega
     · refine Nat.rdiv_le_of_le_mul (le_trans Nat.lt_log2_self.le ?_)
       rw [←pow_add]
@@ -163,7 +164,7 @@ lemma ofNat_norm {n : ℕ} {up : Bool}
 
 /-- Conversion from `ℕ` to `Floating`, rounding up or down -/
 @[irreducible] def ofNat (n : ℕ) (up : Bool) : Floating :=
-  let t := n.log2
+  let t := n.fast_log2
   -- If `t ≤ 62`, use `of_ns` to shift left.  If `t > 62`, shift right.
   if t62 : t ≤ 62 then of_ns n (2^63) else
   let s := t - 62
@@ -190,7 +191,7 @@ lemma val_ofNat' {n : ℕ} (lt : n < 2^63 := by norm_num) {up : Bool}  : (ofNat 
   rw [ofNat]
   simp only [n62, tsub_eq_zero_of_le, CharP.cast_eq_zero, dite_true, approx, of_ns_eq_nan_iff,
     nn, if_false, val_of_ns nn, mem_rounds_singleton, e63, sub_self, Bool.not_eq_true', zpow_zero,
-    mul_one, Int64.toInt_ofNat lt, Int.cast_natCast, le_refl, ite_self]
+    mul_one, Int64.toInt_ofNat lt, Int.cast_natCast, le_refl, ite_self, Nat.fast_log2_eq]
 
 /-- Small naturals convert exactly -/
 lemma val_ofNat {n : ℕ} [n.AtLeastTwo] (lt : n < 2^63 := by norm_num) :
@@ -213,7 +214,7 @@ lemma approx_ofNat (n : ℕ) (up : Bool) : ↑n ∈ rounds (approx (.ofNat n up 
     simp only [approx, ofNat_ne_nan lt, ↓reduceIte, val_ofNat' lt, mem_rounds_singleton,
       Bool.not_eq_true', le_refl, ite_self]
   · rw [ofNat]
-    simp only [n62, dite_false]
+    simp only [n62, dite_false, Nat.fast_log2_eq]
     apply approx_convert
     simp only [Nat.shiftRightRound_eq_rdiv]
     have t0 : (2:ℝ) ≠ 0 := by norm_num

@@ -8,6 +8,8 @@ import Interval.Misc.Bool
 ## `ℕ` facts
 -/
 
+variable {α : Type*}
+
 lemma Nat.add_sub_eq_sub_sub {m n k : ℕ} (nk : n ≤ k) : m + n - k = m - (k - n) := by
   omega
 
@@ -445,3 +447,45 @@ lemma Nat.le_rdiv_of_mul_le {a b c : ℕ} {up : Bool} (b0 : 0 < b) (h : c * b �
     c ≤ a.rdiv b up := by
   refine le_trans ?_ (rdiv_le_rdiv (Bool.false_le _))
   simpa only [rdiv, cond_false, le_div_iff_mul_le b0]
+
+/-!
+### Kernel-friendly version of `Nat.log2`
+
+Necessary to make kernel computations work without timing out. Implementation courtesy of
+Joachim Breitner, though I've specialized it considerably:
+  https://leanprover.zulipchat.com/#narrow/stream/239415-metaprogramming-.2F-tactics/topic/An.20interval.20tactic.20for.20constant.20real.20inequalities/near/468309472
+-/
+
+/-- Inner loop of `Nat.fast_log2` -/
+def Nat.fast_log2.go : ℕ → ℕ → ℕ :=
+  Nat.rec (fun _ ↦ 0) (fun _ h n ↦ if 2 ≤ n then h (n / 2) + 1 else 0)
+
+/-- Kernel-friendly version of `Nat.log2` -/
+@[irreducible]
+def Nat.fast_log2 (n : @& ℕ) : ℕ :=
+  fast_log2.go n n
+
+/-- `Nat.fast_log2 = Nat.log2` -/
+@[simp, csimp] lemma Nat.fast_log2_eq : fast_log2 = log2 := by
+  ext n
+  rw [fast_log2]
+  suffices h : ∀ f n, (h : n ≤ f) → fast_log2.go f n = n.log2 by
+    exact h _ _ (le_refl _)
+  intro f
+  induction' f using Nat.strong_induction_on with f h
+  · intro n nf
+    rw [fast_log2.go, log2]
+    by_cases n0 : n = 0
+    · simp only [n0, nonpos_iff_eq_zero, OfNat.ofNat_ne_zero, ↓reduceIte]
+      induction' f with f
+      · simp only [rec_zero]
+      · simp only [nonpos_iff_eq_zero, OfNat.ofNat_ne_zero, ↓reduceIte]
+    have n1 : 1 ≤ n := by omega
+    generalize hf1 : f - 1 = f1
+    have hf : f = f1 + 1 := by omega
+    simp only [hf, n1, ↓reduceIte, add_left_inj]
+    by_cases n2 : 2 ≤ n
+    · simp only [n2, ↓reduceIte, add_left_inj]
+      apply h
+      all_goals omega
+    · simp only [n2, ↓reduceIte]

@@ -885,15 +885,15 @@ lemma UInt128.shiftLeftSaturate_eq {x : UInt128} {s : UInt64}
 -/
 
 @[irreducible] def UInt128.log2 (x : UInt128) : UInt64 :=
-  bif x.hi == 0 then x.lo.log2
-  else x.hi.log2 + 64
+  bif x.hi == 0 then x.lo.fast_log2
+  else x.hi.fast_log2 + 64
 
 @[simp] lemma UInt128.toNat_log2 (x : UInt128) : x.log2.toNat = x.toNat.log2 := by
   rw [log2, toNat]
   have e64 : (64 : UInt64).toNat = 64 := rfl
   simp only [bif_eq_if, beq_iff_eq, UInt64.le_iff_toNat_le, p127, Nat.shiftLeft_eq,
     apply_ite (f := fun x : UInt64 ↦ x.toNat), UInt64.toNat_log2, UInt64.toNat_add,
-    UInt64.size_eq_pow, e64]
+    UInt64.size_eq_pow, e64, UInt64.fast_log2_eq]
   split_ifs with h0
   · simp only [h0, UInt64.toNat_zero, zero_mul, zero_add]
   · have h0' := UInt64.ne_zero_iff_toNat_ne_zero.mp h0
@@ -916,11 +916,12 @@ lemma UInt128.shiftLeftSaturate_eq {x : UInt128} {s : UInt64}
   have e : (64 : UInt64).toNat = 64 := rfl
   simp only [bif_eq_if, beq_iff_eq, UInt64.le_iff_toNat_le, p127]
   split_ifs
-  · simp only [UInt64.toNat_log2]
+  · simp only [UInt64.toNat_log2, UInt64.fast_log2_eq]
     have h := UInt64.log2_lt_64 x.lo
     omega
   · have h := UInt64.log2_lt_64 x.hi
-    rw [UInt64.toNat_add, UInt64.toNat_log2, e, UInt64.size_eq_pow, Nat.mod_eq_of_lt]
+    rw [UInt64.fast_log2_eq, UInt64.toNat_add, UInt64.toNat_log2, e, UInt64.size_eq_pow,
+      Nat.mod_eq_of_lt]
     · omega
     · norm_num; omega
 
@@ -929,7 +930,9 @@ lemma UInt128.shiftLeftSaturate_eq {x : UInt128} {s : UInt64}
   simpa only [ge_iff_le, UInt64.le_iff_toNat_le, toNat_log2, p127] using h
 
 @[simp] lemma UInt128.log2_zero : (0 : UInt128).log2 = 0 := by
-  rw [log2]; simp only [zero_hi, beq_self_eq_true, zero_lo, UInt64.log2_zero, zero_add, cond_true]
+  rw [log2]
+  simp only [zero_hi, beq_self_eq_true, zero_lo, UInt64.log2_zero, zero_add, cond_true,
+    UInt64.fast_log2_eq]
 
 @[simp] lemma UInt128.toNat_lo_of_log2_lt {x : UInt128} (h : x.toNat.log2 < 64) :
     x.lo.toNat = x.toNat := by

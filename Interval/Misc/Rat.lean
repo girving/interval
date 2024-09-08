@@ -1,6 +1,7 @@
 import Mathlib.Algebra.Order.Floor.Div
 import Mathlib.Data.Real.Basic
 import Interval.Misc.Bool
+import Interval.Misc.Nat
 import Interval.Misc.Real
 
 /-!
@@ -25,8 +26,8 @@ lemma Rat.abs_eq_div' {𝕜 : Type} [LinearOrderedField 𝕜] {x : ℚ} :
 @[irreducible] def Rat.log2 (x : ℚ) : ℤ :=
   -- Reduce to two possible answers
   let n := x.num.natAbs
-  let a := n.log2  -- `2^a ≤ n < 2^(a+1)`
-  let b := x.den.log2  -- `2^b ≤ d < 2^(b+1)`
+  let a := n.fast_log2  -- `2^a ≤ n < 2^(a+1)`
+  let b := x.den.fast_log2  -- `2^b ≤ d < 2^(b+1)`
   -- `2^(a-b-1) < n/d < 2^(a+1-b)`, so the answer is either `a-b-1` or `a-b`
   -- If `2^(a-b) ≤ n/d` then `a-b`, otherwise `a-b-1`
   let g : ℤ := a - b
@@ -37,7 +38,7 @@ lemma Rat.log2_correct {x : ℚ} (x0 : x ≠ 0) : |x| ∈ Ico (2^x.log2) (2^(x.l
   have t0 : (2:ℚ) ≠ 0 := by norm_num
   rw [log2]
   simp only [sub_nonneg, Nat.cast_le, neg_sub, Bool.cond_decide, bif_eq_if, decide_eq_true_eq,
-    Nat.shiftLeft_eq]
+    Nat.shiftLeft_eq, Nat.fast_log2_eq]
   generalize hn : x.num.natAbs = n
   generalize ha : n.log2 = a
   generalize hb : x.den.log2 = b
@@ -65,7 +66,7 @@ lemma Rat.log2_correct {x : ℚ} (x0 : x ≠ 0) : |x| ∈ Ico (2^x.log2) (2^(x.l
     apply_ite (fun n : ℤ ↦ (2:ℚ)^n), apply_ite (fun y : ℚ ↦ y ≤ |x|),
     apply_ite (fun y : ℚ ↦ |x| < y), apply_ite (fun n : ℤ ↦ n + 1),
     Nat.cast_mul, Nat.cast_pow, Nat.cast_two, mul_comm (x.den : ℚ),
-    ←le_div_iff d0', lo, hi, sub_add_cancel]
+    ←le_div_iff d0', lo, hi, sub_add_cancel, Nat.fast_log2_eq]
   by_cases ba : b ≤ a
   · simp only [Nat.cast_le, ba, ite_true, decide_eq_true_eq, sub_add_cancel, ←Nat.cast_sub ba,
       Int.toNat_ofNat, zpow_ofNat, zpow_natCast]

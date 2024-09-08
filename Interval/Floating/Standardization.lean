@@ -100,11 +100,14 @@ lemma of_ns_ne_nan {n : Int64} {s : UInt64} (nm : n ≠ .min) :
 
 /-- `of_ns` satisfies `norm` -/
 lemma of_ns_norm {n : Int64} {s : UInt64} (n0 : n ≠ 0) (nm : n ≠ .min) :
-    n <<< (lower (62 - n.abs.log2) s).2 ≠ 0 → n <<< (lower (62 - n.abs.log2) s).2 ≠ Int64.min →
-      (lower (62 - n.abs.log2) s).1 ≠ 0 → 2 ^ 62 ≤ (n <<< (lower (62 - n.abs.log2) s).2).abs := by
+    n <<< (lower (62 - n.abs.fast_log2) s).2 ≠ 0 →
+      n <<< (lower (62 - n.abs.fast_log2) s).2 ≠ Int64.min →
+      (lower (62 - n.abs.fast_log2) s).1 ≠ 0 →
+      2 ^ 62 ≤ (n <<< (lower (62 - n.abs.fast_log2) s).2).abs := by
   intro _ _ sm
-  rw [UInt64.le_iff_toNat_le, up62, Int64.toNat_abs, coe_low_s nm, Int.natAbs_mul,
-    Int.natAbs_pow, ua2, ←Int64.toNat_abs]
+  simp only [UInt64.fast_log2_eq] at sm ⊢
+  rw [UInt64.le_iff_toNat_le, up62, Int64.toNat_abs, coe_low_s nm, Int.natAbs_mul, Int.natAbs_pow,
+    ua2, ←Int64.toNat_abs]
   rw [lower] at sm ⊢
   simp only [Bool.cond_decide, ne_eq, ite_eq_left_iff, not_lt, not_forall, exists_prop] at sm ⊢
   generalize hd : s - (s - (62 - n.abs.log2)) = d
@@ -122,14 +125,15 @@ lemma of_ns_norm {n : Int64} {s : UInt64} (n0 : n ≠ 0) (nm : n ≠ .min) :
 
 /-- `of_ns` is valid -/
 lemma valid_of_ns {n : Int64} {s : UInt64} (nm : n ≠ .min) (n0 : n ≠ 0) :
-    let t := lower (62 - n.abs.log2) s
+    let t := lower (62 - n.abs.fast_log2) s
     Valid (n <<< t.2) t.1 := {
   zero_same := by
     intro z; contrapose z; clear z
     simp only [←Int64.coe_eq_coe, Int64.coe_zero, coe_low_s nm, mul_eq_zero, not_or,
-      pow_eq_zero_iff', OfNat.ofNat_ne_zero, ne_eq, false_and, not_false_eq_true, and_true]
+      pow_eq_zero_iff', OfNat.ofNat_ne_zero, ne_eq, false_and, not_false_eq_true, and_true,
+      UInt64.fast_log2_eq]
     simp only [Int64.coe_eq_zero, n0, not_false_eq_true]
-  nan_same := by simp only [of_ns_ne_nan nm, IsEmpty.forall_iff]
+  nan_same := by simp only [UInt64.fast_log2_eq, of_ns_ne_nan nm, IsEmpty.forall_iff]
   norm := of_ns_norm n0 nm }
 
 /-- Construct a `Floating` given possibly non-standardized `n, s` -/
@@ -137,7 +141,7 @@ lemma valid_of_ns {n : Int64} {s : UInt64} (nm : n ≠ .min) (n0 : n ≠ 0) :
   if nm : n = .min then nan else
   if n0 : n = 0 then 0 else
   -- If `n` is small, we decrease `s` until either `n` has the high bit set or `s = 0`
-  let t := lower (62 - n.abs.log2) s
+  let t := lower (62 - n.abs.fast_log2) s
   { n := n <<< t.2
     s := t.1
     v := valid_of_ns nm n0 }
@@ -158,7 +162,8 @@ lemma val_of_ns {n : Int64} {s : UInt64} (nm : n ≠ .min) :
   by_cases n0 : n = 0
   · simp only [n0, Int64.zero_shiftLeft, dite_true, n_zero, Int64.coe_zero, Int.cast_zero, s_zero,
       zero_mul]
-  simp only [n0, dite_false, coe_low_s nm, Int.cast_mul, Int.cast_pow, Int.cast_ofNat]
+  simp only [n0, dite_false, coe_low_s nm, Int.cast_mul, Int.cast_pow, Int.cast_ofNat,
+    UInt64.fast_log2_eq]
   simp only [low_s_2_eq, mul_assoc, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, pow_mul_zpow,
     mul_eq_mul_left_iff, gt_iff_lt, zero_lt_two, OfNat.ofNat_ne_one, zpow_inj, Int.cast_eq_zero,
     Int64.coe_eq_zero, n0, or_false, Nat.cast_sub low_le_s', UInt64.toInt]
@@ -172,7 +177,8 @@ lemma val_of_ns {n : Int64} {s : UInt64} (nm : n ≠ .min) :
     by_cases n0 : n = 0
     · simp only [n0, Int64.zero_ne_min, Int64.zero_shiftLeft, dite_true, dite_eq_ite, ite_false,
         n_zero, n_nan, s_zero, s_nan, false_and, not_false_eq_true]
-    · simp only [nm, n0, dite_false, n_nan, of_ns_ne_nan nm, s_nan, false_and, not_false_eq_true]
+    · simp only [nm, n0, dite_false, n_nan, of_ns_ne_nan nm, s_nan, false_and, not_false_eq_true,
+        UInt64.fast_log2_eq]
   · intro h; rw [h, of_ns_nan]
 
 /-- `of_ns` doesn't create `nan` -/
