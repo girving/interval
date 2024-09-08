@@ -452,10 +452,17 @@ These are easy now that we have `exp` and `log`.
 @[irreducible] def Interval.pow (x : Interval) (y : Interval) : Interval :=
   (x.log * y).exp
 
+instance : Pow Interval Interval := ⟨Interval.pow⟩
+
+lemma Interval.pow_def {x y : Interval} : x ^ y = (x.log * y).exp := by
+  trans x.pow y
+  · rfl
+  · rw [Interval.pow]
+
 /-- `Interval.pow` is conservative -/
 @[approx] lemma Interval.mem_approx_pow {x : Interval} {y : Interval} {x' y' : ℝ}
-    (xm : x' ∈ approx x) (ym : y' ∈ approx y) : x' ^ y' ∈ approx (x.pow y) := by
-  rw [Interval.pow]
+    (xm : x' ∈ approx x) (ym : y' ∈ approx y) : x' ^ y' ∈ approx (x ^ y) := by
+  rw [pow_def]
   by_cases x0 : 0 < x'
   · rw [Real.rpow_def_of_pos x0]; approx
   · simp only [not_lt] at x0
@@ -464,7 +471,7 @@ These are easy now that we have `exp` and `log`.
 
 /-- `Interval.pow` is conservative for `ℕ` powers -/
 @[approx] lemma Interval.mem_approx_pow_nat {x : Interval} {n : ℕ} {x' : ℝ}
-    (xm : x' ∈ approx x) : x' ^ n ∈ approx (x.pow (.ofNat n)) := by
+    (xm : x' ∈ approx x) : x' ^ n ∈ approx (x ^ (n : Interval)) := by
   simp only [← Real.rpow_natCast]
   approx
 
@@ -476,7 +483,7 @@ This is an extremely slow way of computing square roots.
 
 /-- `sqrt x = x ^ 0.5` -/
 @[irreducible] def Interval.sqrt (x : Interval) : Interval :=
-  x.pow (Interval.div2 1)
+  x ^ (Interval.div2 1)
 
 /-- `Interval.sqrt` is conservative -/
 @[approx] lemma Interval.mem_approx_sqrt {x : Interval} {a : ℝ}

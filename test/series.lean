@@ -43,7 +43,7 @@ example : log_test 1e-8 7e-18 := by native_decide
 
 /-- `pow` tests -/
 def pow_test (x y : ℚ) (e : Float) : Bool :=
-  ((Interval.ofRat x).pow (Interval.ofRat y)).size.toFloat ≤ e
+  ((Interval.ofRat x) ^ (Interval.ofRat y)).size.toFloat ≤ e
 example : pow_test 3.7 4.2 2e-15 := by native_decide
 example : pow_test 0.1 (-1/2) 5e-18 := by native_decide
 example : pow_test 2 (1/2) 7e-19 := by native_decide

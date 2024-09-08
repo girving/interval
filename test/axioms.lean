@@ -12,7 +12,7 @@ noncomputable def f (x : ℝ) : ℝ :=
 open Interval in
 /-- Arbitrary function that uses a lot of definitions from the library. -/
 def Interval.f (x : Interval) : Interval :=
-  2 * x + (1 / x) + x⁻¹ + exp x + log x + x.pow 6 + x * x
+  2 * x + (1 / x) + x⁻¹ + exp x + log x + x ^ (6 : Interval) + x * x
 
 lemma without_native_decide (x : ℝ) (x' : Interval) (hx : x ∈ approx x') :
     f x ∈ approx (x'.f) := by
