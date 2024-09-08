@@ -23,6 +23,16 @@ functions (`exp`, `log`, powers).
 1. Install [`elan`](https://github.com/leanprover/elan) (`brew install elan-init` on Mac)
 2. `lake build`
 
+## Contributors
+
+Here is a partial list of contributors, in alphabetical order:
+
+* [Adomas Baliuka](https://orcid.org/0000-0002-7064-8502)
+* [Michael George](https://github.com/mdgeorge4153)
+* [Geoffrey Irving](https://github.com/girving)
+
+Plus migration fixes from Yury Kudryashov, David Renshaw, and Scott Morrison. Thank you!
+
 ## Optimization and debugging tricks
 
 I'm going to keep a list here, since otherwise I will forget them.
