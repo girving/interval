@@ -66,7 +66,7 @@ lemma Rat.log2_correct {x : ℚ} (x0 : x ≠ 0) : |x| ∈ Ico (2^x.log2) (2^(x.l
     apply_ite (fun n : ℤ ↦ (2:ℚ)^n), apply_ite (fun y : ℚ ↦ y ≤ |x|),
     apply_ite (fun y : ℚ ↦ |x| < y), apply_ite (fun n : ℤ ↦ n + 1),
     Nat.cast_mul, Nat.cast_pow, Nat.cast_two, mul_comm (x.den : ℚ),
-    ←le_div_iff d0', lo, hi, sub_add_cancel, Nat.fast_log2_eq]
+    ←le_div_iff₀ d0', lo, hi, sub_add_cancel, Nat.fast_log2_eq]
   by_cases ba : b ≤ a
   · simp only [Nat.cast_le, ba, ite_true, decide_eq_true_eq, sub_add_cancel, ←Nat.cast_sub ba,
       Int.toNat_ofNat, zpow_ofNat, zpow_natCast]

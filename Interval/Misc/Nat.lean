@@ -367,7 +367,7 @@ lemma Nat.rdiv_le {a b : ℕ} : (a.rdiv b false : ℝ) ≤ a / b := by
   simp only [rdiv, cond_false]
   by_cases b0 : b = 0
   · simp only [b0, Nat.cast_zero, Nat.div_zero, cast_zero, div_zero, le_refl]
-  · rw [le_div_iff]
+  · rw [le_div_iff₀]
     · rw [←Nat.cast_mul, Nat.cast_le]
       exact div_mul_le_self a b
     · exact Nat.cast_pos.mpr (Nat.pos_of_ne_zero b0)
@@ -378,7 +378,7 @@ lemma Nat.le_rdiv {a b : ℕ} : (a / b : ℝ) ≤ a.rdiv b true := by
   by_cases b0 : b = 0
   · simp only [b0, cast_zero, div_zero, ge_iff_le, _root_.zero_le, tsub_eq_zero_of_le, add_zero,
       Nat.div_zero, le_refl]
-  · rw [div_le_iff (Nat.cast_pos.mpr (Nat.pos_of_ne_zero b0)), ←Nat.cast_mul, Nat.cast_le]
+  · rw [div_le_iff₀ (Nat.cast_pos.mpr (Nat.pos_of_ne_zero b0)), ←Nat.cast_mul, Nat.cast_le]
     have lt : b - 1 < b := by omega
     rw [add_div (by omega), div_eq_of_lt lt, add_zero, mod_eq_of_lt lt]
     by_cases z : a % b = 0

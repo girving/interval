@@ -35,7 +35,7 @@ lemma Int.rdiv_le {a : ℤ} {b : ℕ} : (a.rdiv b false : ℝ) ≤ a / b := by
   simp only [rdiv, cond_false]
   by_cases b0 : b = 0
   · simp only [b0, Nat.cast_zero, Int.ediv_zero, cast_zero, div_zero, le_refl]
-  · rw [le_div_iff]
+  · rw [le_div_iff₀]
     · have e : (b : ℝ) = (b : ℤ) := rfl
       rw [e, ←Int.cast_mul, Int.cast_le]
       exact Int.ediv_mul_le _ (Nat.cast_ne_zero.mpr b0)
@@ -48,7 +48,7 @@ lemma Int.le_rdiv {a : ℤ} {b : ℕ} : (a / b : ℝ) ≤ a.rdiv b true := by
   · simp only [b0, Nat.cast_zero, div_zero, Int.ediv_zero, cast_zero, neg_zero, le_refl]
   · rw [le_neg, ←neg_div, ←Int.cast_neg]
     generalize -a = a
-    rw [le_div_iff]
+    rw [le_div_iff₀]
     · have e : (b : ℝ) = (b : ℤ) := rfl
       rw [e, ←Int.cast_mul, Int.cast_le]
       exact Int.ediv_mul_le _ (Nat.cast_ne_zero.mpr b0)
@@ -251,7 +251,7 @@ theorem Int.induction_overlap {p : ℤ → Prop} (hi : ∀ n : ℕ, p n) (lo : �
     ∀ n : ℤ, p n := by intro n; induction' n with n; exact hi n; exact lo (_ + 1)
 
 section ZPow
-attribute [bound] Nat.floor_le_floor Nat.ceil_le_ceil zpow_nonneg zpow_pos_of_pos
+attribute [bound] zpow_nonneg zpow_pos_of_pos
 
 variable {𝕜 : Type*} [LinearOrderedSemifield 𝕜]
 

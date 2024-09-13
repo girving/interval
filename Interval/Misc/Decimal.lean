@@ -296,7 +296,7 @@ lemma ofBinaryNat_le (n : ℕ) (s : ℤ) (prec : ℕ) : ofBinaryNat n s prec fal
   by_cases n0 : n = 0
   · simp [n0, zero_def]
   · simp only [bif_eq_if, beq_iff_eq, n0, ↓reduceIte, Int.cast_natCast]
-    rw [← le_div_iff (by positivity)]
+    rw [← le_div_iff₀ (by positivity)]
     apply m_of_t_le
 
 /-- `ofBinaryNat` rounds up if desired -/
@@ -305,7 +305,7 @@ lemma le_ofBinaryNat (n : ℕ) (s : ℤ) (prec : ℕ) : (n : ℝ) * 2^s ≤ ofBi
   by_cases n0 : n = 0
   · simp [n0, zero_def]
   · simp only [bif_eq_if, beq_iff_eq, n0, ↓reduceIte, Int.cast_natCast]
-    rw [← div_le_iff (by positivity)]
+    rw [← div_le_iff₀ (by positivity)]
     apply le_m_of_t
 
 end OfBinary

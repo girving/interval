@@ -130,7 +130,7 @@ lemma adjust_shift_le_63 (r : UInt128) (s : UInt64) (up : Bool)
   simp only [Int.cast_ofNat, Nat.cast_pow, Nat.cast_ofNat, Nat.cast_succ, Int.cast_add,
     Int.cast_pow, Int.cast_ofNat, Int.cast_one, ← le_sub_iff_add_le, add_sub_cancel_right]
   have a65' : (add_adjust r.log2 s).2 < 65 := by simpa only [UInt64.lt_iff_toNat_lt, u65]
-  rw [div_le_iff (by positivity), ←pow_add, UInt64.toNat_sub'' a65'.le, u65,
+  rw [div_le_iff₀ (by positivity), ←pow_add, UInt64.toNat_sub'' a65'.le, u65,
     ←Nat.add_sub_assoc a65.le]
   have lt := adjust_r_lt_128 r s
   simp only [← Nat.cast_lt (α := ℝ), Nat.cast_pow, Nat.cast_ofNat] at lt
@@ -609,7 +609,8 @@ lemma val_add_to_128 {x y : Floating} (up : Bool) (yn : y ≠ nan) (y0 : y ≠ 0
     Nat.cast_ofNat, UInt64.toNat_sub'' yxs, mul_div_assoc ((2:ℝ)^64), mem_rounds_singleton,
     zero_lt_two, pow_pos, mul_le_mul_left, Bool.xor_false] at a
   simp only [Bool.not_eq_true', ← Int64.toReal_toInt un, pow_sub₀ _ t0 yxs', ← div_eq_mul_inv, ←
-    div_mul, ← mul_div_right_comm, div_le_iff two_pow_pos, le_div_iff two_pow_pos] at a
+    div_mul, ← mul_div_right_comm, div_le_iff₀ (G₀ := ℝ) two_pow_pos,
+    le_div_iff₀ (G₀ := ℝ) two_pow_pos] at a
   by_cases yn : y.n.isNeg = false
   · simp only [yn, cond_false, Bool.xor_false, Nat.cast_add, Nat.cast_mul, Nat.cast_pow,
       Nat.cast_ofNat, UInt64.toNat_add, UInt64.size_eq_pow, Bool.not_eq_true] at hz hu a ⊢
@@ -652,7 +653,7 @@ lemma val_pos_add {x y : Floating} {up : Bool} (yn : y ≠ nan) (y0 : y ≠ 0) (
   · simp only [approx_eq_singleton wn, mem_rounds_singleton, Bool.not_eq_true'] at h1 h0 ⊢
     induction up
     · simp only [ite_true, ge_iff_le] at h0 h1 ⊢; linarith
-    · simp only [ite_false, ge_iff_le] at h0 h1 ⊢; linarith
+    · simp only [Bool.true_eq_false, ↓reduceIte, Int.reducePow] at h0 h1 ⊢; linarith
 
 /-- `add_core` rounds in the correct direction -/
 lemma val_add_core {x y : Floating} {up : Bool} (xn : x ≠ nan) (yn : y ≠ nan) (x0 : x ≠ 0)
@@ -667,7 +668,7 @@ lemma val_add_core {x y : Floating} {up : Bool} (xn : x ≠ nan) (yn : y ≠ nan
     apply val_pos_add
     repeat simpa only [ne_eq, neg_eq_nan_iff, neg_eq_zero_iff, s_neg, n_neg,
       Int64.isNeg_neg (x.n_ne_zero x0) (x.n_ne_min xn), Bool.not_eq_false', add_bigger_neg]
-  · simp only [z, ite_false, Bool.xor_false]
+  · simp only [z, Bool.false_eq_true, ↓reduceIte, Bool.bne_false]
     simp only [Bool.not_eq_true] at z
     exact val_pos_add yn y0 xy z
 

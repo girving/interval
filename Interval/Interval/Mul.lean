@@ -43,7 +43,8 @@ namespace Interval
 @[simp] lemma nan_premul {y : Interval} : (nan : Interval).premul y = nan := by
   rw [premul]
   simp only [lo_nan, Floating.n_nan, Int64.isNeg_min, hi_nan, bne_self_eq_false, Floating.isNeg_iff,
-    Bool.xor_true, Bool.false_and, Floating.nan_mul, min_self, max_self, bif_eq_if, ite_false]
+    Bool.xor_true, Bool.false_and, Floating.nan_mul, min_self, max_self, bif_eq_if, ite_false,
+    Bool.false_eq_true]
   rcases y.sign_cases with ⟨ls,hs⟩ | ⟨ls,hs⟩ | ⟨ls,hs⟩
   all_goals try simp only [not_lt.mpr ls]
   all_goals try simp only [not_lt.mpr hs]

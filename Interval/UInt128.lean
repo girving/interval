@@ -81,7 +81,7 @@ noncomputable instance {n : ℕ} : CoeTail UInt128 (ZMod n) where
   simp only [toNat, Nat.shiftLeft_eq, ← UInt64.size_eq_pow, UInt64.size_pos, Nat.add_div,
     Nat.mul_div_left, Nat.div_eq_zero_of_lt (UInt64.lt_size _), add_zero, Nat.mul_mod_left,
     UInt64.toNat_mod_size, zero_add, add_right_eq_self, ite_eq_right_iff, imp_false, not_le,
-    UInt64.lt_size]
+    UInt64.lt_size, one_ne_zero]
 
 lemma UInt128.eq_iff_toNat_eq (x y : UInt128) : x = y ↔ x.toNat = y.toNat := by
   constructor
@@ -210,8 +210,8 @@ lemma UInt128.toNat_succ {x : UInt128} (h : x.toNat ≠ 2^128-1) : x.succ.toNat 
       zify; rw [c]; ring
   · simp only [UInt64.eq_iff_toNat_eq] at ll
     simp only [toNat, bif_eq_if, beq_iff_eq, UInt64.eq_iff_toNat_eq, UInt64.toNat_add_one ll,
-      UInt64.toNat_zero, add_eq_zero, and_false, ite_false, add_zero]
-    ring
+      UInt64.toNat_zero, add_eq_zero, and_false, ite_false, add_zero, one_ne_zero]
+    ring_nf
 
 lemma UInt128.toNat_succ' (x : UInt128) :
     x.succ.toNat = (if x.toNat = 2^128-1 then 0 else x.toNat + 1) := by
@@ -818,7 +818,8 @@ lemma UInt128.toNat_shiftLeftSaturate {x : UInt128} {s : UInt64}
     rw [min_eq_left (by omega)]
   by_cases t128 : t < 128
   · have t128' : (t : UInt64) < 128 := by
-      simpa only [UInt64.lt_iff_toNat_lt, UInt64.toNat_cast, Nat.mod_eq_of_lt t64, p128]
+      simp only [UInt64.lt_iff_toNat_lt, UInt64.toNat_cast, Nat.mod_eq_of_lt t64, p128]
+      exact t128
     have sub : 128 - (t : UInt64) < 128 := by
       rw [UInt64.lt_iff_toNat_lt, UInt64.toNat_sub'' t128'.le, p128, UInt64.toNat_cast,
         Nat.mod_eq_of_lt t64]
@@ -829,7 +830,7 @@ lemma UInt128.toNat_shiftLeftSaturate {x : UInt128} {s : UInt64}
       not_false_eq_true, eq_iff_toNat_eq, UInt128.toNat_shiftRight _ sub, e9, toNat_zero,
       gt_iff_lt, zero_lt_two, pow_pos, Nat.div_eq_zero_iff, not_lt, true_and,
       apply_ite (f := fun x : UInt128 ↦ x.toNat), toNat_max, ge_iff_le, min_eq_left, if_false,
-      UInt64.toNat_cast]
+      UInt64.toNat_cast, Bool.false_eq_true]
     rw [UInt128.toNat_shiftLeft]
     split_ifs with c
     · rw [min_eq_right]

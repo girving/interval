@@ -25,8 +25,7 @@ open scoped Real
 /-- Sum an `Interval` Taylor series, spitting out `x^n` and the result.
     For now, we use a slow linear loop. We add smaller terms together first to improve precision. -/
 def taylor_sum' (c : Array Interval) (x p e : Interval) (offset steps : ℕ)
-    (_ : offset + steps ≤ c.size) :
-    Interval :=
+    (_ : offset + steps ≤ c.size) : Interval :=
   match steps with
   | 0 => e
   | steps+1 => c[offset]'(by omega) * p + taylor_sum' c x (p * x) e (offset+1) steps (by omega)
@@ -382,7 +381,7 @@ set the final precision.
   simp only [bif_eq_if]
   by_cases x0 : x.val ≤ 0
   · simp only [val_le_val, val_zero, x0, decide_True, ite_true, Interval.approx_nan, mem_univ]
-  simp only [val_le_val, val_zero, x0, decide_False, ite_false]
+  simp only [val_le_val, val_zero, x0, decide_False, ite_false, Bool.false_eq_true]
   simp only [not_le] at x0
   simp only [approx_eq_singleton (Floating.ne_nan_of_nonneg x0.le), mem_singleton_iff] at xm
   simp only [xm]; clear xm x'

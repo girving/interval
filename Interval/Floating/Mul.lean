@@ -123,7 +123,8 @@ lemma mul_norm_correct (n : UInt128) (up : Bool) (n0 : n ≠ 0) (lo : n.toNat �
         have zl := z.lo.toNat_lt
         norm_num only at z_lt zl ⊢
         omega
-      simp only [not_up, Bool.and_true, up62, Nat.cast_pow, Nat.cast_ofNat, ite_false] at hb ⊢
+      simp only [not_up, Bool.and_true, up62, Nat.cast_pow, Nat.cast_ofNat, ite_false,
+        Bool.true_eq_false] at hb ⊢
       clear not_up up
       have s1 : 1 ≤ s.toNat := by
         rw [Nat.one_le_iff_ne_zero]
@@ -178,7 +179,7 @@ lemma valid_mul_finish (n : UInt64) (s : Int128) (norm : n.toNat ∈ Ico (2^62) 
   zero_same := by
     intro n0
     simp only [Int64.ext_iff, Int64.n_zero] at n0
-    simp only [n0, UInt64.toNat_zero, mem_Ico, nonpos_iff_eq_zero, gt_iff_lt, zero_lt_two,
+    norm_num [n0, UInt64.toNat_zero, mem_Ico, nonpos_iff_eq_zero, gt_iff_lt, zero_lt_two,
       pow_pos, and_true] at norm
   nan_same := by
     intro nm
@@ -245,9 +246,9 @@ lemma mul_finish_correct (n : UInt64) (s : Int128) (up : Bool)
     by_cases sn : s.isNeg
     · simp only [sn, ite_true]
       induction up
-      · simp only [ite_false, ne_eq, zero_ne_nan, not_false_eq_true, approx_eq_singleton, val_zero,
-          Bool.not_false, mem_rounds_singleton, gt_iff_lt, two_zpow_pos, mul_nonneg_iff_of_pos_right,
-          Nat.cast_nonneg, ite_true]
+      · simp only [Bool.false_eq_true, ↓reduceIte, ne_eq, zero_ne_nan, not_false_eq_true,
+          approx_eq_singleton, val_zero, Bool.not_false, Int.reducePow, mem_rounds_singleton,
+          two_zpow_pos, mul_nonneg_iff_of_pos_right, Nat.cast_nonneg]
       · simp only [ite_true, ne_eq, min_norm_ne_nan, not_false_eq_true, approx_eq_singleton,
           val_min_norm, Bool.not_true, mem_rounds_singleton, ite_false]
         refine le_trans (mul_le_mul_of_nonneg_right (Nat.cast_le.mpr norm.2.le) two_zpow_pos.le) ?_
@@ -257,7 +258,7 @@ lemma mul_finish_correct (n : UInt64) (s : Int128) (up : Bool)
         simp only [Int128.isNeg_iff, decide_eq_true_eq] at sn
         norm_num
         omega
-    · simp only [sn, ite_false, approx_nan, rounds_univ, mem_univ]
+    · simp only [sn, ite_false, approx_nan, rounds_univ, mem_univ, Bool.false_eq_true]
 
 /-- `mul_exponent` is correct -/
 lemma mul_exponent_eq (xs ys t : UInt64) :
@@ -306,17 +307,19 @@ lemma approx_mul_of_nonneg {x y : Floating} {up : Bool} {x0 : 0 ≤ x.val} {y0 :
     simp only [approx_eq_singleton n, mem_rounds_singleton, Bool.not_eq_true'] at cf
     replace cn := cn.2
     induction up
-    · simp only [← le_div_iff two_zpow_pos, ite_true, UInt64.toInt, Int.cast_ofNat] at cn cf ⊢
+    · simp only [← le_div_iff₀ (G₀ := ℝ) two_zpow_pos, ite_true, UInt64.toInt,
+        Int.cast_ofNat] at cn cf ⊢
       refine le_trans cf (le_trans (mul_le_mul_of_nonneg_right cn two_zpow_pos.le) ?_)
-      simp only [← le_div_iff two_zpow_pos, div_le_iff two_zpow_pos, mul_assoc, mul_div_assoc,
-        ←zpow_sub₀ t0, ←zpow_add₀ t0, ce]
+      simp only [← le_div_iff₀ (G₀ := ℝ) two_zpow_pos, div_le_iff₀ (G₀ := ℝ) two_zpow_pos,
+        mul_assoc, mul_div_assoc, ←zpow_sub₀ t0, ←zpow_add₀ t0, ce]
       refine le_mul_of_one_le_right (Nat.cast_nonneg _) (one_le_zpow_of_nonneg (by norm_num)
         (le_of_eq ?_))
       ring
-    · simp only [← div_le_iff two_zpow_pos, ite_false, UInt64.toInt, Int.cast_ofNat] at cn cf ⊢
+    · simp only [← div_le_iff₀ (G₀ := ℝ) two_zpow_pos, ite_false, UInt64.toInt,
+        Int.cast_ofNat] at cn cf ⊢
       refine le_trans (le_trans ?_ (mul_le_mul_of_nonneg_right cn two_zpow_pos.le)) cf
-      simp only [←le_div_iff two_zpow_pos, div_le_iff two_zpow_pos, mul_assoc, mul_div_assoc,
-        ←zpow_sub₀ t0, ←zpow_add₀ t0, mul_comm_div, ce]
+      simp only [← le_div_iff₀ (G₀ := ℝ) two_zpow_pos, div_le_iff₀ (G₀ := ℝ) two_zpow_pos,
+        mul_assoc, mul_div_assoc, ←zpow_sub₀ t0, ←zpow_add₀ t0, mul_comm_div, ce]
       refine le_mul_of_one_le_right (Nat.cast_nonneg _) (one_le_zpow_of_nonneg (by norm_num)
         (le_of_eq ?_))
       ring

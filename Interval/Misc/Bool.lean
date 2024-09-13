@@ -52,8 +52,8 @@ lemma bif_congr {x y : Bool} {a b c d : α} (xy : x = y) (ac : a = c) (bd : b = 
 /-- Change `bif` to `if` -/
 lemma bif_eq_if {b : Bool} {x y : α} : (bif b then x else y) = if b then x else y := by
   induction b
-  · simp only [_root_.cond_false, ite_false]
-  · simp only [_root_.cond_true, ite_true]
+  · simp only [cond_false, Bool.false_eq_true, ↓reduceIte]
+  · simp only [cond_true, ↓reduceIte]
 
 lemma apply_decide {f : Bool → α} {p : Prop} {dp : Decidable p} :
     (f (@decide p dp)) = if p then f true else f false := by

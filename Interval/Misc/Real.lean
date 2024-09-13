@@ -1,6 +1,6 @@
+import Mathlib.Algebra.Group.Pointwise.Set
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Data.Real.Basic
-import Mathlib.Data.Set.Pointwise.Basic
 import Mathlib.Data.Set.Pointwise.Interval
 import Mathlib.Tactic.Linarith.Frontend
 import Interval.Tactic.Approx
@@ -57,7 +57,7 @@ lemma nonpos_or_nonneg (x : 𝕜) : x ≤ 0 ∨ 0 ≤ x := by
   constructor
   · intro ⟨z, ⟨hz1, hz2⟩, hz3⟩; exact ⟨by nlinarith, by nlinarith⟩
   · intro ⟨h0,h1⟩; use y / x
-    simp only [le_div_iff x0, h0, div_le_iff x0, h1, and_self, div_mul_cancel₀ _ x0.ne']
+    simp only [le_div_iff₀ x0, h0, div_le_iff₀ x0, h1, and_self, div_mul_cancel₀ _ x0.ne']
 
 /-- Negative `c` version of `image_mul_right_Icc` -/
 theorem image_mul_right_Icc_of_neg {a b c : 𝕜} (c0 : c < 0) :

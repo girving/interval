@@ -54,9 +54,9 @@ namespace Floating
         Int64.coe_eq_zero, UInt64.toInt, UInt64.coe_toNat_sub xt, Int64.toNat_neg tn]
       left
       ring
-  · simp only [tn, ite_false]
+  · simp only [tn, ite_false, Bool.false_eq_true]
     by_cases xt : .max - t.n < x.s
-    · simp only [xt, ite_true, approx_nan, mem_univ]
+    · simp only [Bool.false_eq_true, ↓reduceIte, xt, approx_nan, mem_univ]
     · simp only [xt, ite_false, approx_eq_singleton (of_ns_ne_nan_iff.mpr (x.n_ne_min xn)),
         val_of_ns (x.n_ne_min xn), mem_singleton_iff]
       simp only [not_lt] at xt

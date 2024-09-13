@@ -1,5 +1,3 @@
-import Mathlib.Data.Set.Pointwise.Basic
-import Mathlib.Data.Set.Pointwise.Interval
 import Interval.Floating.Add
 import Interval.Floating.Abs
 import Interval.Floating.Order

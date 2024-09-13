@@ -1,10 +1,8 @@
-import Mathlib.Algebra.Field.Defs
+import Mathlib.Algebra.Group.Pointwise.Set
+import Mathlib.Algebra.Order.Group.Defs
+import Mathlib.Algebra.Order.Group.OrderIso
 import Mathlib.Algebra.Star.Basic
-import Mathlib.Data.Set.NAry
-import Mathlib.Data.Set.Pointwise.Basic
 import Mathlib.Order.Interval.Set.OrdConnected
-import Mathlib.Tactic.Linarith.Frontend
-import Mathlib.Tactic.Monotonicity.Basic
 import Interval.Tactic.Approx
 
 /-!
