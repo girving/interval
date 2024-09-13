@@ -1,7 +1,10 @@
 import Interval.Division
 import Interval.Interval.Conversion
+import Interval.Interval.Exp
+import Interval.Interval.Log
 import Interval.Interval.Mul
-import Interval.Series
+import Interval.Interval.Pow
+import Interval.Interval.Sqrt
 import Interval.Tactic.Init
 import Mathlib.Tactic.Monotonicity.Basic
 import Qq

@@ -1,6 +1,6 @@
 import Interval.Interval.Basic
 import Interval.Interval.Conversion
-import Interval.Series
+import Interval.Interval.Exp
 
 /-!
 # `Repr Interval` unit tests

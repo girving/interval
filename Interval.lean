@@ -7,9 +7,13 @@ import Interval.Floating.Neg
 import Interval.Floating.Order
 import Interval.Floating.Scale
 import Interval.Interval.Basic
-import Interval.Interval.Mul
 import Interval.Interval.Conversion
-import Interval.Series
+import Interval.Interval.Mul
+import Interval.Interval.Exp
+import Interval.Interval.Log
+import Interval.Interval.Pow
+import Interval.Interval.Series
+import Interval.Interval.Sqrt
 import Interval.Floating.Standardization
 import Interval.Tactic.Interval
 

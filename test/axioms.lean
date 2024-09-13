@@ -1,4 +1,7 @@
-import Interval.Series
+import Interval.Division
+import Interval.Interval.Exp
+import Interval.Interval.Log
+import Interval.Interval.Pow
 
 /-!
 # Verify that `Interval` proofs do not depend on `native_decide`

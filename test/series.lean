@@ -1,4 +1,6 @@
-import Interval.Series
+import Interval.Interval.Exp
+import Interval.Interval.Log
+import Interval.Interval.Pow
 
 /-!
 ### Unit tests for series computations: `exp`, `log` and `pow`
