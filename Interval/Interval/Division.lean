@@ -1,14 +1,10 @@
-import Interval.Box
 import Interval.Floating.TwoPow
 import Interval.Interval.Conversion
 import Interval.Interval.Around
 import Interval.Interval.Mul
-import Batteries.Data.Rat.Basic
-
-open Pointwise
 
 /-!
-## `Interval` and `Box` inv and division
+## `Interval` inverse and division
 
 Given `x : Interval`, we want `1 / x` (division will follow immediately).  If `0 ∈ x`, then
 `1 / x = nan`.  Otherwise, `x` is reliably positive or negative.
@@ -34,6 +30,7 @@ If `1/a ∈ x`, the two endpoints of `x` will produce opposite sign for `1 - a x
 the sign of `d` will produce opposite signs for `d (1 - a x)`, and will bracket `1/a`.
 -/
 
+open Pointwise
 open Set
 open scoped Real
 namespace Interval
@@ -266,53 +263,16 @@ noncomputable instance : ApproxInv Interval ℝ where
       apply approx_inv_pos
 
 /-!
-## `Interval` and `Box` division
+## `Interval` division
 -/
 
 /-- `Interval` division via reciproval multiplication -/
 instance : Div Interval where
   div x y := x * y⁻¹
 
-/-- `Box / Interval` via reciproval multiplication -/
-@[irreducible] def _root_.Box.div_scalar (z : Box) (x : Interval) : Box :=
-  x⁻¹.mul_box z
-
-/-- `Box` inversion via scalar division -/
-instance : Inv Box where
-  inv z := (star z).div_scalar z.normSq
-
-lemma _root_.Box.inv_def (z : Box) : z⁻¹ = (star z).div_scalar z.normSq := rfl
 lemma div_def (x y : Interval) : x / y = x * y⁻¹ := rfl
 
 /-- `Interval.div` is conservative -/
 noncomputable instance : ApproxDiv Interval ℝ where
   approx_div x y := by
     rw [div_def, div_eq_mul_inv]; approx
-
-/-- `Box / Interval` is conservative -/
-@[approx] lemma _root_.Box.approx_div_scalar {z : Box} {x : Interval} :
-    approx z / Complex.ofReal '' approx x ⊆ approx (z.div_scalar x) := by
-  rw [Box.div_scalar, div_eq_inv_mul]
-  refine subset_trans (mul_subset_mul ?_ subset_rfl) (Interval.approx_mul_box _ _)
-  intro a
-  simp only [Complex.ofReal_eq_coe, mem_inv, mem_image, forall_exists_index, and_imp]
-  intro b m e
-  use b⁻¹
-  constructor
-  · exact mem_approx_inv m
-  · rw [Complex.ofReal_inv, e, inv_inv]
-
-/-- `Box` inversion is conservative -/
-noncomputable instance : ApproxInv Box ℂ where
-  approx_inv z := by
-    rw [Box.inv_def]
-    intro w m
-    simp only [mem_inv] at m
-    rw [←inv_inv w]
-    generalize w⁻¹ = z at m
-    rw [Complex.inv_def, Box.div_scalar, mul_comm]
-    apply approx_mul_box
-    apply mul_mem_mul
-    · apply mem_image_of_mem
-      approx
-    · exact mem_approx_star m

@@ -1,4 +1,4 @@
-import Interval.Division
+import Interval.Interval.Division
 
 /-!
 ### Division unit tests

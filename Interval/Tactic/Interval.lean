@@ -1,4 +1,4 @@
-import Interval.Division
+import Interval.Interval.Division
 import Interval.Interval.Conversion
 import Interval.Interval.Exp
 import Interval.Interval.Log
