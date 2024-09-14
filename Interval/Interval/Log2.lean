@@ -2,8 +2,6 @@ import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import Interval.Interval.Constants
 import Interval.Tactic.Decide
 
-open Pointwise
-
 /-!
 ## Interval approximations of `log 2` and friends
 -/
