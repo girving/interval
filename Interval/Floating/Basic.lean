@@ -103,6 +103,10 @@ instance : Nan Floating where
 noncomputable def val (x : Floating) : ℝ :=
   ((x.n : ℤ) : ℝ) * (2 : ℝ)^(x.s.toInt - 2^63)
 
+/-- The `ℚ` that a `Floating` represents, if it's not `nan` -/
+def valq (x : Floating) : ℚ :=
+  ((x.n : ℤ) : ℚ) * (2 : ℚ)^(x.s.toInt - 2^63)
+
 /-- `Floating` approximates `ℝ` -/
 instance : Approx Floating ℝ where
   approx x := if x = nan then univ else {x.val}
@@ -209,6 +213,10 @@ lemma val_eq_zero {x : Floating} : x.val = 0 ↔ x = 0 := by
 /-- Only `0` has zero `val` -/
 lemma val_ne_zero {x : Floating} : x.val ≠ 0 ↔ x ≠ 0 := by
   rw [←not_iff_not, not_not, not_not, val_eq_zero]
+
+/-- `valq = val` -/
+lemma coe_valq {x : Floating} : x.valq = x.val := by
+  rw [valq, val]; simp
 
 /-!
 ### Simplification lemmas used elsewhere
