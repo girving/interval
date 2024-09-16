@@ -227,3 +227,7 @@ instance {s : Int64} : CoeHead (Fixed s) Floating where
       simp only [d2, if_true, Int.emod_eq_of_lt d0 d1, add_sub_cancel_right, zpow_natCast]
       simp only [Nat.reducePow, tsub_zero, Nat.cast_add, Nat.cast_ofNat, Int.reducePow,
         add_sub_cancel_right, zpow_natCast]
+
+@[simp] lemma _root_.Fixed.toFloating_nan {s : Int64} : (nan : Fixed s).toFloating = nan := by
+  rw [_root_.Fixed.toFloating]
+  simp only [Fixed.nan_n, of_ns_nan]

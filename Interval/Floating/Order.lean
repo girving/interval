@@ -358,6 +358,9 @@ lemma val_lt_val_of_nonneg {x y : Floating}
 @[simp] lemma val_le_val {x y : Floating} : x ≤ y ↔ x.val ≤ y.val := by
   rw [←not_lt, le_def, not_iff_not, val_lt_val]
 
+@[bound] lemma val_le_val_of_le {x y : Floating} (le : x ≤ y) : x.val ≤ y.val := by
+  simpa only [val_le_val] using le
+
 /-- `Floating` is a partial order -/
 instance : LinearOrder Floating where
   le_refl x := by simp only [val_le_val, le_refl]
@@ -487,9 +490,16 @@ lemma eq_nan_of_max {x y : Floating} (n : x.max y = nan) : x = nan ∨ y = nan :
     (x.max y).val = Max.max x.val y.val := by
   simp only [max_ne_nan] at n; exact val_max n.1 n.2
 
+@[simp] lemma max_self (x : Floating) : x.max x = x := by
+  simp only [max, min_self, neg_neg]
+
 /-- `Floating.max` is commutative -/
-@[simp] lemma max_comm {x y : Floating} : x.max y = y.max x := by
+lemma max_comm (x y : Floating) : x.max y = y.max x := by
   simp only [max, min_comm]
+
+/-- `Floating.max` is associative -/
+lemma max_assoc (x y z : Floating) : (x.max y).max z = x.max (y.max z) := by
+  simp only [max, min_assoc, neg_neg]
 
 /-- `max_eq_left` for `Floating.max`, if we're not `nan` -/
 @[simp] lemma max_eq_left {x y : Floating} (yx : y.val ≤ x.val) (yn : y ≠ nan) : x.max y = x := by

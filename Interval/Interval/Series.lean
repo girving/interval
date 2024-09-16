@@ -95,13 +95,13 @@ instance : Approx Series (ℝ → ℝ) where
     cond_true]
 
 /-- `Approx` proof given an effective Taylor series bound -/
-lemma Series.approx_of_taylor (p : Series) (f : ℝ → ℝ) (a : ℕ → ℝ) (b : ℝ)
-    (pf : p.radius ≠ nan → ∀ x : ℝ,
-      |x| ≤ p.radius.val → |f x - ∑ n in Finset.range p.coeffs.size, a n * x ^ n| ≤ b)
+lemma Series.approx_of_taylor' (p : Series) (f : ℝ → ℝ) (a : ℕ → ℝ) (b : ℝ) (x : ℝ) (y : Interval)
+    (pf : p.radius ≠ nan → |x| ≤ p.radius.val →
+      |f x - ∑ n in Finset.range p.coeffs.size, a n * x ^ n| ≤ b)
     (ac : ∀ n : Fin p.coeffs.size, a n ∈ approx p.coeffs[n.1])
-    (be : p.error ≠ nan → b ≤ p.error.val) :
-    f ∈ approx p := by
-  intro x y xy
+    (be : p.error ≠ nan → b ≤ p.error.val)
+    (xy : x ∈ approx y) :
+    f x ∈ approx (p.eval y) := by
   by_cases n : y.abs = nan ∨ p.radius < y.abs.hi
   · rw [Series.eval]
     rcases n with yn | ry
@@ -116,10 +116,20 @@ lemma Series.approx_of_taylor (p : Series) (f : ℝ → ℝ) (a : ℕ → ℝ) (
     have a := Interval.mem_approx_abs xy
     simp only [approx, Interval.lo_eq_nan, yn, ite_false, mem_Icc] at a
     exact le_trans a.2 ry
-  specialize pf rn x xa
+  specialize pf rn xa
   simp only [eval, bif_eq_if, Floating.val_lt_val, not_lt.mpr ry, decide_False, Bool.or_false,
     beq_iff_eq, Interval.hi_eq_nan, Interval.abs_eq_nan, yn', ite_false]
   rw [← add_sub_cancel (∑ n in Finset.range p.coeffs.size, a n * x ^ n) (f x)]
   apply approx_taylor_sum _ _ _ _ _ _ ac xy
   rw [← sub_zero (f x - ∑ n in Finset.range p.coeffs.size, a n * x ^ n)] at pf
   exact Interval.approx_grow pf be (by approx)
+
+/-- `Approx` proof given an effective Taylor series bound -/
+lemma Series.approx_of_taylor (p : Series) (f : ℝ → ℝ) (a : ℕ → ℝ) (b : ℝ)
+    (pf : p.radius ≠ nan → ∀ x : ℝ,
+      |x| ≤ p.radius.val → |f x - ∑ n in Finset.range p.coeffs.size, a n * x ^ n| ≤ b)
+    (ac : ∀ n : Fin p.coeffs.size, a n ∈ approx p.coeffs[n.1])
+    (be : p.error ≠ nan → b ≤ p.error.val) :
+    f ∈ approx p := by
+  intro x y xy
+  exact approx_of_taylor' p f a b x y (fun n ↦ pf n x) ac be xy

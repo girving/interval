@@ -147,6 +147,10 @@ instance decidableLE : @DecidableRel Int64 (· ≤ ·)
 lemma Int64.blt_eq_decide_lt (x y : Int64) : x.blt y = decide (x < y) := by
   simp only [LT.lt, Bool.decide_coe]
 
+/-- `ble` in terms of `le` -/
+lemma Int64.ble_eq_decide_le (x y : Int64) : x.ble y = decide (x ≤ y) := by
+  simp only [ble, blt_eq_decide_lt, LE.le, decide_not]
+
 /-- Negation preserves `min` -/
 @[simp] lemma Int64.neg_eq_min {x : Int64} : (-x) = min ↔ x = min := by
   have i : ∀ {x : Int64}, x = min → (-x) = min := by

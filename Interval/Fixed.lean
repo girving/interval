@@ -79,6 +79,13 @@ lemma Fixed.val_of_s0 {x : Fixed 0} : x.val = ↑x.n := by
   decide
 @[simp] lemma Fixed.nan_ne_zero : (nan : Fixed s) ≠ 0 := by rw [ne_comm]; exact zero_ne_nan
 
+lemma Fixed.val_eq_val {x y : Fixed s} : x.val = y.val ↔ x = y := by
+  rw [val, val]
+  simp only [mul_eq_mul_right_iff, Int.cast_inj, Int64.coe_eq_coe, ext_iff, or_iff_left_iff_imp]
+  intro z
+  replace z := eq_zero_of_zpow_eq_zero z
+  norm_num at z
+
 /-!
 ### Additive group operations: `add, sub, neg`
 -/
@@ -1014,6 +1021,11 @@ lemma Fixed.le_ofRat {x : ℚ} (h : (.ofRat x true : Fixed s) ≠ nan) :
   simpa only [approx, h, ite_false, Bool.not_true, mem_rounds_singleton] using
     Fixed.approx_ofRat x true (s := s)
 
+@[simp] lemma Fixed.val_one_of_s0 : (1 : Fixed 0).val = 1 := by
+  rw [val]
+  simp only [Int64.coe_zero, zpow_zero, mul_one, Int.cast_eq_one]
+  rfl
+
 /-!
 ### `2^n` and `log2`
 -/
@@ -1291,6 +1303,12 @@ instance Fixed.decidableLT : @DecidableRel (Fixed s) (· < ·)
 instance Fixed.decidableLE : @DecidableRel (Fixed s) (· ≤ ·)
   | a, b => by dsimp [LE.le]; infer_instance
 
+lemma Fixed.blt_eq_decide_lt (x y : Fixed s) : x.blt y = decide (x < y) := by
+  simp only [blt, Int64.blt_eq_decide_lt, lt_def]
+
+lemma Fixed.ble_eq_decide_le (x y : Fixed s) : x.ble y = decide (x ≤ y) := by
+  simp only [ble, Int64.ble_eq_decide_le, le_def]
+
 /-- The order is consistent with `.val` -/
 @[simp] lemma Fixed.le_iff {x y : Fixed s} : x ≤ y ↔ x.val ≤ y.val := by
   simp only [le_def, val_le_val]
@@ -1312,3 +1330,9 @@ instance : LinearOrder (Fixed s) where
   decidableEq := by infer_instance
   min_def x y := by simp only [Fixed.min_def, Fixed.le_def, min_def]; aesop
   max_def x y := by simp only [Fixed.max_def', Fixed.le_def, max_def]; aesop
+
+@[simp] lemma Fixed.nan_le (x : Fixed s) : (nan : Fixed s) ≤ x := by
+  simp only [le_def, nan, Int64.min_le]
+
+@[simp] lemma Fixed.val_nan_le (x : Fixed s) : (nan : Fixed s).val ≤ x.val := by
+  simp only [← le_iff, nan_le]

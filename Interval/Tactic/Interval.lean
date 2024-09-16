@@ -4,6 +4,7 @@ import Interval.Interval.Exp
 import Interval.Interval.Log
 import Interval.Interval.Mul
 import Interval.Interval.Pow
+import Interval.Interval.Sincos
 import Interval.Interval.Sqrt
 import Interval.Tactic.Init
 import Mathlib.Tactic.Monotonicity.Basic
@@ -60,6 +61,8 @@ partial def lift (e : Q(ℝ)) : MetaM Q(Interval) := do
     | ~q(@HPow.hPow ℝ ℕ ℝ _ $x (@OfNat.ofNat ℕ $y _)) => return q($(← lift x) ^ (Interval.ofNat $y))
     | ~q(Real.exp $x) => return q($(← lift x).exp)
     | ~q(Real.log $x) => return q($(← lift x).log)
+    | ~q(Real.sin $x) => return q($(← lift x).sin)
+    | ~q(Real.cos $x) => return q($(← lift x).cos)
     | ~q(Real.sqrt $x) => return q($(← lift x).sqrt)
     | ~q(|$x|) => return q($(← lift x).abs)
     | _ => throwError f!"`interval` works only for certain constant real inequalities, not {e}"

@@ -153,6 +153,10 @@ instance : Inhabited Interval where
   simp only [ne_eq, ext_iff, n, lo_nan, x.norm.mpr n, hi_nan, and_self, not_true_eq_false,
     not_false_eq_true]
 
+-- We're not nan if lo or hi aren't nan -/
+lemma ne_nan_of_lo {x : Interval} (n : x.lo ≠ nan) : x ≠ nan := ne_of_apply_ne lo n
+lemma ne_nan_of_hi {x : Interval} (n : x.hi ≠ nan) : x ≠ nan := ne_of_apply_ne hi n
+
 /-- The inequality always holds -/
 @[simp] lemma le (x : Interval) : x.lo.val ≤ x.hi.val := by
   by_cases n : x = nan
@@ -180,16 +184,20 @@ lemma le_hi {a : ℝ} {x : Interval} (n : x ≠ nan) (m : a ∈ approx x) : a �
   simp only [approx, lo_eq_nan, n, ite_false, mem_Icc] at m; exact m.2
 
 /-- `Interval` always contains `lo` -/
-lemma lo_mem {x : Interval} : x.lo.val ∈ approx x := by
+@[approx] lemma lo_mem {x : Interval} : x.lo.val ∈ approx x := by
   simp only [approx, lo_eq_nan, mem_ite_univ_left, mem_Icc, le_refl, le, and_self, implies_true]
 
 /-- `Interval` always contains `hi` -/
-lemma hi_mem {x : Interval} : x.hi.val ∈ approx x := by
+@[approx] lemma hi_mem {x : Interval} : x.hi.val ∈ approx x := by
   simp only [approx, lo_eq_nan, mem_ite_univ_left, mem_Icc, le_refl, le, and_self, implies_true]
 
 /-- `approx` is a finite interval if we're not `nan` -/
 lemma approx_eq_Icc {x : Interval} (n : x ≠ nan) : approx x = Icc x.lo.val x.hi.val := by
   simp only [approx, lo_eq_nan, n, ite_false]
+
+/-- We're `nan` iff `approx = univ` -/
+lemma nan_iff_approx {x : Interval} : x = nan ↔ approx x = univ := by
+  simp only [approx, lo_eq_nan, ite_eq_then, isCompact_Icc.ne_univ, imp_false, Decidable.not_not]
 
 /-!
 ### Printing via conversion to `Decimal`
@@ -372,9 +380,16 @@ lemma ne_nan_of_union {x y : Interval} (n : x ∪ y ≠ nan) : x ≠ nan ∧ y �
   rcases n with n | n
   all_goals simp [n]
 
+@[simp] lemma union_self (x : Interval) : x ∪ x = x := by
+  simp only [Union.union, min_self, Floating.max_self, le_refl]
+
 /-- `union` is commutative -/
-lemma union_comm {x y : Interval} : x ∪ y = y ∪ x := by
+lemma union_comm (x y : Interval) : x ∪ y = y ∪ x := by
   simp only [Union.union, ext_iff, min_comm, Floating.max_comm]
+
+/-- `union` is associative -/
+lemma union_assoc (x y z : Interval) : x ∪ y ∪ z = x ∪ (y ∪ z) := by
+  simp only [Union.union, ext_iff, min_assoc, true_and, Floating.max_assoc]
 
 /-- `union` respects `approx` -/
 lemma approx_union_left {x y : Interval} : approx x ⊆ approx (x ∪ y) := by
@@ -394,6 +409,16 @@ lemma approx_union_right {x y : Interval} : approx y ⊆ approx (x ∪ y) := by
 lemma approx_union {x y : Interval} : approx x ∪ approx y ⊆ approx (x ∪ y) :=
   union_subset approx_union_left approx_union_right
 
+@[simp] lemma lo_union {x y : Interval} : (x ∪ y).lo = min x.lo y.lo := by rfl
+@[simp] lemma hi_union {x y : Interval} : (x ∪ y).hi = x.hi.max y.hi := by rfl
+
+/-- `-` commutes with `∪` -/
+lemma union_neg {x y : Interval} : -(x ∪ y) = -x ∪ -y := by
+  by_cases n : x = nan ∨ y = nan
+  · rcases n with n | n; all_goals simp [n]
+  simp only [not_or] at n
+  rw [ext_iff]
+  simp only [lo_neg, hi_union, lo_union, hi_neg, Floating.max, neg_neg, true_and]
 
 /-!
 ### Intersection

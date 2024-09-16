@@ -15,7 +15,7 @@ namespace Floating
   ⟨x.n.shiftRightRound (2^63 - x.s) false⟩
 
 /-- `floor` is conservative -/
-@[approx] lemma mem_approx_floor {x : Floating} : ↑⌊x.val⌋ ∈ approx x.floor := by
+@[approx] lemma mem_approx_floor (x : Floating) : ↑⌊x.val⌋ ∈ approx x.floor := by
   rw [floor]
   simp only [bif_eq_if, Bool.or_eq_true, beq_iff_eq, decide_eq_true_eq]
   by_cases xn : x = nan
@@ -38,3 +38,18 @@ namespace Floating
     UInt64.toNat_sub'' s63, UInt64.toNat_2_pow_63, Int64.coe_zero, zpow_zero, mul_one,
     mem_singleton_iff, Int.cast_inj, eq, Rat.floor_cast, Rat.floor_int_div_nat_eq_div]
   rw [Int.rdiv, Nat.cast_pow, Nat.cast_ofNat, cond_false]
+
+@[simp] lemma floor_nan : (nan : Floating).floor = nan := by
+  rw [floor]; simp only [beq_self_eq_true, s_nan, Bool.true_or, n_nan, cond_true]
+
+@[simp] lemma ne_nan_of_floor {x : Floating} (n : x.floor ≠ nan) : x ≠ nan := by
+  contrapose n; simp only [not_not] at n; simp [n]
+
+lemma floor_mono {x y : Floating} (le : x ≤ y) (yn : y.floor ≠ nan) : x.floor ≤ y.floor := by
+  by_cases xn : x.floor = nan
+  · simp [xn]
+  have hx := mem_approx_floor x
+  have hy := mem_approx_floor y
+  simp only [approx, xn, ↓reduceIte, mem_singleton_iff, yn] at hx hy
+  simp only [Fixed.le_iff, ← hx, ← hy, Int.cast_le]
+  bound

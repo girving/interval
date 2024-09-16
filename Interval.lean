@@ -14,6 +14,7 @@ import Interval.Interval.Exp
 import Interval.Interval.Log
 import Interval.Interval.Pow
 import Interval.Interval.Series
+import Interval.Interval.Sincos
 import Interval.Interval.Sqrt
 import Interval.Floating.Standardization
 import Interval.Tactic.Interval

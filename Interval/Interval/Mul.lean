@@ -326,6 +326,12 @@ lemma approx_mul_float (x : Interval) (y : Floating) :
   subset_approx_mul_float (singleton_subset_iff.mpr am) (singleton_subset_iff.mpr bm)
     (mul_mem_mul rfl rfl)
 
+@[simp] lemma mul_float_nan {x : Interval} : x.mul_float nan = nan := by
+  rw [mul_float]; simp
+
+@[simp] lemma nan_mul_float {x : Floating} : (nan : Interval).mul_float x = nan := by
+  rw [mul_float]; simp
+
 /-!
 ### Interval squaring
 -/
@@ -404,3 +410,6 @@ def sqr (x : Interval) : Interval :=
 /-- `sqr` respects `approx`, `∈` version -/
 @[approx] lemma mem_approx_sqr (a : ℝ) (x : Interval) (ax : a ∈ approx x) : a^2 ∈ approx x.sqr := by
   apply approx_sqr; use a
+
+@[simp] lemma sqr_nan : (nan : Interval).sqr = nan := by
+  rw [sqr]; simp
