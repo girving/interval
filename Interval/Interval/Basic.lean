@@ -401,59 +401,72 @@ lemma approx_union {x y : Interval} : approx x ∪ approx y ⊆ approx (x ∪ y)
 We require a proof that the intersection is nontrivial.  This is harder for the user, but
 we expect intersection to mainly be used a tool inside routines such as Newton's method,
 where intersections are guaranteed nonempty.
+
+Intersection propagates `nan` weakly: the result is `nan` only if both inputs are.
 -/
 
 /-- Intersections are valid -/
 lemma valid_inter {x y : Interval} (t : (approx x ∩ approx y).Nonempty)
-    : Valid (x.lo.max y.lo) (min x.hi y.hi) where
-  norm := by simp only [Floating.max_eq_nan, lo_eq_nan, Floating.min_eq_nan, hi_eq_nan]
+    : Valid (max x.lo y.lo) (x.hi.naive_min y.hi) where
+  norm := by
+    simp only [Floating.max_eq_nan', Floating.naive_min_eq_nan, lo_eq_nan, Floating.min_eq_nan,
+      hi_eq_nan, Floating.neg_eq_nan_iff]
   le' := by
     intro n _
-    simp only [ne_eq, Floating.max_eq_nan, lo_eq_nan, not_or] at n
-    simp only [Floating.val_max (x.lo_ne_nan n.1) (y.lo_ne_nan n.2), Floating.val_min, le_min_iff,
-      max_le_iff, le, true_and, and_true]
+    simp only [ne_eq, Floating.max_eq_nan', lo_eq_nan, not_and_or] at n
+    by_cases xn : x = nan; · simp [xn]
+    by_cases yn : y = nan; · simp [yn]
+    simp only [Floating.val_naive_max, Floating.val_min, le_min_iff, max_le_iff, le, true_and,
+      and_true, xn, yn, Floating.val_naive_min (x.hi_ne_nan xn) (y.hi_ne_nan yn)]
     rcases t with ⟨a,ax,ay⟩
-    simp only [approx, lo_eq_nan, n.1, ite_false, mem_Icc, n.2] at ax ay
+    simp only [approx, lo_eq_nan, ite_false, mem_Icc, xn, yn] at ax ay
     exact ⟨by linarith, by linarith⟩
 
 /-- Intersection, requiring a proof that the intersection is nontrivial -/
 @[irreducible] def inter (x y : Interval) (t : (approx x ∩ approx y).Nonempty) : Interval where
-  lo := x.lo.max y.lo
-  hi := min x.hi y.hi
+  lo := max x.lo y.lo
+  hi := x.hi.naive_min y.hi
   v := valid_inter t
 
-/-- `inter` propagates `nan` -/
+/-- `inter` drops `nan` -/
 @[simp] lemma inter_nan {x : Interval} {t : (approx x ∩ approx nan).Nonempty} :
-    x.inter nan t = nan := by
+    x.inter nan t = x := by
   rw [inter]
-  simp only [lo_nan, Floating.max_nan, hi_nan, ge_iff_le, Floating.val_le_val, Floating.val_nan_le,
-    min_eq_right, ext_iff, and_self]
+  simp only [lo_nan, Floating.val_le_val, Floating.val_nan_le, max_eq_left, hi_nan,
+    Floating.naive_min_nan]
 
-/-- `inter` propagates `nan` -/
+/-- `inter` drops `nan` -/
 @[simp] lemma nan_inter {x : Interval} {t : (approx nan ∩ approx x).Nonempty} :
-    (nan : Interval).inter x t = nan := by
+    (nan : Interval).inter x t = x := by
   rw [inter]
-  simp only [lo_nan, Floating.nan_max, hi_nan, ge_iff_le, Floating.val_le_val, Floating.val_nan_le,
-    min_eq_left, ext_iff, and_self]
+  simp only [lo_nan, Floating.val_le_val, Floating.val_nan_le, max_eq_right, hi_nan,
+    Floating.nan_naive_min]
+
+/-- `inter` is only `nan` if both arguments are -/
+@[simp] lemma inter_eq_nan {x y : Interval} {t : (approx x ∩ approx y).Nonempty} :
+    x.inter y t = nan ↔ x = nan ∧ y = nan := by
+  rw [inter]
+  simp only [lo_nan, hi_nan, Interval.ext_iff]
+  simp only [Floating.max_eq_nan', lo_eq_nan, Floating.naive_min_eq_nan, hi_eq_nan, and_self]
 
 /-- `inter` respects `approx` -/
 @[simp] lemma approx_inter {x y : Interval} {t : (approx x ∩ approx y).Nonempty} :
-    approx x ∩ approx y ⊆ approx (x.inter y t) := by
-  by_cases n : x = nan ∨ y = nan ∨ x.inter y t = nan
-  · rcases n with n | n | n; repeat simp only [n, inter_nan, nan_inter, approx_nan, subset_univ]
+    approx (x.inter y t) = approx x ∩ approx y := by
+  by_cases n : x = nan ∨ y = nan
+  · rcases n with n | n
+    all_goals simp only [n, inter_nan, nan_inter, approx_nan, subset_univ, univ_inter, inter_univ]
   simp only [not_or] at n
-  rcases n with ⟨xn,yn,n⟩
-  simp only [approx, lo_eq_nan, xn, ite_false, yn, n, Icc_inter_Icc]
-  apply Icc_subset_Icc
-  · simp only [inter, Floating.val_max (x.lo_ne_nan xn) (y.lo_ne_nan yn), le_sup_iff,
-      max_le_iff, le_refl, true_and, and_true, le_total]
-  · simp only [inter, Floating.val_min, le_min_iff, inf_le_left, inf_le_right, and_self]
+  rcases n with ⟨xn,yn⟩
+  simp only [approx, lo_eq_nan, xn, ↓reduceIte, yn, Icc_inter_Icc, inter_eq_nan, and_self]
+  apply congr_arg₂
+  · rw [inter]; simp only [Floating.val_naive_max]; rfl
+  · rw [inter]; simp only [Floating.val_naive_min (x.hi_ne_nan xn) (y.hi_ne_nan yn)]; rfl
 
 /-- `approx ⊆` version of `approx_inter` -/
 @[approx] lemma subset_approx_inter {s : Set ℝ} {x y : Interval}
     {t : (approx x ∩ approx y).Nonempty} (sx : s ⊆ approx x) (sy : s ⊆ approx y) :
-    s ⊆ approx (x.inter y t) :=
-  subset_trans (subset_inter sx sy) approx_inter
+    s ⊆ approx (x.inter y t) := by
+  simp_all only [approx_inter, subset_inter_iff, and_self]
 
 /-- `approx ∈` version of `approx_inter` -/
 @[approx] lemma mem_approx_inter {a : ℝ} {x y : Interval} {t : (approx x ∩ approx y).Nonempty}

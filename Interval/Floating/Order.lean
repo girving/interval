@@ -454,6 +454,14 @@ lemma eq_nan_of_max {x y : Floating} (n : x.max y = nan) : x = nan ∨ y = nan :
   refine ⟨eq_nan_of_max, ?_⟩
   intro n; rcases n with n | n; repeat simp only [n, max_nan, nan_max]
 
+/-- `max` is `nan` if both arguments are -/
+@[simp] lemma max_eq_nan' {x y : Floating} : Max.max x y = nan ↔ x = nan ∧ y = nan := by
+  rw [max_def]
+  by_cases xn : x = nan; · simp [xn]
+  by_cases yn : y = nan; · simp [xn, yn]
+  split_ifs
+  all_goals simp [xn, yn]
+
 /-- `Floating.max` is `nan` if an argument is -/
 @[simp] lemma max_ne_nan {x y : Floating} : x.max y ≠ nan ↔ x ≠ nan ∧ y ≠ nan := by
   simp only [ne_eq, max_eq_nan, not_or]
@@ -497,3 +505,31 @@ lemma eq_nan_of_max {x y : Floating} (n : x.max y = nan) : x = nan ∨ y = nan :
 
 @[simp] lemma val_nan_lt_zero : (nan : Floating).val < 0 := by
   simp only [←lt_zero_iff, nan_lt_zero]
+
+/-!
+### Additional facts about "naive" min and max (discarding single nans)
+
+`Min.min` propagates nans, and `Max.max` is already naive, so we only need to define `naive_min`.
+-/
+
+/-- `min` that discards single `nan`s -/
+def naive_min (x y : Floating) : Floating := -Max.max (-x) (-y)
+
+lemma naive_min_eq_nan {x y : Floating} : naive_min x y = nan ↔ x = nan ∧ y = nan := by
+  simp only [naive_min, neg_eq_nan_iff, max_eq_nan']
+
+lemma naive_max_eq_nan {x y : Floating} : Max.max x y = nan ↔ x = nan ∧ y = nan := max_eq_nan'
+
+@[simp] lemma nan_naive_min {x : Floating} : naive_min nan x = x := by simp [naive_min]
+@[simp] lemma naive_min_nan {x : Floating} : naive_min x nan = x := by simp [naive_min]
+@[simp] lemma nan_naive_max {x : Floating} : Max.max nan x = x := by simp
+@[simp] lemma naive_max_nan {x : Floating} : Max.max x nan = x := by simp
+
+/-- `Max.max` commutes with `val` -/
+@[simp] lemma val_naive_max {x y : Floating} : (Max.max x y).val = Max.max x.val y.val := by
+  simp only [LinearOrder.max_def, apply_ite (f := Floating.val), val_le_val]
+
+/-- `naive_min` commutes with `val` if neither argument is `nan` -/
+@[simp] lemma val_naive_min {x y : Floating} (xn : x ≠ nan) (yn : y ≠ nan) :
+    (naive_min x y).val = min x.val y.val := by
+  simp [naive_min, xn, yn, max_neg_neg]
