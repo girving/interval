@@ -389,15 +389,21 @@ lemma Fixed.val_ne_zero_iff {x : Fixed s} : x.val ≠ 0 ↔ x ≠ 0 := by
 instance : Min (Fixed s) where
   min x y := ⟨min x.n y.n⟩
 
+/-- `Max.max` can't propagate `nan` sincde it needs to be order consistent -/
 instance : Max (Fixed s) where
-  max x y := -min (-x) (-y)  -- Use `min` so that `nan` propagates
+  max x y := ⟨max x.n y.n⟩
+
+/-- `Fixed.max` propagates `nan` -/
+@[irreducible] def Fixed.max (x y : Fixed s) : Fixed s :=
+  -min (-x) (-y)  -- Use `min` so that `nan` propagates
 
 /-- Unfortunately we can't use `|x|`, since that notation can't use our own implementation.-/
 def Fixed.abs (x : Fixed s) : Fixed s :=
   ⟨⟨x.n.abs⟩⟩
 
 lemma Fixed.min_def {x y : Fixed s} : min x y = ⟨min x.n y.n⟩ := rfl
-lemma Fixed.max_def {x y : Fixed s} : max x y = -min (-x) (-y) := rfl
+lemma Fixed.max_def' {x y : Fixed s} : Max.max x y = ⟨Max.max x.n y.n⟩ := rfl
+lemma Fixed.max_def {x y : Fixed s} : x.max y = -min (-x) (-y) := by rw [max]
 lemma Fixed.abs_def {x : Fixed s} : x.abs = ⟨⟨x.n.abs⟩⟩ := rfl
 
 @[simp] lemma Fixed.min_nan {x : Fixed s} : min x nan = nan := by
@@ -491,7 +497,7 @@ lemma Fixed.val_le_val {x y : Fixed s} : x.val ≤ y.val ↔ x.n ≤ y.n := by
   · simp only [not_lt] at h; simp only [right_eq_inf, val_le_val]; exact h
 
 lemma Fixed.val_max {x y : Fixed s} (nx : x ≠ nan) (ny : y ≠ nan) :
-    (max x y).val = max x.val y.val := by
+    (x.max y).val = Max.max x.val y.val := by
   have n : min (-x) (-y) ≠ nan := by
     simp only [ne_eq, min_eq_nan, neg_eq_nan, nx, ny, or_self, not_false_eq_true]
   simp only [max, val_neg n, val_min, val_neg nx, val_neg ny, min_neg_neg, neg_neg]
@@ -1257,3 +1263,52 @@ lemma Fixed.le_repoint {x : Fixed s} {t : Int64} (n : x.repoint t true ≠ nan) 
   simpa only [ge_iff_le, ne_eq, neg_eq_nan, xn, not_false_eq_true, ne_nan_of_neg,
     approx_eq_singleton, n, Bool.not_false, singleton_subset_iff, mem_rounds_singleton,
     ite_true] using h
+
+/-!
+### Ordering on `Fixed s`
+-/
+
+@[irreducible] def Fixed.ble (x y : Fixed s) : Bool := x.n.ble y.n
+@[irreducible] def Fixed.blt (x y : Fixed s) : Bool := x.n.blt y.n
+
+instance Fixed.instLE : LE (Fixed s) where le x y := x.ble y
+instance Fixed.instLT : LT (Fixed s) where lt x y := x.blt y
+
+lemma Fixed.le_def (x y : Fixed s) : (x ≤ y) ↔ (x.n ≤ y.n) := by
+  rw [LE.le, instLE, Int64.le_def]
+  simp only [not_lt, ble, Int64.ble, Int64.blt_eq_decide_lt, Bool.not_eq_true',
+    decide_eq_false_iff_not, not_lt]
+
+lemma Fixed.lt_def (x y : Fixed s) : (x < y) ↔ (x.n < y.n) := by
+  rw [LT.lt, instLT]
+  simp only
+  rw [blt, Int64.blt_eq_decide_lt]
+  simp only [decide_eq_true_eq]
+
+instance Fixed.decidableLT : @DecidableRel (Fixed s) (· < ·)
+  | a, b => by dsimp [LT.lt]; infer_instance
+
+instance Fixed.decidableLE : @DecidableRel (Fixed s) (· ≤ ·)
+  | a, b => by dsimp [LE.le]; infer_instance
+
+/-- The order is consistent with `.val` -/
+@[simp] lemma Fixed.le_iff {x y : Fixed s} : x ≤ y ↔ x.val ≤ y.val := by
+  simp only [le_def, val_le_val]
+
+/-- The order is consistent with `.val` -/
+@[simp] lemma Fixed.lt_iff {x y : Fixed s} : x < y ↔ x.val < y.val := by
+  simp only [lt_def, val_lt_val]
+
+instance : LinearOrder (Fixed s) where
+  le_refl x := by simp only [Fixed.le_iff, le_refl]
+  le_trans x y z := by simp only [Fixed.le_iff]; apply le_trans
+  le_antisymm x y a b := by
+    simp only [Fixed.le_iff] at a b
+    simpa [Fixed.val, zpow_ne_zero, Fixed.ext_iff] using le_antisymm a b
+  le_total x y := by simp only [Fixed.le_iff]; apply le_total
+  lt_iff_le_not_le x y := by simp only [Fixed.lt_iff, Fixed.le_iff]; apply lt_iff_le_not_le
+  decidableLE := by infer_instance
+  decidableLT := by infer_instance
+  decidableEq := by infer_instance
+  min_def x y := by simp only [Fixed.min_def, Fixed.le_def, min_def]; aesop
+  max_def x y := by simp only [Fixed.max_def', Fixed.le_def, max_def]; aesop
