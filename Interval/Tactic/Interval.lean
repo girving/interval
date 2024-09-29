@@ -3,6 +3,7 @@ import Interval.Interval.Conversion
 import Interval.Interval.Exp
 import Interval.Interval.Log
 import Interval.Interval.Mul
+import Interval.Interval.Order
 import Interval.Interval.Pow
 import Interval.Interval.Sincos
 import Interval.Interval.Sqrt
@@ -75,46 +76,22 @@ def liftGoal (p : Q(Prop)) : MetaM Goal := do
     | ~q(@GT.gt ℝ $i $x $y) => return ⟨.gt, ← lift x, ← lift y⟩
     | _ => throwError "`interval` works only for constant real inequalities"
 
-def ilt (x y : Interval) : Prop := x != nan && x.hi.blt y.lo
-def ile (x y : Interval) : Prop := x != nan && x.hi.ble y.lo
-
-instance {x y : Interval} : Decidable (ilt x y) := by unfold ilt; infer_instance
-instance {x y : Interval} : Decidable (ile x y) := by unfold ile; infer_instance
-
-lemma liftLt (x y : Interval) : ∀ (a b : ℝ), a ∈ approx x → b ∈ approx y → ilt x y → a < b := by
-  intro a b ax ay xy
-  simp only [ilt, Floating.blt_eq_lt, Floating.val_lt_val, Bool.and_eq_true, bne_iff_ne, ne_eq,
-    decide_eq_true_eq] at xy
-  rcases xy with ⟨xn, lt⟩
-  have yn : y.lo ≠ nan := Floating.ne_nan_of_le (x.hi_ne_nan xn) (by linarith)
-  simp only [approx, Interval.lo_eq_nan, xn, ↓reduceIte, Set.mem_Icc, yn] at ax ay
-  linarith
-
-lemma liftLe (x y : Interval) : ∀ (a b : ℝ), a ∈ approx x → b ∈ approx y → ile x y → a ≤ b := by
-  intro a b ax ay xy
-  simp only [ile, Floating.ble_eq_le, Floating.val_le_val, Bool.and_eq_true, bne_iff_ne, ne_eq,
-    decide_eq_true_eq] at xy
-  rcases xy with ⟨xn, le⟩
-  have yn : y.lo ≠ nan := Floating.ne_nan_of_le (x.hi_ne_nan xn) (by linarith)
-  simp only [approx, Interval.lo_eq_nan, xn, ↓reduceIte, Set.mem_Icc, yn] at ax ay
-  linarith
-
 /-- Turn a real inequality goal into an `Interval` goal -/
 def Goal.app (g : Goal) : Lean.Expr :=
   let ⟨op, x, y⟩ := g
   match op with
-    | .lt => q(liftLt $x $y)
-    | .le => q(liftLe $x $y)
-    | .gt => q(liftLt $y $x)
-    | .ge => q(liftLe $y $x)
+    | .lt => q(Interval.approx_lt $x $y)
+    | .le => q(Interval.approx_le $x $y)
+    | .gt => q(Interval.approx_lt $y $x)
+    | .ge => q(Interval.approx_le $y $x)
 
 /-- Evaluate whether an inequality is known between explicit `Interval`s -/
 def Ineq.eval (op : Ineq) (x y : Interval) : Bool :=
   match op with
-    | .lt => ilt x y
-    | .le => ile x y
-    | .gt => ilt y x
-    | .ge => ile y x
+    | .lt => x < y
+    | .le => x ≤ y
+    | .gt => y < x
+    | .ge => y ≤ x
 
 /-- Close a goal using a tactic -/
 def close (g : MVarId) (tac : Lean.Syntax) : TacticM Unit := do

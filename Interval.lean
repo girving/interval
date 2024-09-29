@@ -10,9 +10,10 @@ import Interval.Floating.Scale
 import Interval.Interval.Basic
 import Interval.Interval.Conversion
 import Interval.Interval.Division
-import Interval.Interval.Mul
 import Interval.Interval.Exp
 import Interval.Interval.Log
+import Interval.Interval.Mul
+import Interval.Interval.Order
 import Interval.Interval.Pow
 import Interval.Interval.Series
 import Interval.Interval.Sincos

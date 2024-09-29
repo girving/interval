@@ -4,7 +4,6 @@ import Interval.Tactic.Interval
 #### Tests for the `interval` tactic
 -/
 
-open IntervalTactic (ile ilt)
 open Real (log exp)
 
 example : (2 : ℝ) < 3 := by interval
