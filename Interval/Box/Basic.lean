@@ -74,8 +74,8 @@ instance : Mul Box where
   mul z w := ⟨z.re * w.re - z.im * w.im, z.re * w.im + z.im * w.re⟩
 
 /-- `Interval * Box` -/
-def _root_.Interval.mul_box (x : Interval) (z : Box) : Box :=
-  ⟨x * z.re, x * z.im⟩
+instance : SMul Interval Box where
+  smul x z := ⟨x * z.re, x * z.im⟩
 
 /-- `Box` squaring (tighter than `z * z`) -/
 def sqr (z : Box) : Box :=
@@ -87,6 +87,7 @@ lemma neg_def {z : Box} : -z = ⟨-z.re, -z.im⟩ := rfl
 lemma add_def {z w : Box} : z + w = ⟨z.re + w.re, z.im + w.im⟩ := rfl
 lemma sub_def {z w : Box} : z - w = ⟨z.re - w.re, z.im - w.im⟩ := rfl
 lemma mul_def {z w : Box} : z * w = ⟨z.re * w.re - z.im * w.im, z.re * w.im + z.im * w.re⟩ := rfl
+lemma smul_def {x : Interval} {z : Box} : x • z = ⟨x * z.re, x * z.im⟩ := rfl
 @[simp] lemma re_conj {z : Box} : (star z).re = z.re := rfl
 @[simp] lemma im_conj {z : Box} : (star z).im = -z.im := rfl
 
@@ -97,10 +98,8 @@ lemma mul_def {z w : Box} : z * w = ⟨z.re * w.re - z.im * w.im, z.re * w.im + 
   simp only [instApprox, re_zero, Interval.approx_zero, im_zero, image2_singleton_right,
     image_singleton, singleton_eq_singleton_iff, Complex.ext_iff, Complex.zero_re, Complex.zero_im,
     and_self]
-@[simp] lemma re_mul_box {x : Interval} {z : Box} : (x.mul_box z).re = x * z.re := by
-  simp [Interval.mul_box]
-@[simp] lemma im_mul_box {x : Interval} {z : Box} : (x.mul_box z).im = x * z.im := by
-  simp [Interval.mul_box]
+@[simp] lemma re_smul {x : Interval} {z : Box} : (x • z).re = x * z.re := by simp [smul_def]
+@[simp] lemma im_smul {x : Interval} {z : Box} : (x • z).im = x * z.im := by simp [smul_def]
 
 /-- Prove `re ∈` via full `∈` -/
 @[approx] lemma mem_approx_re {z : ℂ} {w : Box} (zw : z ∈ approx w) : z.re ∈ approx w.re := by
@@ -159,21 +158,18 @@ instance : ApproxMul Box ℂ where
     intro a ar ai b br bi
     exact ⟨by approx, by approx⟩
 
-/-- `Interval * Box` multiplication approximates `ℂ` -/
-@[approx] lemma _root_.Interval.approx_mul_box (x : Interval) (z : Box) :
-    (Complex.ofReal '' approx x) * approx z ⊆ approx (x.mul_box z) := by
-  simp only [Box.instApprox, mul_subset_iff, Box.mem_image2_iff, and_imp, Complex.mul_re,
-    Complex.mul_im, Interval.mul_box]
-  intro a ⟨t,tx,ta⟩ b br bi
-  simp only [← ta, Complex.ofReal_eq_coe, Complex.ofReal_re, Complex.ofReal_im, zero_mul, sub_zero,
-    add_zero]
-  exact ⟨by approx, by approx⟩
+/-- `Interval • Box` approximates `ℂ` -/
+@[approx] lemma approx_smul (x : Interval) (z : Box) : approx x • approx z ⊆ approx (x • z) := by
+  simp only [instApprox, smul_def, smul_subset_iff, mem_image2, Complex.real_smul,
+    forall_exists_index, and_imp]
+  intro a ax b r rz i iz e
+  simp only [← e, Complex.ext_iff, Complex.ofReal_mul']
+  exact ⟨a * r, by approx, a * i, by approx, rfl, rfl⟩
 
-/-- `approx` friendly version of `Interval.approx_mul_box` -/
-@[approx] lemma _root_.Interval.subset_approx_mul_box {p : Set ℝ} {q : Set ℂ} {x : Interval}
-    {z : Box} (px : p ⊆ approx x) (qz : q ⊆ approx z) :
-    (Complex.ofReal '' p) * q ⊆ approx (x.mul_box z) :=
-  subset_trans (mul_subset_mul (image_mono px) qz) (Interval.approx_mul_box _ _)
+/-- `∈` friendly version of `approx_smul` -/
+@[approx] lemma mem_approx_smul {a : ℝ} {z : ℂ} {x : Interval} {w : Box} (ax : a ∈ approx x)
+    (zw : z ∈ approx w) : a • z ∈ approx (x • w) :=
+  approx_smul _ _ (smul_mem_smul ax zw)
 
 /-- `Box` approximates `ℂ` as a ring -/
 noncomputable instance : ApproxRing Box ℂ where

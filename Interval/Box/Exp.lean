@@ -14,7 +14,7 @@ open scoped Real
 @[irreducible] def Interval.cis (t : Interval) : Box := ⟨t.cos, t.sin⟩
 
 /-- `exp z` -/
-@[irreducible] def Box.exp (z : Box) : Box := z.re.exp.mul_box z.im.cis
+@[irreducible] def Box.exp (z : Box) : Box := z.re.exp • z.im.cis
 
 @[approx] lemma Interval.mem_approx_cis {s : ℝ} {t : Interval} (st : s ∈ approx t) :
     (s * Complex.I).exp ∈ approx t.cis := by
