@@ -97,6 +97,10 @@ lemma mul_def {z w : Box} : z * w = ⟨z.re * w.re - z.im * w.im, z.re * w.im + 
   simp only [instApprox, re_zero, Interval.approx_zero, im_zero, image2_singleton_right,
     image_singleton, singleton_eq_singleton_iff, Complex.ext_iff, Complex.zero_re, Complex.zero_im,
     and_self]
+@[simp] lemma re_mul_box {x : Interval} {z : Box} : (x.mul_box z).re = x * z.re := by
+  simp [Interval.mul_box]
+@[simp] lemma im_mul_box {x : Interval} {z : Box} : (x.mul_box z).im = x * z.im := by
+  simp [Interval.mul_box]
 
 /-- Prove `re ∈` via full `∈` -/
 @[approx] lemma mem_approx_re {z : ℂ} {w : Box} (zw : z ∈ approx w) : z.re ∈ approx w.re := by
@@ -105,6 +109,11 @@ lemma mul_def {z w : Box} : z * w = ⟨z.re * w.re - z.im * w.im, z.re * w.im + 
 /-- Prove `im ∈` via full `∈` -/
 @[approx] lemma mem_approx_im {z : ℂ} {w : Box} (zw : z ∈ approx w) : z.im ∈ approx w.im := by
   simp only [approx, mem_image2_iff] at zw; exact zw.2
+
+/-- Split `∈ approx` into components -/
+lemma mem_approx_iff_ext {z : ℂ} {w : Box} :
+    z ∈ approx w ↔ z.re ∈ approx w.re ∧ z.im ∈ approx w.im := by
+  simp [approx, Complex.ext_iff]
 
 /-- `star` is conservative -/
 instance : ApproxStar Box ℂ where
