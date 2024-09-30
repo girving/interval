@@ -3,7 +3,7 @@ import Interval.Interval.Exp
 import Interval.Interval.Sincos
 
 /-!
-## `Box` exponential
+## `Box` exponential and friends
 -/
 
 open Pointwise
