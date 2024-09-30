@@ -196,6 +196,28 @@ noncomputable instance : ApproxRing Box ℂ where
   apply approx_sqr; use z'
 
 /-!
+### Multiplication and division by `I`
+-/
+
+def mul_I (z : Box) : Box := ⟨-z.im, z.re⟩
+def div_I (z : Box) : Box := ⟨z.im, -z.re⟩
+
+@[approx] lemma mem_approx_mul_I {z' : ℂ} {z : Box} (m : z' ∈ approx z) :
+    z' * Complex.I ∈ approx z.mul_I := by
+  rw [mul_I, mem_approx_iff_ext]; simp; approx
+
+@[approx] lemma mem_approx_div_I {z' : ℂ} {z : Box} (m : z' ∈ approx z) :
+    z' / Complex.I ∈ approx z.div_I := by
+  rw [div_I, mem_approx_iff_ext]; simp; approx
+
+@[approx] lemma mem_approx_div_I' {z' : ℂ} {z : Box} (m : z' ∈ approx z) :
+    -z' * Complex.I ∈ approx z.div_I := by
+  rw [div_I, mem_approx_iff_ext]; simp; approx
+
+@[simp] lemma div_I_mul_I {z : Box} : z.div_I.mul_I = z := by rw [div_I, mul_I]; simp
+@[simp] lemma mul_I_div_I {z : Box} : z.mul_I.div_I = z := by rw [div_I, mul_I]; simp
+
+/-!
 ### Square magnitude
 -/
 
