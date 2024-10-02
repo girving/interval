@@ -350,12 +350,12 @@ lemma Int64.coe_add_ne {x y : Int64} (h : x.isNeg ≠ y.isNeg) : ((x + y : Int64
       Bool.cond_eq_ite, decide_eq_true_eq, Nat.cast_ite, CharP.cast_eq_zero, x0, decide_True,
       ite_true, not_le.mpr y0, decide_False, ite_false, sub_zero]
     by_cases xy0 : (2:UInt64)^63 ≤ x.n + y.n
-    · simp only [xy0, ite_true, Int64.toInt]
+    · simp only [xy0, ↓reduceIte, Int.reducePow, Bool.false_eq_true, sub_zero]
       rw [_root_.add_comm, UInt64.toNat_add_of_le_add, Nat.cast_add]
       · ring_nf
       · rw [_root_.add_comm] at xy0
         exact le_trans y0.le xy0
-    · simp only [xy0, ite_false, sub_zero, add_mul, mul_eq_mul_right_iff, or_false]
+    · simp only [xy0, ↓reduceIte, sub_zero, Int.reducePow, Bool.false_eq_true]
       rw [UInt64.toNat_add_of_add_lt']
       · simp only [UInt64.size_eq_pow, Nat.cast_add]; ring_nf
       · exact lt_of_lt_of_le (not_le.mp xy0) x0

@@ -1,4 +1,3 @@
-import Mathlib.Algebra.Group.Pointwise.Set
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Data.Real.Basic
 import Mathlib.Data.Set.Pointwise.Interval
