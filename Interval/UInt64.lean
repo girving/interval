@@ -627,7 +627,7 @@ lemma UInt64.toNat_shiftRightRound' {x : UInt64} {s : UInt64} {up : Bool} :
       Nat.div_one, ceilDiv_one]
     · rw [Nat.ceilDiv_eq_add_pred_div, Nat.add_sub_assoc]
       · simp only [ite_true]
-      · exact one_le_pow_of_one_le (by norm_num) _
+      · exact one_le_pow₀ (by norm_num)
 
 /-- `UInt64.shiftRightRound` only makes things smaller -/
 lemma UInt64.shiftRightRound_le_self {x : UInt64} {s : UInt64} {up : Bool} :

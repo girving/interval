@@ -878,7 +878,7 @@ lemma Int64.isNeg_one_shift {s : UInt64} (s64 : s.toNat < 64) :
     decide_eq_decide]
   rw [Nat.mod_eq_of_lt, one_mul, pow_le_pow_iff_right (by omega)]
   · constructor; intro; omega; intro; omega
-  · exact one_lt_pow (by norm_num) (by omega)
+  · exact one_lt_pow₀ (by norm_num) (by omega)
 
 /-- `ℤ` conversion for `UInt64` powers of two -/
 lemma Int64.coe_one_shift {s : UInt64} (s63 : s.toNat < 63) :
@@ -887,7 +887,7 @@ lemma Int64.coe_one_shift {s : UInt64} (s63 : s.toNat < 63) :
   have e : (1 <<< s : UInt64).toNat = 2^s.toNat := by
     simp only [UInt64.toNat_shiftLeft', UInt64.toNat_one, Nat.mod_eq_of_lt s64, ne_eq,
       pow_eq_zero_iff', OfNat.ofNat_ne_zero, false_and, not_false_eq_true, mul_eq_right₀]
-    exact Nat.mod_eq_of_lt (one_lt_pow (by norm_num) (by omega))
+    exact Nat.mod_eq_of_lt (one_lt_pow₀ (by norm_num) (by omega))
   simp only [toInt, e, Nat.cast_pow, Nat.cast_ofNat, isNeg_one_shift s64, s63.ne, decide_False,
     bif_eq_if, ite_false, CharP.cast_eq_zero, sub_zero, Bool.false_eq_true]
 
@@ -901,7 +901,7 @@ lemma Int64.coe_neg_one_shift {s : UInt64} (s63 : s.toNat < 63) :
   rw [Nat.mod_eq_of_lt]
   · simp only [one_mul, gt_iff_lt, zero_lt_two, ne_eq, OfNat.ofNat_ne_one, not_false_eq_true,
       pow_right_inj, s63.ne]
-  · exact one_lt_pow (by norm_num) (by omega)
+  · exact one_lt_pow₀ (by norm_num) (by omega)
 
 /-- Negated `ℤ` conversion for `UInt64` values -/
 lemma Int64.coe_eq_toNat_of_lt {n : UInt64} (h : n.toNat < 2^63) :

@@ -971,19 +971,20 @@ lemma Fixed.approx_ofRat (x : ℚ) (up : Bool) :
       rw [e] at dn ⊢; clear e sn
       generalize (-s).toNat = s at dn
       simp only [Int.shiftRight_neg, Int.shiftLeft_eq_mul_pow, zpow_neg,
-        mul_inv_le_iff two_pow_pos, Nat.cast_pow, Nat.cast_ofNat, zpow_natCast] at dn ⊢
+        mul_inv_le_iff₀ (two_pow_pos (R := ℝ)), Nat.cast_pow, Nat.cast_ofNat, zpow_natCast] at dn ⊢
       nth_rw 3 [← Rat.num_div_den x]
       simp only [Rat.cast_div, Rat.cast_intCast, Rat.cast_natCast, ← mul_div_assoc,
         Int64.toInt_ofInt dn]
       induction up
-      · simp only [Bool.not_false, mem_rounds_singleton, mul_inv_le_iff two_pow_pos, ←
-          mul_div_assoc, mul_comm _ (x.num : ℝ), ite_true, ge_iff_le]
+      · simp only [Bool.not_false, mem_rounds_singleton, mul_inv_le_iff₀ (two_pow_pos (R := ℝ)), ←
+          mul_div_assoc, mul_comm _ (x.num : ℝ), ite_true]
         refine le_trans Int.rdiv_le ?_
-        simp only [Int.cast_mul, Int.cast_pow, AddGroupWithOne.intCast_ofNat, le_refl, Int.cast_ofNat]
+        field_simp
       · simp only [rounds, ← div_eq_mul_inv, mem_singleton_iff, Bool.not_true, ite_false,
           exists_eq_left, le_div_iff₀ (G₀ := ℝ) two_pow_pos, mem_setOf_eq, Bool.false_eq_true]
         refine le_trans (le_of_eq ?_) Int.le_rdiv
-        simp only [div_eq_mul_inv, Int.cast_mul, Int.cast_pow, AddGroupWithOne.intCast_ofNat]; ring_nf
+        simp only [div_eq_mul_inv, Int.cast_mul, Int.cast_pow, AddGroupWithOne.intCast_ofNat]
+        ring_nf
     · rw [ofRat, sn, cond_true] at n
       simp only [bif_eq_if, dn, decide_False, ite_false, not_true_eq_false, Bool.false_eq_true] at n
   · simp only [Bool.cond_decide, sn, cond_false, val, mem_rounds_singleton,
@@ -1052,7 +1053,7 @@ lemma Fixed.val_mem_log2 {x : Fixed s} (h : x.log2 ≠ nan) :
   by_cases x0 : x.n ≤ 0
   · simp only [x0, decide_True, bif_eq_if, ite_true, ne_eq, not_true_eq_false] at h
   · simp only [val, x0, decide_False, cond_false, mem_Ico, ← div_le_iff₀ (G₀ := ℝ) two_zpow_pos,
-      ←lt_div_iff two_zpow_pos, ←zpow_sub₀ t0] at h ⊢
+      ← lt_div_iff₀ (two_zpow_pos (𝕜 := ℝ)), ←zpow_sub₀ t0] at h ⊢
     have v := Fixed.val_add h
     simp only [val, Int64.coe_zero, zpow_zero, mul_one, ←Int.cast_add, Int.cast_inj] at v
     simp only [v]; ring_nf
@@ -1099,7 +1100,7 @@ lemma Fixed.approx_two_pow (n : Fixed 0) (up : Bool) :
         exact h.2
       have k64 : k.n.n.toNat < 64 := by omega
       have e1 : 1 % 2 ^ (64 - k.n.n.toNat) = 1 :=
-        Nat.mod_eq_of_lt (one_lt_pow (by norm_num) (by omega))
+        Nat.mod_eq_of_lt (one_lt_pow₀ (by norm_num) (by omega))
       have lt : (⟨1 <<< k.n.n⟩ : Int64).n.toNat < 2 ^ 63 := by
         simp only [UInt64.toNat_shiftLeft k64, UInt64.toNat_one, e1, one_mul]
         exact pow_lt_pow_right (by norm_num) k63
