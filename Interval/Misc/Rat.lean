@@ -78,8 +78,8 @@ lemma Rat.log2_correct {x : ℚ} (x0 : x ≠ 0) : |x| ∈ Ico (2^x.log2) (2^(x.l
     simp [Nat.cast_le, ba, ↓reduceIte, ← Nat.cast_sub ab, Int.toNat_ofNat,
       mul_comm _ ((2 : ℚ) ^ _), decide_eq_true_eq, e, zpow_neg, zpow_natCast, ae,
       inv_pos_le_iff_one_le_mul two_pow_pos, ← mul_div_assoc, one_le_div d0', if_true_right, not_le,
-      lt_or_le, div_lt_iff d0', ← div_eq_inv_mul, lt_div_iff two_pow_pos, if_true_left, le_or_lt,
-      and_self]
+      lt_or_le, div_lt_iff₀ d0', ← div_eq_inv_mul, lt_div_iff₀ (two_pow_pos (R := ℚ)), if_true_left,
+      le_or_lt, and_self]
 
 lemma Rat.log2_self_le {x : ℚ} (x0 : x ≠ 0) : 2 ^ x.log2 ≤ |x| := (Rat.log2_correct x0).1
 
