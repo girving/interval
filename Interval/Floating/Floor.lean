@@ -2,7 +2,7 @@ import Interval.Floating.Basic
 import Interval.Floating.Order
 
 /-!
-## Floating point floor, producing `Int64`
+## Floating point floor, producing `Int64` or `ℕ`
 -/
 
 open Set
@@ -53,3 +53,26 @@ lemma floor_mono {x y : Floating} (le : x ≤ y) (yn : y.floor ≠ nan) : x.floo
   simp only [approx, xn, ↓reduceIte, mem_singleton_iff, yn] at hx hy
   simp only [Fixed.le_iff, ← hx, ← hy, Int.cast_le]
   bound
+
+/-!
+### `natFloor` producing `ℕ`
+-/
+
+/-- The greatest natural definitely `≤ x` (or 0 if that fails) -/
+def natFloor (x : Floating) : ℕ :=
+  x.floor.n.natFloor
+
+@[simp] lemma natFloor_nan : (nan : Floating).natFloor = 0 := by rfl
+
+lemma natFloor_le {a : ℝ} {x : Floating} (ax : a ∈ approx x) : x.natFloor ≤ ⌊a⌋₊ := by
+  rw [natFloor, Int64.natFloor_eq]
+  by_cases fn : x.floor = nan
+  · simp [fn]
+  have af := mem_approx_floor x
+  simp only [approx, ne_eq, fn, not_false_eq_true, Floating.ne_nan_of_floor, ↓reduceIte, mem_Icc,
+    mem_singleton_iff] at ax af
+  trans ⌊x.floor.val⌋₊
+  · simp [Fixed.val_of_s0]
+  · simp only [← af, ax]
+    apply Nat.floor_le_floor
+    apply Int.floor_le

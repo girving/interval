@@ -4,6 +4,7 @@ import Interval.Box.Exp
 import Interval.Floating.Abs
 import Interval.Floating.Add
 import Interval.Floating.Basic
+import Interval.Floating.Floor
 import Interval.Floating.Neg
 import Interval.Floating.Order
 import Interval.Floating.Scale
@@ -11,6 +12,7 @@ import Interval.Interval.Basic
 import Interval.Interval.Conversion
 import Interval.Interval.Division
 import Interval.Interval.Exp
+import Interval.Interval.Floor
 import Interval.Interval.Hyperbolic
 import Interval.Interval.Log
 import Interval.Interval.Mul

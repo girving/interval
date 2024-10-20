@@ -1019,3 +1019,20 @@ lemma Int64.shiftRightRound_ne_min {x : Int64} (n : x ≠ min) (s : UInt64) (up 
     apply le_antisymm
     · linarith
     · exact pow_le_coe _
+
+/-!
+### `natFloor`: An `ℕ` trying to be less than an `Int64`
+-/
+
+/-- The greatest natural `≤ n` (that is, `max 0 n`) -/
+def Int64.natFloor (n : Int64) : ℕ :=
+  bif n.isNeg then 0 else n.n.toNat
+
+/-- `natFloor` in terms of `n : ℤ` -/
+lemma Int64.natFloor_eq (n : Int64) : n.natFloor = ⌊(n : ℤ)⌋₊ := by
+  rw [natFloor, bif_eq_if]
+  by_cases neg : n.isNeg
+  · simp [neg, coe_of_neg neg]
+  · simp only [neg, Bool.false_eq_true, ↓reduceIte, Nat.floor_int]
+    simp only [Bool.not_eq_true] at neg
+    simp only [coe_of_nonneg neg, Int.toNat_ofNat]

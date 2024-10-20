@@ -1,5 +1,6 @@
 import Mathlib.Algebra.Order.Field.Power
 import Mathlib.Algebra.Order.Floor.Div
+import Mathlib.Data.Real.Archimedean
 import Mathlib.Data.Real.Basic
 import Mathlib.Tactic.Ring
 import Interval.Misc.Nat
@@ -272,3 +273,10 @@ lemma zpow_anti {a : 𝕜} (a0 : 0 < a) (a1 : a ≤ 1) : Antitone fun n : ℤ �
   · exact zpow_anti a0 a1 mn
 
 end ZPow
+
+@[simp] lemma Int.natFloor_cast (n : ℤ) : ⌊(n : ℝ)⌋₊ = ⌊n⌋₊ := by
+  induction' n using  Int.induction_overlap with n n
+  · simp
+  · simp only [cast_neg, cast_natCast, Nat.floor_int, toNat_neg_nat, Nat.floor_eq_zero]
+    refine lt_of_le_of_lt ?_ zero_lt_one
+    simp only [Left.neg_nonpos_iff, Nat.cast_nonneg]
