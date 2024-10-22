@@ -21,6 +21,24 @@ lemma Interval.pow_def {x y : Interval} : x ^ y = (x.log * y).exp := by
   · rfl
   · rw [Interval.pow]
 
+
+/--
+    **TODO delete or use!!!**
+Natural powers
+* allows negative inputs (not powers)
+* more precise for small powers
+-/
+def Interval.pown (x : Interval) (n : ℕ) : Interval := match n with
+  | 0 => 1
+  | n + 1 => x * x.pown n
+
+/-- Enable `_ ^ _` notation with natural powers.
+could **instead** use the version `Interval.pown`, maybe for part of the range?
+Nevertheless, use the "normal" `pow` that takes `Interval` exponenets -/
+instance istHPowIntervalNat : HPow Interval ℕ Interval where
+  hPow x n := x.pow (.ofNat n)
+
+
 /-- `Interval.pow` is conservative -/
 @[approx] lemma Interval.mem_approx_pow {x : Interval} {y : Interval} {x' y' : ℝ}
     (xm : x' ∈ approx x) (ym : y' ∈ approx y) : x' ^ y' ∈ approx (x ^ y) := by
