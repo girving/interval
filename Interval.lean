@@ -1,6 +1,7 @@
 import Interval.Box.Basic
 import Interval.Box.Division
 import Interval.Box.Exp
+import Interval.EulerMaclaurin.EulerMaclaurin
 import Interval.Floating.Abs
 import Interval.Floating.Add
 import Interval.Floating.Basic
