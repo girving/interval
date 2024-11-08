@@ -10,7 +10,7 @@ Courtesy of Kyle Miller, see:
 open Lean Elab Tactic Meta
 
 /-- `decide`, but use the kernel more for speed and seeing through `irreducible` -/
-elab "fast_decide" : tactic => closeMainGoalUsing `fast_decide fun type ↦ do
+elab "fast_decide" : tactic => closeMainGoalUsing `fast_decide fun type _ ↦ do
   -- zeta reduce to eliminatate dependencies on local definitions
   let type ← zetaReduce (← instantiateMVars type)
   if type.hasFVar || type.hasMVar then
@@ -21,4 +21,4 @@ elab "fast_decide" : tactic => closeMainGoalUsing `fast_decide fun type ↦ do
   mkDecideProof type
 
 /-- `fast_decide`, but skip checking during elaboration for even more speed -/
-elab "faster_decide" : tactic => closeMainGoalUsing `it_is_decided (mkDecideProof ·)
+elab "faster_decide" : tactic => closeMainGoalUsing `it_is_decided (fun ty _ ↦ mkDecideProof ty)

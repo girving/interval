@@ -50,10 +50,10 @@ namespace Floating
       simp only [not_lt] at xt
       rw [val]
       simp only [mul_assoc, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, ← zpow_add₀,
-        mul_eq_mul_left_iff, gt_iff_lt, zero_lt_two, OfNat.ofNat_ne_one, zpow_inj, Int.cast_eq_zero,
+        mul_eq_mul_left_iff, gt_iff_lt, zero_lt_two, OfNat.ofNat_ne_one, Int.cast_eq_zero,
         Int64.coe_eq_zero, UInt64.toInt, UInt64.coe_toNat_sub xt, Int64.toNat_neg tn]
       left
-      ring
+      ring_nf
   · simp only [tn, ite_false, Bool.false_eq_true]
     by_cases xt : .max - t.n < x.s
     · simp only [Bool.false_eq_true, ↓reduceIte, xt, approx_nan, mem_univ]
@@ -63,10 +63,10 @@ namespace Floating
       simp only [Bool.not_eq_true] at tn
       rw [val, mul_assoc, ←zpow_add₀ t0.ne']
       simp only [mul_eq_mul_left_iff, gt_iff_lt, zero_lt_two, ne_eq, OfNat.ofNat_ne_one,
-        not_false_eq_true, zpow_inj, Int.cast_eq_zero, Int64.coe_eq_zero, UInt64.toInt,
+        not_false_eq_true, Int.cast_eq_zero, Int64.coe_eq_zero, UInt64.toInt,
         UInt64.toNat_add_of_le xt, Nat.cast_add, Int64.coe_of_nonneg tn]
       left
-      ring
+      ring_nf
 
 /-- `scaleB _ _` is exact if not `nan` -/
 lemma val_scaleB {x : Floating} {t : Int64} (n : x.scaleB t ≠ nan) :

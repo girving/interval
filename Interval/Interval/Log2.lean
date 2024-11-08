@@ -18,8 +18,8 @@ def x : ℚ := 1/2
 def radius : ℚ := 1 / 1180591620717411303424
 def mid : ℚ := -81026204946914272618346609082102250801114907729 /
     116896104058966015646750947554978314987992252416
-lemma radius_eq : radius = |x| ^ (n + 1) / (1 - |x|) := by rfl
-lemma mid_eq : mid = -∑ i ∈ Finset.range n, x ^ (i + 1) / (i + 1 : ℚ) := by rfl
+lemma radius_eq : radius = |x| ^ (n + 1) / (1 - |x|) := by fast_decide
+lemma mid_eq : mid = -∑ i ∈ Finset.range n, x ^ (i + 1) / (i + 1 : ℚ) := by fast_decide
 def interval : Interval := ((mid - radius : ℚ) : Interval) ∪ ((mid + radius : ℚ) : Interval)
 
 lemma close : |Real.log (1/2) - mid| ≤ radius := by
@@ -44,10 +44,10 @@ lemma inv_close : |(Real.log 2)⁻¹ - inv_mid| ≤ inv_radius := by
   have c0 : Real.log (1/2) < 0 := by
     refine lt_of_le_of_lt c1 ?_
     simp only [← Rat.cast_add, Rat.cast_lt_zero]
-    rfl
+    fast_decide
   have c2 : -mid - radius ≤ |Real.log (1/2)| := by
     simp only [abs_le, abs_of_neg c0] at c ⊢; linarith
-  have mid0 : 0 < |(mid : ℝ)| := by simp only [← Rat.cast_abs, Rat.cast_pos]; rfl
+  have mid0 : 0 < |(mid : ℝ)| := by simp only [← Rat.cast_abs, Rat.cast_pos]; fast_decide
   simp only [e, inv_mid, one_div, _root_.inv_neg, Rat.cast_neg, Rat.cast_inv, sub_neg_eq_add,
     ← sub_eq_neg_add] at c c0 c1 c2 ⊢
   rw [inv_sub_inv _ c0.ne, abs_div, abs_mul]

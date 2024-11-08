@@ -76,14 +76,14 @@ lemma adjust_r_lt_128 (r : UInt128) (s : UInt64) :
   have h0 := adjust_d_le r s
   have h1 := UInt128.log2_le_127' r
   refine lt_of_lt_of_le Nat.lt_log2_self ?_
-  exact pow_le_pow_right (by norm_num) (by omega)
+  exact pow_le_pow_right₀ (by norm_num) (by omega)
 
 /-- `add_adjust` normalizes `r` -/
 lemma adjust_le_r {r : UInt128} {s : UInt64} (r0 : r.toNat ≠ 0)
     (s0 : (add_adjust r.log2 s).1.toNat ≠ 0) :
     2 ^ (127 - (add_adjust r.log2 s).2.toNat) ≤ r.toNat := by
   refine le_trans ?_ (Nat.log2_self_le r0)
-  apply pow_le_pow_right (by norm_num)
+  apply pow_le_pow_right₀ (by norm_num)
   rw [add_adjust] at s0 ⊢
   simp only [bif_eq_if, beq_iff_eq, UInt64.eq_iff_toNat_eq, UInt128.toNat_log2, u127, ne_eq,
     tsub_le_iff_right] at s0 ⊢
@@ -104,7 +104,7 @@ lemma adjust_mul_lt_128 (r : UInt128) (s : UInt64) :
   have h0 := adjust_d_le r s
   refine lt_of_lt_of_le (mul_lt_mul_of_pos_right (adjust_r_lt_128 r s) (by positivity)) ?_
   rw [←pow_add]
-  exact pow_le_pow_right (by norm_num) (by omega)
+  exact pow_le_pow_right₀ (by norm_num) (by omega)
 
 /-- `add_adjust` normalizes `r` -/
 lemma adjust_le_mul {r : UInt128} {s : UInt64} (r0 : r.toNat ≠ 0)
@@ -112,12 +112,12 @@ lemma adjust_le_mul {r : UInt128} {s : UInt64} (r0 : r.toNat ≠ 0)
     2^127 ≤ r.toNat * 2 ^ (add_adjust r.log2 s).2.toNat := by
   refine le_trans ?_ (Nat.mul_le_mul_right _ (adjust_le_r r0 s0))
   simp only [← pow_add]
-  exact pow_le_pow_right (by norm_num) (by omega)
+  exact pow_le_pow_right₀ (by norm_num) (by omega)
 
 lemma adjust_lo_eq {r : UInt128} {s : UInt64} (a65 : 65 ≤ (add_adjust r.log2 s).2.toNat) :
     r.lo.toNat = r.toNat := by
   apply UInt128.toNat_lo
-  exact lt_of_lt_of_le (adjust_r_lt_128 r s) (pow_le_pow_right (by norm_num) (by omega))
+  exact lt_of_lt_of_le (adjust_r_lt_128 r s) (pow_le_pow_right₀ (by norm_num) (by omega))
 
 /-- `add_adjust` doesn't make `r` too big -/
 lemma adjust_shift_le_63 (r : UInt128) (s : UInt64) (up : Bool)
@@ -160,7 +160,7 @@ lemma add_n_le (r : UInt128) (s : UInt64) (up : Bool) : (add_n r s up).n.toNat �
     rw [Nat.mod_eq_of_lt]
     · rw [←mul_le_mul_iff_of_pos_right d2, mul_assoc, ←pow_add, ←pow_add, Nat.sub_add_cancel d1]
       exact mul_lt.le
-    · exact lt_of_lt_of_le r_lt (pow_le_pow_right (by norm_num) (by omega))
+    · exact lt_of_lt_of_le r_lt (pow_le_pow_right₀ (by norm_num) (by omega))
   · simp only [a65, ite_false, gt_iff_lt]
     simp only [← ha, not_le, UInt64.lt_iff_toNat_lt, u65] at a65
     simp only [←ha, adjust_lo_shift_le_63 _ _ _ a65]
@@ -204,7 +204,7 @@ lemma coe_add_n (r : UInt128) (s : UInt64) (up : Bool) :
       simpa only [Int64.toInt, Int64.isNeg_eq_le, not_le.mpr d6, decide_False, cond_false,
         CharP.cast_eq_zero, sub_zero, Nat.cast_inj]
     have d12 : r.toNat < 2^(64 - (a - 65).toNat) :=
-      lt_of_lt_of_le d8 (pow_le_pow_right (by norm_num) (Nat.sub_le_sub_right (by norm_num) _))
+      lt_of_lt_of_le d8 (pow_le_pow_right₀ (by norm_num) (Nat.sub_le_sub_right (by norm_num) _))
     have d11 : a - 65 < 64 := by
       rw [UInt64.lt_iff_toNat_lt, UInt64.toNat_sub'' a65, u65, u64]
       refine lt_of_le_of_lt (Nat.sub_le_sub_right d0 _) ?_
@@ -253,9 +253,9 @@ lemma add_n_norm (r : UInt128) (s : UInt64) (up : Bool) :
 
 /-- `small_shift` is valid -/
 lemma valid_small_shift0 {s : UInt64} : Valid (2^62) (s+1) where
-  zero_same := by intro z; contrapose z; clear z; decide
-  nan_same := by intro n; contrapose n; clear n; decide
-  norm := by intro _ _ _; decide
+  zero_same := by intro z; contrapose z; clear z; fast_decide
+  nan_same := by intro n; contrapose n; clear n; fast_decide
+  norm := by intro _ _ _; fast_decide
 
 /-- `small_shift` is valid -/
 lemma valid_small_shift1 {n s : UInt64} (n63 : n ≠ 2^63) (n0 : n ≠ 0)
@@ -309,11 +309,11 @@ lemma val_small_shift {n s : UInt64}
   · simp only [n63, Bool.cond_decide, dite_true, ne_eq, ite_eq_left_iff, not_forall,
       exists_prop] at sn
     rw [val]
-    have e : ((2^62 : Int64) : ℤ) = 2^62 := by decide
+    have e : ((2^62 : Int64) : ℤ) = 2^62 := by fast_decide
     simp only [n63, sn.1, decide_False, cond_false, dite_true, e, Int.cast_pow, Int.cast_ofNat,
       UInt64.toInt, UInt64.toNat_add_one' sn.1, Nat.cast_add, Nat.cast_one, ne_eq,
       OfNat.ofNat_ne_zero, not_false_eq_true, pow_mul_zpow, Nat.cast_ofNat, UInt64.toNat_2_pow_63,
-      Nat.cast_pow, gt_iff_lt, zero_lt_two, OfNat.ofNat_ne_one, zpow_inj]
+      Nat.cast_pow, gt_iff_lt, zero_lt_two, OfNat.ofNat_ne_one, zpow_right_inj₀]
     ring
   · simp only [n63, Bool.cond_decide, dite_false]
     by_cases n0 : n = 0
@@ -353,7 +353,7 @@ lemma val_add_shift_r (r : UInt128) (s : UInt64) (up : Bool) :
     simp only [Int.cast_mul, Int.cast_ofNat, Int.cast_pow, Int.cast_ofNat, Nat.cast_pow,
       Nat.cast_ofNat, UInt128.toReal, mul_div_assoc, mul_assoc, ←zpow_natCast, ←zpow_sub₀ t0,
       ←zpow_add₀ t0]
-    refine mul_le_mul_of_nonneg_left (zpow_le_of_le (by norm_num) ?_) (Nat.cast_nonneg _)
+    refine mul_le_mul_of_nonneg_left (zpow_le_zpow_right₀ (by norm_num) ?_) (Nat.cast_nonneg _)
     rw [←ht, add_adjust_2_eq over]
     linarith
   · simp only [Bool.not_true, ite_false, ge_iff_le]
@@ -361,7 +361,7 @@ lemma val_add_shift_r (r : UInt128) (s : UInt64) (up : Bool) :
     simp only [Int.cast_mul, Int.cast_ofNat, Int.cast_pow, Int.cast_ofNat, Nat.cast_pow,
       Nat.cast_ofNat, UInt128.toReal, mul_div_assoc, mul_assoc, ←zpow_natCast, ←zpow_sub₀ t0,
       ←zpow_add₀ t0]
-    refine mul_le_mul_of_nonneg_left (zpow_le_of_le (by norm_num) ?_) (Nat.cast_nonneg _)
+    refine mul_le_mul_of_nonneg_left (zpow_le_zpow_right₀ (by norm_num) ?_) (Nat.cast_nonneg _)
     rw [←ht, add_adjust_2_eq over]
     linarith
 
@@ -537,14 +537,14 @@ lemma add_to_128_shift_le {x y : Floating} (xy : x.add_bigger y) {up : Bool}
       simp only [Int64.isNeg_eq_le, decide_eq_false_iff_not, not_le] at yn
       refine le_trans (Nat.mul_le_mul_right _ yn.le) ?_
       simp only [←pow_add, ←Nat.add_sub_assoc slt]
-      exact pow_le_pow_right (by norm_num) (by omega)
+      exact pow_le_pow_right₀ (by norm_num) (by omega)
     · refine le_trans Int.rdiv_lt.le ?_
       trans y.n.n.toNat + 1
       · simp only [Int.cast_mul, Int.cast_ofNat, Int.cast_pow, Int.cast_ofNat, Nat.cast_pow,
           Nat.cast_ofNat, add_le_add_iff_right, mul_div_assoc]
         simp only [not_le] at slt
         refine mul_le_of_le_one_right (Nat.cast_nonneg _) ?_
-        exact div_le_one_of_le (pow_le_pow_right (by norm_num) slt.le) (by norm_num)
+        exact div_le_one_of_le₀ (pow_le_pow_right₀ (by norm_num) slt.le) (by norm_num)
       · simp only [e0, e1, ←Nat.cast_mul, ←Nat.cast_add_one, ←Nat.cast_add, Nat.cast_le]
         refine le_trans (add_le_add_right y.n.n.toNat_lt.le _) ?_
         refine le_trans ?_ (Nat.le_add_right _ _)

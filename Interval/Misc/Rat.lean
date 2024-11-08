@@ -76,8 +76,8 @@ lemma Rat.log2_correct {x : ℚ} (x0 : x ≠ 0) : |x| ∈ Ico (2^x.log2) (2^(x.l
   · have ab : a ≤ b := (not_le.mp ba).le
     have e : (a : ℤ) - (b : ℤ) = -((b - a : ℕ) : ℤ) := by simp only [Nat.cast_sub ab, neg_sub]
     simp [Nat.cast_le, ba, ↓reduceIte, ← Nat.cast_sub ab, Int.toNat_ofNat,
-      mul_comm _ ((2 : ℚ) ^ _), decide_eq_true_eq, e, zpow_neg, zpow_natCast, ae,
-      inv_pos_le_iff_one_le_mul two_pow_pos, ← mul_div_assoc, one_le_div d0', if_true_right, not_le,
+      mul_comm _ ((2 : ℚ) ^ _), decide_eq_true_eq, e, zpow_neg, zpow_natCast, ae, not_le,
+      inv_le_iff_one_le_mul₀ (two_pow_pos (R := ℚ)), ← mul_div_assoc, one_le_div d0', if_true_right,
       lt_or_le, div_lt_iff₀ d0', ← div_eq_inv_mul, lt_div_iff₀ (two_pow_pos (R := ℚ)), if_true_left,
       le_or_lt, and_self]
 

@@ -16,7 +16,7 @@ variable {α β : Type}
     · simp only [Nat.fold, size_push, h]
   induction' n with n h
   · simp only [range, Nat.fold, size_toArray, List.length_nil, not_lt_zero', mkEmpty, size] at kn
-  · simp only [Nat.fold, flip, Array.get_push, range] at kn h ⊢
+  · simp only [Nat.fold, flip, Array.getElem_push, range] at kn h ⊢
     by_cases lt : k < size (Nat.fold (fun b a => a.push b) n #[])
     · simp only [Function.flip_def, mkEmpty_eq, if_true, lt, forall_true_left] at *; assumption
     · simp only [Function.flip_def, mkEmpty_eq, if_false, lt, size_push, ↓reduceDIte] at kn ⊢
@@ -75,8 +75,12 @@ lemma ByteArray.get!_push (d : ByteArray) (c : UInt8) (i : ℕ) :
     · rfl
     · simp only [Array.size_push, ByteArray.size] at *; omega
 
+-- This is deprecated upstream, but the exact replacement is unclear
+lemma Array.getElem?_eq_toList_get?' (a : Array α) (i : Nat) : a[i]? = a.toList.get? i := by
+  by_cases i < a.size <;> simp_all [getElem?_pos, getElem?_neg, List.get?_eq_get, eq_comm]
+
 lemma ByteArray.get!_eq_default (d : ByteArray) (i : ℕ) (le : d.size ≤ i) : d.get! i = default := by
-  simp only [get!, Array.get!_eq_get?, Array.get?_eq_getElem?, Array.getElem?_eq_data_get?,
+  simp only [get!, Array.get!_eq_get?, Array.get?_eq_getElem?, Array.getElem?_eq_toList_get?',
     List.get?_len_le le, Option.getD_none]
 
 lemma ByteArray.get!_append (d0 d1 : ByteArray) (i : ℕ) :

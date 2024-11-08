@@ -2,6 +2,7 @@ import Mathlib.Data.Real.Basic
 import Interval.Misc.Bool
 import Interval.UInt64
 import Interval.Misc.Int
+import Interval.Tactic.Decide
 
 /-!
 ## 64-bit two's complement integers
@@ -185,7 +186,7 @@ lemma Int64.isNeg_eq_le (x : Int64) : x.isNeg = decide (2^63 ≤ x.n.toNat) := b
     · simp only [toInt, UInt64.toNat, xs, cond_true, Nat.cast_pow,
         Nat.cast_ofNat, ys, sub_lt_sub_iff_right, Nat.cast_lt, UInt64.toNat_lt_toNat, lt_def,
         gt_iff_lt, lt_self_iff_false, true_and, false_or]
-      rw [UInt64.val_val_eq_toNat, UInt64.val_val_eq_toNat, UInt64.lt_iff_toNat_lt]
+      simp only [UInt64.toNat_toBitVec, UInt64.toNat_lt_toNat]
     · simp only [toInt, xs, cond_true, Nat.cast_pow, Nat.cast_ofNat, ys, cond_false,
         CharP.cast_eq_zero, sub_zero, lt_def, gt_iff_lt, Bool.false_lt_true, false_and, or_false,
         iff_true, true_or]
@@ -200,7 +201,7 @@ lemma Int64.isNeg_eq_le (x : Int64) : x.isNeg = decide (2^63 ≤ x.n.toNat) := b
     · simp only [toInt, UInt64.toNat, xs, cond_false, CharP.cast_eq_zero,
         sub_zero, ys, Nat.cast_lt, UInt64.toNat_lt_toNat, lt_def, gt_iff_lt, lt_self_iff_false,
         true_and, false_or]
-      rw [UInt64.val_val_eq_toNat, UInt64.val_val_eq_toNat, UInt64.lt_iff_toNat_lt]
+      simp only [UInt64.toNat_toBitVec, UInt64.toNat_lt_toNat]
 
 /-- Converting to `ℤ` is under `2^63` -/
 @[simp] lemma Int64.coe_lt_pow (x : Int64) : (x : ℤ) < 2^63 := by
@@ -468,7 +469,7 @@ lemma Int64.toInt_eq_toNat_of_lt {x : Int64} (h : x.n.toNat < 2^63) : (x : ℤ) 
 /-- Adding `2^63` and converting via `UInt64` commutes -/
 @[simp] lemma Int64.toNat_add_pow_eq_coe (n : Int64) :
     ((n + 2^63).n.toNat : ℤ) = (n : ℤ) + 2^63 := by
-  have e : (2^63 : Int64).n.toNat = 2^63 := by decide
+  have e : (2^63 : Int64).n.toNat = 2^63 := by fast_decide
   rw [add_def, UInt64.toNat_add, e, UInt64.size_eq_pow, Int.ofNat_emod, Nat.cast_add,
     Nat.cast_pow, Nat.cast_ofNat, toInt, isNeg_eq_le, bif_eq_if, Nat.cast_ite]
   have lt := n.n.toNat_lt
@@ -808,9 +809,9 @@ lemma Int64.coe_shiftLeft {x : Int64} {s : UInt64} (s64 : s.toNat < 64)
     have xm : x.n.toNat % 2 ^ (64 - s.toNat) = 2 ^ (64 - s.toNat) - y := by
       have e : 2^64 - y = (2^(64 - s.toNat) * (2^s.toNat - 1) + (2^(64 - s.toNat) - y)) := by
         simp only [mul_tsub, ← pow_add, Nat.sub_add_cancel s64.le, mul_one]
-        have h0 : 2^(64 - s.toNat) ≤ 2^64 := pow_le_pow_right (by norm_num) (by omega)
+        have h0 : 2^(64 - s.toNat) ≤ 2^64 := pow_le_pow_right₀ (by norm_num) (by omega)
         have h1 : y ≤ 2 ^ (64 - s.toNat) :=
-          le_trans xs.le (pow_le_pow_right (by norm_num) (by omega))
+          le_trans xs.le (pow_le_pow_right₀ (by norm_num) (by omega))
         omega
       rw [xy, e, Nat.mul_add_mod, Nat.mod_eq_of_lt]
       exact Nat.sub_lt (by positivity) y0
@@ -818,7 +819,7 @@ lemma Int64.coe_shiftLeft {x : Int64} {s : UInt64} (s64 : s.toNat < 64)
       refine le_trans (Nat.mul_le_mul_right _ xs.le) ?_
       rw [←pow_add]
       have le : 63 - s.toNat + s.toNat ≤ 63 := by omega
-      exact le_trans (pow_le_pow_right (by norm_num) le) (by norm_num)
+      exact le_trans (pow_le_pow_right₀ (by norm_num) le) (by norm_num)
     have yle : 2 ^ 63 ≤ 2 ^ 64 - y * 2 ^ s.toNat := by
       apply Nat.le_sub_of_add_le
       rw [add_comm, ←Nat.le_sub_iff_add_le (by norm_num)]
@@ -840,7 +841,7 @@ lemma Int64.coe_shiftLeft {x : Int64} {s : UInt64} (s64 : s.toNat < 64)
     intro le; contrapose le; clear le; simp only [not_le]
     refine lt_of_lt_of_le (Nat.mul_lt_mul_of_pos_right xs (pow_pos (by norm_num) _)) ?_
     simp only [← pow_add]
-    exact pow_le_pow_right (by norm_num) (by omega)
+    exact pow_le_pow_right₀ (by norm_num) (by omega)
 
 /-- `0 <<< s = 0` -/
 @[simp] lemma Int64.zero_shiftLeft (s : UInt64) : (0 : Int64) <<< s = 0 := by
@@ -949,7 +950,7 @@ lemma Int64.coe_shiftRightRound (x : Int64) (s : UInt64) (up : Bool) :
         · simp only [ite_false, neg_neg, Nat.cast_pow, Nat.cast_ofNat, cond_false,
             Bool.false_eq_true]
           rw [Int.ediv_eq_neg_one (by positivity)]
-          exact pow_le_pow_right (by norm_num) (by omega)
+          exact pow_le_pow_right₀ (by norm_num) (by omega)
         · simp only [ite_true, neg_neg, Nat.cast_pow, Nat.cast_ofNat, cond_true,
             zero_eq_neg]
           apply Int.ediv_eq_zero_of_lt (by positivity)

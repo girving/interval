@@ -78,7 +78,7 @@ theorem image_mul_right_Icc_of_neg {a b c : 𝕜} (c0 : c < 0) :
 
 /-- A simple lemma that we use a lot -/
 @[simp] lemma two_zpow_pos {𝕜 : Type} [LinearOrderedSemifield 𝕜] {n : ℤ} : 0 < (2:𝕜) ^ n :=
-  zpow_pos_of_pos (by norm_num) _
+  zpow_pos (by norm_num) _
 
 /-- Writing `not_lt.mpr two_zpow_pos` fails to infer inside `simp`, so we write this out -/
 @[simp] lemma two_zpow_not_nonpos {𝕜 : Type} [LinearOrderedSemifield 𝕜] {n : ℤ} : ¬(2:𝕜) ^ n ≤ 0 :=
@@ -105,7 +105,7 @@ lemma Set.inv_Icc {a b : 𝕜} (a0 : 0 < a) (b0 : 0 < b) : (Icc a b)⁻¹ = Icc 
     simp only [(by linarith : ¬a ≤ x⁻¹), false_and, false_iff, not_and, not_le,
       lt_of_le_of_lt x0 (inv_pos.mpr b0), implies_true]
   · simp only [not_le] at x0
-    simp only [le_inv x0 a0, inv_le b0 x0]
+    simp only [le_inv_comm₀ x0 a0, inv_le_comm₀ b0 x0]
 
 /-- `approx` friendly version of `Set.mem_inv` -/
 @[approx] lemma Set.mem_inv_of_mem {x : 𝕜} {s : Set 𝕜} (m : x ∈ s) : x⁻¹ ∈ s⁻¹ := by

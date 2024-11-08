@@ -71,12 +71,14 @@ lemma Fixed.nan_def : (nan : Fixed s) = ⟨Int64.min⟩ := rfl
 lemma Fixed.val_of_s0 {x : Fixed 0} : x.val = ↑x.n := by
   simp only [val, Int64.coe_zero, zpow_zero, mul_one]
 
-@[simp] lemma Fixed.isNeg_nan : (nan : Fixed s).n.isNeg = true := rfl
+@[simp] lemma Fixed.isNeg_nan : (nan : Fixed s).n.isNeg = true := by
+  rw [nan_n]; rfl
 
 @[simp] lemma Fixed.zero_ne_nan : 0 ≠ (nan : Fixed s) := by
   simp only [nan, ne_eq, Fixed.ext_iff, Fixed.zero_n, Int64.ext_iff, Int64.n_zero, Int64.n_min,
     Nat.cast_pow, Nat.cast_ofNat]
   decide
+
 @[simp] lemma Fixed.nan_ne_zero : (nan : Fixed s) ≠ 0 := by rw [ne_comm]; exact zero_ne_nan
 
 lemma Fixed.val_eq_val {x y : Fixed s} : x.val = y.val ↔ x = y := by
@@ -319,11 +321,14 @@ lemma Fixed.val_sub {x y : Fixed s} (n : x - y ≠ nan) : (x - y).val = x.val - 
 
 /-- `neg_add` for `Fixed s` -/
 lemma Fixed.neg_add {x y : Fixed s} : -(x + y) = -y + -x := by
-  simp only [Fixed.add_as_eq]
-  by_cases xn : x = nan
-  · simp only [xn, nan_n, Int64.isNeg_min, ne_eq, true_or, ite_true, neg_nan, neg_eq_nan, or_true]
-  by_cases yn : y = nan
-  · simp only [yn, nan_n, Int64.isNeg_min, ne_eq, true_or, or_true, ite_true, neg_nan, neg_eq_nan]
+  simp only [add_as_eq, ext_iff, nan_n, ne_eq, neg_def, neg, apply_ite (f := fun x : Fixed s ↦ x.n),
+    Int64.neg_eq_min]
+  by_cases xn : x.n = .min
+  · simp only [xn, Int64.isNeg_min, ne_eq, true_or, ite_true, neg_nan, neg_eq_nan, or_true]
+    rfl
+  by_cases yn : y.n = .min
+  · simp only [yn, Int64.isNeg_min, ne_eq, true_or, or_true, ite_true, neg_nan, neg_eq_nan]
+    rfl
   simp only [ne_eq, neg_neg, xn, not_false_eq_true, ne_nan_of_neg, yn, false_or]
   by_cases x0 : x.n = 0
   · simp only [x0, Int64.isNeg_zero, zero_add, and_not_self, ite_false, neg_def, neg, neg_zero,
@@ -341,8 +346,8 @@ lemma Fixed.neg_add {x y : Fixed s} : -(x + y) = -y + -x := by
     · split_ifs
       · simp only [xym, Int64.neg_min, nan]
       · simp only [xym, Int64.neg_min]
-      · rw [nan_n, Int64.neg_min]
-      · rw [xym, Int64.neg_min, nan_n, Int64.neg_min]
+      · rw [Int64.neg_min]
+      · rw [xym, Int64.neg_min]
     · have xy0 : x.n + y.n ≠ 0 := by
         contrapose xyn
         simp only [not_not] at xyn
@@ -350,7 +355,7 @@ lemma Fixed.neg_add {x y : Fixed s} : -(x + y) = -y + -x := by
       simp only [Int64.isNeg_neg xy0 xym, Bool.eq_not_iff, ite_not]
       split_ifs
       · simp only [neg_add_rev]
-      · rw [nan_n, Int64.neg_min]
+      · rw [Int64.neg_min]
   · simp only [xyn, Ne.symm xyn, false_and, ite_false, neg_add_rev]
 
 /-- `neg_sub` for `Fixed s` -/
@@ -1025,7 +1030,7 @@ lemma Fixed.le_ofRat {x : ℚ} (h : (.ofRat x true : Fixed s) ≠ nan) :
 @[simp] lemma Fixed.val_one_of_s0 : (1 : Fixed 0).val = 1 := by
   rw [val]
   simp only [Int64.coe_zero, zpow_zero, mul_one, Int.cast_eq_one]
-  rfl
+  fast_decide
 
 /-!
 ### `2^n` and `log2`
@@ -1085,7 +1090,7 @@ lemma Fixed.approx_two_pow (n : Fixed 0) (up : Bool) :
       induction up
       · simp only [ite_false, val_zero, two_zpow_pos.le, ite_true, Bool.false_eq_true]
       · simp only [ite_true, val, Int64.coe_one, Int.cast_one, one_mul, ite_false]
-        apply zpow_le_of_le (by norm_num)
+        apply zpow_le_zpow_right₀ (by norm_num)
         simp only [← hk, not_le, isNeg_eq, decide_eq_true_eq] at h kn
         simp only [Fixed.val_sub h.1, sub_neg] at kn
         simp only [val, Int64.coe_zero, zpow_zero, mul_one, Int.cast_lt, Int64.coe_lt_coe] at kn
@@ -1170,8 +1175,7 @@ lemma Fixed.le_two_pow {n : Fixed 0} (h : (.two_pow n true : Fixed s) ≠ nan) :
 /-- `Fixed.repoint` propagates `nan` -/
 @[simp] lemma Fixed.repoint_nan (t : Int64) (up : Bool) : (nan : Fixed s).repoint t up = nan := by
   rw [Fixed.repoint]
-  simp only [beq_self_eq_true, Bool.or_true, nan_n, Int64.abs_min, Int64.coe_min', Int.cast_neg,
-    Int.cast_pow, AddGroupWithOne.intCast_ofNat, Int64.n_min, Bool.cond_decide, cond_true]
+  simp only [beq_self_eq_true, Bool.or_true, Bool.cond_true]
 
 /-- Special case of `pow_sub` involving `UInt64`s -/
 lemma two_pow_coe_sub {s t : Int64} {k : Fixed 0} (st : s ≤ t) (e : ⟨t⟩ - ⟨s⟩ = k) (kn : k ≠ nan) :

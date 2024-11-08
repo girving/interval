@@ -18,9 +18,9 @@ namespace Floating
 lemma valid_two_pow {n : Fixed 0} :
     let s : UInt64 := n.n.n + (2^63 : UInt64)
     Valid (2^62) (s - 62) where
-  zero_same := by intro n; contrapose n; clear n; decide
-  nan_same := by intro n; contrapose n; clear n; decide
-  norm := by intro _ _ _; decide
+  zero_same := by intro n; contrapose n; clear n; fast_decide
+  nan_same := by intro n; contrapose n; clear n; fast_decide
+  norm := by intro _ _ _; fast_decide
 
 /-- Exact powers of two -/
 @[irreducible] def two_pow (n : Fixed 0) : Floating :=
@@ -42,9 +42,13 @@ lemma valid_two_pow {n : Fixed 0} :
     or_self, ite_false, mem_ite_univ_left, mem_singleton_iff]
   intro h; clear h
   rw [val, Fixed.val]
-  have e62 : ((2^62 : Int64) : ℤ) = 2^62 := by decide
+  have e62 : ((2^62 : Int64) : ℤ) = 2^62 := by fast_decide
   have le' : 62 ≤ (n.n.n + 2^63).toNat := by simpa only [UInt64.le_iff_toNat_le, u62] using le
-  have v : ((n.n.n + 2^63).toNat : ℤ) = (n.n : ℤ) + 2^63 := Int64.toNat_add_pow_eq_coe _
+  have v : ((n.n.n + 2^63).toNat : ℤ) = (n.n : ℤ) + 2^63 := by
+    have v := Int64.toNat_add_pow_eq_coe n.n
+    have e : (2 ^ 63 : Int64).n = 2 ^ 63 := by fast_decide
+    rw [Int64.add_def, e] at v
+    exact v
   simp only [Int64.coe_zero, zpow_zero, mul_one, Real.rpow_intCast, e62, Int.cast_pow,
     Int.cast_ofNat, UInt64.toInt, UInt64.toNat_sub'' le, u62, Nat.cast_sub le', v, Nat.cast_ofNat,
     sub_right_comm _ (62 : ℤ), add_sub_cancel_right]
@@ -57,9 +61,9 @@ lemma valid_two_pow {n : Fixed 0} :
 
 /-- `two_pow_special` is valid -/
 lemma valid_two_pow_special {s : UInt64} : Valid (2^62) s where
-  zero_same := by intro n; contrapose n; clear n; decide
-  nan_same := by intro n; contrapose n; clear n; decide
-  norm := by intro _ _ _; decide
+  zero_same := by intro n; contrapose n; clear n; fast_decide
+  nan_same := by intro n; contrapose n; clear n; fast_decide
+  norm := by intro _ _ _; fast_decide
 
 /-- Build `2^62 * 2^(s - 2^63)` -/
 @[irreducible] def two_pow_special (s : UInt64) : Floating where
@@ -71,13 +75,13 @@ lemma valid_two_pow_special {s : UInt64} : Valid (2^62) s where
 @[simp] lemma two_pow_special_ne_nan (s : UInt64) : two_pow_special s ≠ nan := by
   rw [two_pow_special]
   simp only [ne_eq, ext_iff, n_nan, s_nan, not_and]
-  intro n; contrapose n; clear n; decide
+  intro n; contrapose n; clear n; fast_decide
 
 /-- `two_pow_special` never makes `nan` -/
 @[simp] lemma val_two_pow_special (s : UInt64) :
     (two_pow_special s).val = 2^(62 + (s.toNat : ℤ) - 2^63) := by
   have t0 : (2 : ℝ) ≠ 0 := by norm_num
-  have e : ((2^62 : Int64) : ℤ) = 2^62 := by decide
+  have e : ((2^62 : Int64) : ℤ) = 2^62 := by fast_decide
   rw [two_pow_special, val, e]
   simp only [Int.cast_pow, Int.cast_ofNat, UInt64.toInt, pow_mul_zpow t0]
   ring_nf

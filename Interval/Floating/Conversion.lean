@@ -93,7 +93,7 @@ lemma Convert.approx_finish (x : Convert) (up : Bool) :
         val_min_norm, Bool.not_true, mem_rounds_singleton, ite_false]
       refine le_trans (mul_le_mul_of_nonneg_right (Nat.cast_le.mpr x.norm.2.le) two_zpow_pos.le) ?_
       simp only [Nat.cast_pow, Nat.cast_ofNat, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
-        pow_mul_zpow, gt_iff_lt, Nat.one_lt_ofNat, zpow_le_iff_le]
+        pow_mul_zpow, gt_iff_lt, Nat.one_lt_ofNat, zpow_le_zpow_iff_right₀]
       norm_num
       omega
   simp only [s0, dite_eq_ite, ite_false]
@@ -124,7 +124,7 @@ lemma val_convert_tweak (n : ℕ) (s : ℤ) (norm : n ∈ Icc (2^62) (2^63)) :
   rw [Convert.val, convert_tweak]
   by_cases e : n = 2^63
   · simp only [e, dite_true, Nat.cast_pow, Nat.cast_ofNat, ne_eq, OfNat.ofNat_ne_zero,
-      not_false_eq_true, pow_mul_zpow, gt_iff_lt, zero_lt_two, OfNat.ofNat_ne_one, zpow_inj]
+      not_false_eq_true, pow_mul_zpow, gt_iff_lt, zero_lt_two, OfNat.ofNat_ne_one, zpow_right_inj₀]
     omega
   · simp only [e, dite_false]
 
@@ -160,7 +160,7 @@ lemma ofNat_norm {n : ℕ} {up : Bool}
       omega
     · refine Nat.rdiv_le_of_le_mul (le_trans Nat.lt_log2_self.le ?_)
       rw [←pow_add]
-      exact pow_le_pow_right (by norm_num) (by omega)
+      exact pow_le_pow_right₀ (by norm_num) (by omega)
 
 /-- Conversion from `ℕ` to `Floating`, rounding up or down -/
 @[irreducible] def ofNat (n : ℕ) (up : Bool) : Floating :=
@@ -210,7 +210,7 @@ lemma ofNat_ne_nan {n : ℕ} (lt : n < 2^63) (up : Bool) : ofNat n up ≠ nan :=
 lemma approx_ofNat (n : ℕ) (up : Bool) : ↑n ∈ rounds (approx (.ofNat n up : Floating)) !up := by
   by_cases n62 : n.log2 ≤ 62
   · have lt : n < 2^63 :=
-      lt_of_lt_of_le Nat.lt_log2_self (pow_le_pow_right (by norm_num) (by omega))
+      lt_of_lt_of_le Nat.lt_log2_self (pow_le_pow_right₀ (by norm_num) (by omega))
     simp only [approx, ofNat_ne_nan lt, ↓reduceIte, val_ofNat' lt, mem_rounds_singleton,
       Bool.not_eq_true', le_refl, ite_self]
   · rw [ofNat]
@@ -228,7 +228,7 @@ lemma approx_ofNat (n : ℕ) (up : Bool) : ↑n ∈ rounds (approx (.ofNat n up 
       refine le_trans ?_ (mul_le_mul_of_nonneg_right Nat.le_rdiv two_zpow_pos.le)
       simp only [Nat.cast_pow, Nat.cast_ofNat, div_mul_eq_mul_div, mul_div_assoc, zpow_div_pow t0]
       apply le_mul_of_one_le_right (Nat.cast_nonneg _)
-      exact one_le_zpow_of_nonneg (by norm_num) (by omega)
+      exact one_le_zpow₀ (by norm_num) (by omega)
 
 /-- `approx_ofNat`, down version -/
 lemma ofNat_le {n : ℕ} (h : ofNat n false ≠ nan) : (ofNat n false).val ≤ n := by

@@ -62,7 +62,9 @@ instance : CoeTail Decimal ℝ where
 
 lemma Rat.ofScientific_eq (n : ℕ) (neg : Bool) (e : ℕ) :
     (OfScientific.ofScientific n neg e : ℚ) = (n : ℚ) * 10 ^ (if neg then -(e : ℤ) else e) := by
-  simp [OfScientific.ofScientific, Rat.ofScientific_def]
+  have en : OfNat.ofNat n = n := rfl
+  have ee : OfNat.ofNat e = e := rfl
+  simp only [OfScientific.ofScientific, Rat.ofScientific_def, en, ee]
   split_ifs
   · simp [Rat.mkRat_eq_div, div_eq_mul_inv]
   · simp [Rat.mkRat_eq_div]

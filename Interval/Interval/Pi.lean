@@ -44,7 +44,7 @@ lemma pi_lt_314159265358979323847 : π < 3.14159265358979323847 := by
   have hi : inv_pi.hi.valq = 5871781006564002453/18446744073709551616 := by fast_decide
   simp only [approx, n, if_false, mem_Icc, ← Floating.coe_valq, lo, hi, Rat.cast_div,
     Rat.cast_ofNat]
-  rw [le_inv (by norm_num) Real.pi_pos, inv_le Real.pi_pos (by norm_num)]
+  rw [le_inv_comm₀ (by norm_num) Real.pi_pos, inv_le_comm₀ Real.pi_pos (by norm_num)]
   exact ⟨le_trans pi_lt_314159265358979323847.le (by norm_num),
          le_trans (by norm_num) pi_gt_314159265358979323846.le⟩
 

@@ -74,14 +74,20 @@ lemma UInt64.ne_zero_iff_toNat_ne_zero {n : UInt64} : n ≠ 0 ↔ n.toNat ≠ 0 
 @[simp] lemma UInt64.le_size_sub_one (n : UInt64) : n.toNat ≤ UInt64.size - 1 :=
   Nat.le_pred_of_lt (lt_size _)
 
+@[simp] lemma UInt64.toNat_toBitVec (n : UInt64) : n.toBitVec.toNat = n.toNat := rfl
+
 @[simp] lemma UInt64.toNat_neg (n : UInt64) :
     (-n).toNat = if n = 0 then 0 else UInt64.size - n.toNat := by
-  induction' n with a
-  simp only [toNat, neg_def, Fin.neg, ge_iff_le, eq_iff_toNat_eq, UInt64.zero_def, Fin.val_zero]
-  by_cases a0 : (a : ℕ) = 0
-  · simp only [a0, tsub_zero, Nat.mod_self, ite_true]
-  · simp only [a0, if_false]; rw [Nat.mod_eq_of_lt]; apply Nat.sub_lt_of_pos_le
-    · exact Nat.pos_of_ne_zero a0
+  refine Eq.trans (BitVec.toNat_neg _) ?_
+  simp only [toNat_toBitVec]
+  by_cases n0 : n = 0
+  · simp only [n0, tsub_zero, Nat.mod_self, ite_true]
+    rfl
+  · simp only [n0, if_false]
+    rw [Nat.mod_eq_of_lt]
+    apply Nat.sub_lt_of_pos_le
+    · simp only [eq_iff_toNat_eq, toNat_ofNat, Nat.zero_mod] at n0
+      exact Nat.pos_of_ne_zero n0
     · exact Fin.is_le'
 
 lemma UInt64.toNat_add' (m n : UInt64) :
@@ -145,7 +151,8 @@ lemma UInt64.toNat_add_of_add_lt {m n : UInt64} (h : m + n < m) :
 
 /-- `UInt64` subtract wraps around -/
 lemma UInt64.toNat_sub' {x y : UInt64} : (x - y).toNat = (x.toNat + (size - y.toNat)) % size := by
-  simp only [UInt64.sub_def, Fin.sub_def, UInt64.toNat]
+  refine Eq.trans (BitVec.toNat_sub x.toBitVec y.toBitVec) ?_
+  simp only [toNat_toBitVec]
   exact congr_arg₂ _ (by ring) rfl
 
 /-- If truncation doesn't occur, `-` commutes with `toNat` -/
@@ -185,9 +192,8 @@ instance : LinearOrder UInt64 where
 
 /-- `UInt64` bitwise and is `ℕ` bitwise and -/
 @[simp] lemma UInt64.toNat_land {x y : UInt64} : (x &&& y).toNat = x.toNat &&& y.toNat := by
-  simp only [HAnd.hAnd, AndOp.and, UInt64.land, Fin.land, toNat]
-  rw [Nat.mod_eq_of_lt]
-  exact lt_of_le_of_lt Nat.land_le_max (max_lt (Fin.prop _) (Fin.prop _))
+  refine Eq.trans (BitVec.toNat_and _ _) ?_
+  simp only [toNat_toBitVec]
 
 @[simp] lemma UInt64.land_eq_hand {x y : UInt64} : UInt64.land x y = x &&& y := rfl
 
@@ -199,22 +205,14 @@ instance : LinearOrder UInt64 where
 
 lemma UInt64.toNat_shiftLeft' {x s : UInt64} :
     (x <<< s).toNat = x.toNat % 2^(64 - s.toNat % 64) * 2^(s.toNat % 64) := by
-  generalize ht : s.toNat % 64 = t
-  have lt : t < 64 := by rw [←ht]; exact Nat.mod_lt _ (by norm_num)
-  have e0 : ((modn s 64).val : ℕ) = t := by rw [←ht]; rfl
-  simp only [HShiftLeft.hShiftLeft, ShiftLeft.shiftLeft, UInt64.shiftLeft, Fin.shiftLeft]
-  trans Nat.shiftLeft ↑x.1 ↑(modn s 64).1 % size
-  · rfl
-  · have e1 : (x.val : ℕ) = x.toNat := rfl
-    simp only [e0, e1]
-    trans x.toNat * 2^t % size
-    · apply congr_arg₂ _ ?_ rfl
-      apply Nat.shiftLeft_eq_mul_pow
-    · have e2 : size = 2 ^ (64 - t) * 2 ^ t := by
-        rw [←pow_add, Nat.sub_add_cancel lt.le, size_eq_pow]
-      rw [e2]
-      refine Nat.mod_mul_eq_mul_mod' _ _ _ ?_
-      apply pow_ne_zero; norm_num
+  refine Eq.trans BitVec.toNat_shiftLeft ?_
+  simp only [toNat_toBitVec, Nat.shiftLeft_eq, UInt64.toNat_mod s 64]
+  rw [← Nat.mod_mul_eq_mul_mod']
+  · refine congr_arg₂ _ (congr_arg₂ _ rfl (congr_arg₂ _ rfl rfl)) ?_
+    simp only [← Nat.pow_add]
+    refine congr_arg₂ _ rfl ?_
+    omega
+  · exact Nat.two_pow_ne_zero
 
 @[simp] lemma UInt64.shiftLeft_zero {x : UInt64} : x <<< 0 = x := by
   simp only [eq_iff_toNat_eq, toNat_shiftLeft', UInt64.toNat_zero, Nat.zero_lt_succ,
@@ -232,31 +230,18 @@ lemma UInt64.toNat_shiftLeft {x s : UInt64} (h : s < 64) :
 
 @[simp] lemma UInt64.toNat_shiftLeft32 {x : UInt64} :
     (x <<< 32).toNat = x.toNat % 2^32 * 2^32 := by
-  simp only [HShiftLeft.hShiftLeft, ShiftLeft.shiftLeft, UInt64.shiftLeft, Fin.shiftLeft]
-  trans Nat.shiftLeft ↑x.1 ↑(modn 32 64).1 % size
-  · rfl
-  · have e0 : ((modn 32 64).val : ℕ) = 32 := rfl
-    have e1 : (x.val : ℕ) = x.toNat := rfl
-    simp only [e0, e1]
-    trans x.toNat * 2^32 % size
-    · apply congr_arg₂ _ ?_ rfl
-      apply Nat.shiftLeft_eq_mul_pow
-    · exact Nat.mod_mul_eq_mul_mod _ _
+  apply UInt64.toNat_shiftLeft
+  decide
+
+lemma UInt64.toNat_shiftRight' {x s : UInt64} : (x >>> s).toNat = x.toNat / 2^(s.toNat % 64) := by
+  refine Eq.trans (BitVec.toNat_ushiftRight _ _) ?_
+  simp only [toNat_toBitVec, Nat.shiftRight_eq_div_pow]
+  rfl
 
 @[simp] lemma UInt64.shiftRight_zero {x : UInt64} : x >>> 0 = x := by
   rw [UInt64.eq_iff_toNat_eq]
-  trans x.toNat >>> 0 % size
-  · rfl
-  · simp only [Nat.shiftRight_zero, toNat_mod_size]
-
-lemma UInt64.toNat_shiftRight' {x s : UInt64} : (x >>> s).toNat = x.toNat / 2^(s.toNat % 64) := by
-  generalize ht : s.toNat % 64 = t
-  have e0 : ((modn s 64).val : ℕ) = t := by rw [←ht]; rfl
-  trans (↑x.1 : ℕ) >>> ↑(modn s 64).1 % size
-  · rfl
-  · rw [e0, Nat.shiftRight_eq_div_pow, Nat.mod_eq_of_lt]
-    · rfl
-    · exact lt_of_le_of_lt (Nat.div_le_self _ _) (lt_size _)
+  rw [UInt64.toNat_shiftRight']
+  simp only [toNat_ofNat, Nat.zero_mod, pow_zero, Nat.div_one]
 
 lemma UInt64.toNat_shiftRight {x s : UInt64} (h : s < 64) :
     (x >>> s).toNat = x.toNat / 2^s.toNat := by
@@ -272,21 +257,12 @@ lemma UInt64.toNat_shiftRight {x s : UInt64} (h : s < 64) :
   have i0 : 0 < 2^i := pow_pos (by norm_num) _
   rw [Nat.testBit, Nat.shiftRight_eq_div_pow, (Nat.div_eq_zero_iff i0).mpr]
   · rfl
-  · refine lt_of_lt_of_le ?_ (pow_right_mono one_le_two h)
+  · refine lt_of_lt_of_le ?_ (pow_right_mono₀ one_le_two h)
     exact toNat_lt_2_pow_64 x
 
 @[simp] lemma UInt64.toNat_lor {x y : UInt64} : (x ||| y).toNat = x.toNat ||| y.toNat := by
-  trans (x.toNat ||| y.toNat) % size
-  · rfl
-  · rw [Nat.mod_eq_of_lt]
-    rw [Nat.lt_iff_le_pred size_pos]
-    refine Nat.le_of_testBit_le fun i ↦ ?_
-    simp only [Nat.testBit_lor, size_eq_pow, ge_iff_le, Nat.testBit_two_pow_sub_one]
-    by_cases lt : i < 64
-    · simp only [lt, decide_True, Bool.le_true]
-    · simp only [lt, decide_False]
-      simp only [not_lt] at lt
-      simp only [testBit_eq_zero lt, Bool.or_self, le_refl]
+  refine Eq.trans (BitVec.toNat_or _ _) ?_
+  simp only [toNat_toBitVec]
 
 @[simp] lemma UInt64.zero_or {x : UInt64} : 0 ||| x = x := by
   simp only [eq_iff_toNat_eq, toNat_lor, toNat_ofNat, Nat.zero_mod, Nat.zero_or]
@@ -318,11 +294,12 @@ lemma UInt64.toNat_lor_shifts {x y s : UInt64} (s0 : s ≠ 0) (s64 : s < 64) :
     apply Nat.div_lt_of_lt_mul
     apply lt_of_lt_of_le (lt_size _)
     rw [size_eq_pow, ←pow_add]
-    apply pow_right_mono one_le_two
+    apply pow_right_mono₀ one_le_two
     exact Nat.sub_le_iff_le_add'.mp si
 
 @[simp] lemma UInt64.toNat_cast (n : ℕ) : (n : UInt64).toNat = n % UInt64.size := by
   simp only [toNat, UInt64.natCast_def, Fin.coe_ofNat_eq_mod]
+  rfl
 
 @[simp] lemma UInt64.cast_toNat (n : UInt64) : (n.toNat : UInt64) = n := by
   simp only [UInt64.eq_iff_toNat_eq, UInt64.toNat_cast, UInt64.toNat_mod_size]
@@ -413,9 +390,12 @@ noncomputable instance : Coe UInt64 (ZMod UInt64.size) where
 @[simp] lemma UInt64.toZMod_mul (x y : UInt64) :
     ((x * y : UInt64) : ZMod UInt64.size) = x * y := by
   simp only [toZMod, toNat, mul_def, Fin.mul_def, ZMod.natCast_mod, Nat.cast_mul]
+  simp only [BitVec.toNat_mul, toNat_toBitVec, Nat.reducePow, ZMod.natCast_mod, Nat.cast_mul,
+    toZMod_toNat]
 
 @[simp] lemma UInt64.toZMod_cast (x : ℕ) : ((x : UInt64) : ZMod UInt64.size) = x := by
   simp only [toZMod, toNat, natCast_def, Fin.coe_ofNat_eq_mod, ZMod.natCast_mod]
+  simp only [BitVec.natCast_eq_ofNat, BitVec.toNat_ofNat, Nat.reducePow, ZMod.natCast_mod]
 
 @[simp] lemma UInt64.toZMod_shiftLeft32 (x : UInt64) :
     (x <<< 32 : ZMod UInt64.size) = x * (2 : ZMod UInt64.size)^32 := by
@@ -472,7 +452,7 @@ def split (x : UInt64) : UInt64 × UInt64 :=
   (x.toUInt32.toUInt64, x >>> 32)
 
 @[simp] lemma UInt32.toNat_toUInt64 {x : UInt32} : x.toUInt64.toNat = x.toNat := by
-  simp only [toUInt64, UInt64.toNat, toNat]
+  simp only [toUInt64, UInt64.toNat, toNat, Nat.reducePow, BitVec.toNat_ofFin]
 
 @[simp] lemma UInt64.toNat_toUInt32 {x : UInt64} : x.toUInt32.toNat = x.toNat % 2^32 := by
   simp only [toUInt32, Nat.toUInt32, UInt32.ofNat, Fin.ofNat]
@@ -481,17 +461,8 @@ def split (x : UInt64) : UInt64 × UInt64 :=
   · rfl
 
 @[simp] lemma UInt64.toNat_shiftRight32 {x : UInt64} : (x >>> 32).toNat = x.toNat / 2^32 := by
-  simp only [HShiftRight.hShiftRight, ShiftRight.shiftRight, UInt64.shiftRight, Fin.shiftRight]
-  trans Nat.shiftRight x.1 (modn 32 64).1 % size
-  · rfl
-  · have e0 : ((modn 32 64).val : ℕ) = 32 := rfl
-    have e1 : (x.val : ℕ) = x.toNat := rfl
-    simp only [e0, e1]
-    trans x.toNat / 2^32 % size
-    · apply congr_arg₂ _ ?_ rfl
-      apply Nat.shiftRight_eq_div_pow
-    · rw [Nat.mod_eq_of_lt]
-      exact lt_of_le_of_lt (Nat.div_le_self _ _) (lt_size _)
+  apply UInt64.toNat_shiftRight
+  decide
 
 -- `split` in terms of `ℕ`
 @[simp] lemma toNat_split_1 {x : UInt64} : (split x).1.toNat = x.toNat % 2^32 := by
@@ -574,7 +545,7 @@ lemma UInt64.toNat_shiftRightRound {x : UInt64} {s : UInt64} {up : Bool} :
     · simp only [s64, ite_true]
       have lt : x.toNat < 2 ^ s.toNat := by
         rw [UInt64.le_iff_toNat_le] at s64
-        exact lt_of_lt_of_le (UInt64.toNat_lt_2_pow_64 _) (pow_le_pow_right (by norm_num) s64)
+        exact lt_of_lt_of_le (UInt64.toNat_lt_2_pow_64 _) (pow_le_pow_right₀ (by norm_num) s64)
       induction up
       · simp only [or_true, ↓reduceIte, Bool.false_eq_true, add_zero]
         rw [Nat.div_eq_zero_of_lt lt]
@@ -600,7 +571,7 @@ lemma UInt64.toNat_shiftRightRound {x : UInt64} {s : UInt64} {up : Bool} :
             Nat.mul_div_left, Nat.two_pow_sub_one_div_two_pow, ge_iff_le, le_refl,
             tsub_eq_zero_of_le, pow_zero, Nat.mul_mod_left, zero_add, self_eq_add_right,
             ite_eq_right_iff, one_ne_zero, imp_false, not_le, Nat.mod_lt _ p0]
-        · have p2 : 2 ≤ 2^s.toNat := le_self_pow (by omega) (by omega)
+        · have p2 : 2 ≤ 2^s.toNat := le_self_pow₀ (by omega) (by omega)
           have a1 : a + 1 < size := by
             rw [←ha, size_eq_pow]
             have h : x.toNat < 2^64 := toNat_lt_2_pow_64 x
@@ -642,21 +613,7 @@ lemma UInt64.shiftRightRound_le_self {x : UInt64} {s : UInt64} {up : Bool} :
 ### Complement facts
 -/
 
-lemma UInt64.toNat_complement (x : UInt64) : (~~~x).toNat = 2^64 - 1 - x.toNat := by
-  have e : ~~~x = 0 - (x + 1) := rfl
-  rw [e, zero_sub, toNat_neg]
-  by_cases x1 : x + 1 = 0
-  · have e : x = (x + 1) - 1 := by ring
-    rw [e, x1]; rfl
-  · simp only [x1, ite_false, toNat_add, toNat_one]
-    rw [Nat.mod_eq_of_lt, size_eq_pow]
-    · omega
-    · contrapose x1
-      simp only [not_lt, not_not, size_eq_pow, eq_iff_toNat_eq, toNat_add, toNat_ofNat, Nat.one_mod,
-        Nat.zero_mod] at x1 ⊢
-      have lt : x.toNat < 2^64 := toNat_lt_2_pow_64 x
-      have f : x.toNat + 1 % 2^64 = 2^64 := by omega
-      simp only [f, Nat.mod_self]
+lemma UInt64.toNat_complement (x : UInt64) : (~~~x).toNat = 2^64 - 1 - x.toNat := BitVec.toNat_not
 
 /-!
 ### Kernel-friendly version of `Nat.log2`

@@ -114,7 +114,7 @@ lemma valid_inv_region {x : Floating}
         rw [UInt64.toNat_sub'' ts]
         exact ne_of_lt (lt_of_le_of_lt (Nat.sub_le _ _) (by decide))
       simp only [t, UInt64.pow_eq_zero, zero_sub, Floating.val_two_pow_special]
-      apply zpow_le_of_le (by norm_num)
+      apply zpow_le_zpow_right₀ (by norm_num)
       simp only [UInt64.toNat_add_one o, UInt64.toNat_sub'' ts]
       omega }
 
@@ -159,14 +159,14 @@ lemma valid_inv_region {x : Floating}
     rw [Floating.val, mul_inv, ←zpow_neg, UInt64.toInt, Nat.cast_add_one, Nat.cast_sub ts]
     constructor
     · refine le_trans ?_ (mul_le_mul_of_nonneg_right
-        (inv_le_inv_of_le (by positivity) n_lt.le) two_zpow_pos.le)
+        (inv_anti₀ (by positivity) n_lt.le) two_zpow_pos.le)
       simp only [←zpow_neg, ←zpow_natCast, ←zpow_add₀ t0]
-      apply zpow_le_of_le (by norm_num)
+      apply zpow_le_zpow_right₀ (by norm_num)
       norm_num; linarith
     · refine le_trans (mul_le_mul_of_nonneg_right
-        (inv_le_inv_of_le (by norm_num) le_n) two_zpow_pos.le) ?_
+        (inv_anti₀ (by norm_num) le_n) two_zpow_pos.le) ?_
       simp only [←zpow_neg, ←zpow_natCast, ←zpow_add₀ t0]
-      apply zpow_le_of_le (by norm_num)
+      apply zpow_le_zpow_right₀ (by norm_num)
       norm_num; linarith
 
 /-- One step of Newton's method for the reciprocal.

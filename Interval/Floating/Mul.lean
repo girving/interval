@@ -81,7 +81,7 @@ lemma mul_norm_correct (n : UInt128) (up : Bool) (n0 : n ≠ 0) (lo : n.toNat �
   have nt' : n.toNat * 2^s.toNat < 2^127 := by
     refine lt_of_lt_of_le (Nat.mul_lt_mul_of_pos_right Nat.lt_log2_self (by positivity)) ?_
     simp only [ht, ← pow_add, ←hs]
-    exact pow_le_pow_right (by norm_num) (by omega)
+    exact pow_le_pow_right₀ (by norm_num) (by omega)
   have nt : n.toNat * 2^s.toNat < 2^128 := lt_trans nt' (by norm_num)
   have b1 : b.toNat ≤ 1 := by rw [←hb, bif_eq_if]; split_ifs; repeat norm_num
   simp only [UInt64.toNat_sub'' t_le', u126, Nat.mod_eq_of_lt s_lt, Nat.mod_eq_of_lt nt] at hz
@@ -97,7 +97,7 @@ lemma mul_norm_correct (n : UInt128) (up : Bool) (n0 : n ≠ 0) (lo : n.toNat �
     rw [←hz, ←hs, ←ht]
     refine le_trans ?_ (Nat.mul_le_mul_right _ (Nat.log2_self_le n0))
     rw [←pow_add]
-    exact pow_le_pow_right (by norm_num) (by omega)
+    exact pow_le_pow_right₀ (by norm_num) (by omega)
   have le_r : 2^62 ≤ r.toNat := by
     rw [←hr]
     refine le_trans ?_ (Nat.le_add_right _ _)
@@ -254,7 +254,7 @@ lemma mul_finish_correct (n : UInt64) (s : Int128) (up : Bool)
         refine le_trans (mul_le_mul_of_nonneg_right (Nat.cast_le.mpr norm.2.le) two_zpow_pos.le) ?_
         simp only [Nat.cast_pow, Nat.cast_ofNat, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
           pow_mul_zpow]
-        apply zpow_le_of_le (by norm_num)
+        apply zpow_le_zpow_right₀ (by norm_num)
         simp only [Int128.isNeg_iff, decide_eq_true_eq] at sn
         norm_num
         omega
@@ -265,7 +265,7 @@ lemma mul_exponent_eq (xs ys t : UInt64) :
     (mul_exponent xs ys t : ℤ) = xs.toNat + ys.toNat + 64 - t.toNat - 2 ^ 63 := by
   rw [mul_exponent]
   refine Int128.eq_of_ofInt_eq ?_ Int128.coe_small ?_
-  · have e : Int128.ofNat (2^63 - 64) = .ofInt (2^63) - .ofInt 64 := by rfl
+  · have e : Int128.ofNat (2^63 - 64) = .ofInt (2^63) - .ofInt 64 := by fast_decide
     simp only [e, Int128.ofInt_coe, Int128.sub_ofInt, Int128.add_ofInt, Int128.ofInt_ofUInt64]
     abel
   · have hx := xs.toInt_mem_Ico
@@ -312,7 +312,7 @@ lemma approx_mul_of_nonneg {x y : Floating} {up : Bool} {x0 : 0 ≤ x.val} {y0 :
       refine le_trans cf (le_trans (mul_le_mul_of_nonneg_right cn two_zpow_pos.le) ?_)
       simp only [← le_div_iff₀ (G₀ := ℝ) two_zpow_pos, div_le_iff₀ (G₀ := ℝ) two_zpow_pos,
         mul_assoc, mul_div_assoc, ←zpow_sub₀ t0, ←zpow_add₀ t0, ce]
-      refine le_mul_of_one_le_right (Nat.cast_nonneg _) (one_le_zpow_of_nonneg (by norm_num)
+      refine le_mul_of_one_le_right (Nat.cast_nonneg _) (one_le_zpow₀ (by norm_num)
         (le_of_eq ?_))
       ring
     · simp only [← div_le_iff₀ (G₀ := ℝ) two_zpow_pos, ite_false, UInt64.toInt,
@@ -320,7 +320,7 @@ lemma approx_mul_of_nonneg {x y : Floating} {up : Bool} {x0 : 0 ≤ x.val} {y0 :
       refine le_trans (le_trans ?_ (mul_le_mul_of_nonneg_right cn two_zpow_pos.le)) cf
       simp only [← le_div_iff₀ (G₀ := ℝ) two_zpow_pos, div_le_iff₀ (G₀ := ℝ) two_zpow_pos,
         mul_assoc, mul_div_assoc, ←zpow_sub₀ t0, ←zpow_add₀ t0, mul_comm_div, ce]
-      refine le_mul_of_one_le_right (Nat.cast_nonneg _) (one_le_zpow_of_nonneg (by norm_num)
+      refine le_mul_of_one_le_right (Nat.cast_nonneg _) (one_le_zpow₀ (by norm_num)
         (le_of_eq ?_))
       ring
 

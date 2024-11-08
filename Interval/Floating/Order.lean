@@ -254,7 +254,7 @@ lemma isNeg_iff' {x : Floating} : x.n.isNeg = decide (x < 0) := by
   · rw [mul_lt_mul_iff_of_pos_right two_zpow_pos]
     exact neg_coe_coe_n_lt n
   · refine mul_le_mul_of_nonneg_left ?_ two_pow_pos.le
-    apply zpow_le_of_le (by norm_num)
+    apply zpow_le_zpow_right₀ (by norm_num)
     have h := x.s.toNat_le_pow_sub_one
     omega
 
@@ -296,7 +296,7 @@ lemma val_lt_val_of_nonneg {x y : Floating}
     refine lt_of_lt_of_le (mul_lt_mul_of_pos_right coe_coe_n_lt two_zpow_pos) ?_
     refine le_trans ?_ (mul_le_mul_of_nonneg_right (le_coe_coe_n ys0 yn) two_zpow_pos.le)
     simp only [ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, pow_mul_zpow, Nat.cast_ofNat]
-    apply zpow_le_of_le (by norm_num)
+    apply zpow_le_zpow_right₀ (by norm_num)
     simp only [UInt64.lt_iff_toNat_lt] at xys
     omega
   · simp only [Int.reducePow, Bool.false_eq_true, ↓reduceIte, xys, iff_false, not_lt]
@@ -305,7 +305,7 @@ lemma val_lt_val_of_nonneg {x y : Floating}
     refine le_trans (mul_le_mul_of_nonneg_right coe_coe_n_lt.le two_zpow_pos.le) ?_
     refine le_trans ?_ (mul_le_mul_of_nonneg_right (le_coe_coe_n xs0 xn) two_zpow_pos.le)
     simp only [ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, pow_mul_zpow, Nat.cast_ofNat]
-    apply zpow_le_of_le (by norm_num)
+    apply zpow_le_zpow_right₀ (by norm_num)
     simp only [UInt64.lt_iff_toNat_lt] at xys
     omega
 

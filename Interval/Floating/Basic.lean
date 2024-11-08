@@ -117,7 +117,7 @@ instance : Zero Floating where
 
 /-- `1 : Floating` -/
 instance : One Floating where
-  one := ⟨2^62, 2^63 - 62, by decide⟩
+  one := ⟨2^62, 2^63 - 62, by fast_decide⟩
 
 -- Definition lemmas
 @[simp] lemma n_zero : (0 : Floating).n = 0 := rfl
@@ -141,10 +141,10 @@ instance : One Floating where
 @[simp] lemma nan_ne_zero : (nan : Floating) ≠ 0 := by decide
 
 /-- `1 ≠ nan` -/
-@[simp] lemma one_ne_nan : (1 : Floating) ≠ nan := by decide
+@[simp] lemma one_ne_nan : (1 : Floating) ≠ nan := by fast_decide
 
 /-- `nan ≠ 1` -/
-@[simp] lemma nan_ne_one : (nan : Floating) ≠ 1 := by decide
+@[simp] lemma nan_ne_one : (nan : Floating) ≠ 1 := by fast_decide
 
 /-- `0` is just zero -/
 @[simp] lemma approx_zero : approx (0 : Floating) = {0} := by
@@ -152,7 +152,7 @@ instance : One Floating where
 
 /-- `1 = 1` -/
 @[simp] lemma val_one : (1 : Floating).val = 1 := by
-  have e0 : ((2^62 : Int64) : ℤ) = 2^62 := by decide
+  have e0 : ((2^62 : Int64) : ℤ) = 2^62 := by fast_decide
   have e1 : (2^63 - 62 : UInt64).toInt - 2^63 = -62 := by decide
   simp only [val, n_one, e0, Int.cast_pow, Int.cast_ofNat, s_one, e1, zpow_neg]
   apply mul_inv_cancel₀; norm_num

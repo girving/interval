@@ -36,7 +36,7 @@ namespace Floating
   simp only [mul_neg_iff, Int.cast_pos, Int64.coe_pos_iff, two_zpow_not_neg, and_false,
     Int.cast_lt_zero, two_zpow_pos, and_true, false_or, Int64.coe_shiftRightRound,
     UInt64.toNat_sub'' s63, UInt64.toNat_2_pow_63, Int64.coe_zero, zpow_zero, mul_one,
-    mem_singleton_iff, Int.cast_inj, eq, Rat.floor_cast, Rat.floor_int_div_nat_eq_div]
+    mem_singleton_iff, Int.cast_inj, eq, Rat.floor_cast, Rat.floor_intCast_div_natCast]
   rw [Int.rdiv, Nat.cast_pow, Nat.cast_ofNat, cond_false]
 
 @[simp] lemma floor_nan : (nan : Floating).floor = nan := by
@@ -62,7 +62,7 @@ lemma floor_mono {x y : Floating} (le : x ≤ y) (yn : y.floor ≠ nan) : x.floo
 def natFloor (x : Floating) : ℕ :=
   x.floor.n.natFloor
 
-@[simp] lemma natFloor_nan : (nan : Floating).natFloor = 0 := by rfl
+@[simp] lemma natFloor_nan : (nan : Floating).natFloor = 0 := by fast_decide
 
 lemma natFloor_le {a : ℝ} {x : Floating} (ax : a ∈ approx x) : x.natFloor ≤ ⌊a⌋₊ := by
   rw [natFloor, Int64.natFloor_eq]

@@ -252,7 +252,7 @@ theorem Int.induction_overlap {p : ℤ → Prop} (hi : ∀ n : ℕ, p n) (lo : �
     ∀ n : ℤ, p n := by intro n; induction' n with n; exact hi n; exact lo (_ + 1)
 
 section ZPow
-attribute [bound] zpow_nonneg zpow_pos_of_pos
+attribute [bound] zpow_nonneg zpow_pos
 
 variable {𝕜 : Type*} [LinearOrderedSemifield 𝕜]
 
@@ -262,14 +262,14 @@ lemma zpow_anti {a : 𝕜} (a0 : 0 < a) (a1 : a ≤ 1) : Antitone fun n : ℤ �
   · simp [e0]
   · by_cases e1 : a = 1
     · simp [e1]
-    · exact (zpow_strictAnti a0 (Ne.lt_of_le e1 a1) (Ne.lt_of_le e0 nm)).le
+    · exact (zpow_right_strictAnti₀ a0 (Ne.lt_of_le e1 a1) (Ne.lt_of_le e0 nm)).le
 
 /-- `bound` lemma for branching on `1 ≤ a ∨ a ≤ 1` when proving `a ^ n ≤ a ^ m` -/
 @[bound] lemma Bound.zpow_le_zpow_right_of_le_one_or_one_le {a : 𝕜} {n m : ℤ}
     (h : 1 ≤ a ∧ n ≤ m ∨ 0 < a ∧ a ≤ 1 ∧ m ≤ n) :
     a ^ n ≤ a ^ m := by
   rcases h with ⟨a1, nm⟩ | ⟨a0, a1, mn⟩
-  · exact zpow_le_of_le a1 nm
+  · exact zpow_le_zpow_right₀ a1 nm
   · exact zpow_anti a0 a1 mn
 
 end ZPow

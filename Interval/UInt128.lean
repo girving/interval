@@ -500,7 +500,7 @@ lemma UInt128.testBit_eq {x : UInt128} {i : ℕ} :
   have z1 : ∀ j, 64 ≤ j → Nat.testBit x.lo.toNat j = false := by
     intro j h
     refine Nat.testBit_eq_false_of_lt (lt_of_lt_of_le (UInt64.toNat_lt_2_pow_64 _) ?_)
-    exact pow_right_mono one_le_two h
+    exact pow_right_mono₀ one_le_two h
   rw [UInt128.toNat, Nat.shiftLeft_eq, ←Nat.lor_eq_add]
   · simp only [Nat.testBit_lor]
     by_cases c : i < 64
@@ -749,11 +749,11 @@ lemma UInt128.toInt_shiftRightRound (x : UInt128) (s : UInt64) (up : Bool) :
     intro sh
     refine lt_of_lt_of_le (Nat.cast_lt.mpr (lt_size _)) ?_
     simp only [Nat.cast_pow, Nat.cast_ofNat]
-    exact pow_le_pow_right (by norm_num) sh
+    exact pow_le_pow_right₀ (by norm_num) sh
   have d1 : x.toNat / 2 ^ s.toNat = 2 ^ 128 - 1 → s.toNat = 0 := by
     intro h; contrapose h; apply ne_of_lt; apply Nat.div_lt_of_lt_mul
     refine lt_of_lt_of_le (lt_size _) ?_
-    refine le_trans ?_ (Nat.mul_le_mul_right _ (pow_le_pow_right (by norm_num)
+    refine le_trans ?_ (Nat.mul_le_mul_right _ (pow_le_pow_right₀ (by norm_num)
       (Nat.pos_iff_ne_zero.mpr h)))
     decide
   have d2 : x.toNat / 2^s.toNat * 2^s.toNat < 2^128 :=
@@ -857,7 +857,7 @@ lemma UInt128.toNat_shiftLeftSaturate {x : UInt128} {s : UInt64}
       · have x1 : 1 ≤ x.toNat := by
           simp only [eq_iff_toNat_eq, toNat_zero] at x0
           omega
-        exact le_trans (by norm_num) (Nat.mul_le_mul x1 (pow_right_mono (by norm_num) t128))
+        exact le_trans (by norm_num) (Nat.mul_le_mul x1 (pow_right_mono₀ (by norm_num) t128))
 
 lemma UInt128.shiftLeftSaturate_eq {x : UInt128} {s : UInt64}
     : x.shiftLeftSaturate s = .ofNat (min (x.toNat * 2^s.toNat) UInt128.max.toNat) := by

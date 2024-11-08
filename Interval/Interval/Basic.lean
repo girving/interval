@@ -92,13 +92,17 @@ lemma ext_iff {x y : Interval} : x = y ↔ x.lo = y.lo ∧ x.hi = y.hi := by
 instance : Approx Interval ℝ where
   approx x := if x.lo = nan then univ else Icc x.lo.val x.hi.val
 
+-- Avoid accidental expansion of these definitions
+@[irreducible] def zero : Interval := ⟨0, 0, by simp only, fun _ _ ↦ le_refl _⟩
+@[irreducible] def one : Interval := ⟨1, 1, by simp only, fun _ _ ↦ le_refl _⟩
+
 /-- Zero -/
 instance : Zero Interval where
-  zero := ⟨0, 0, by simp only, fun _ _ ↦ le_refl _⟩
+  zero := zero
 
 /-- One -/
 instance : One Interval where
-  one := ⟨1, 1, by simp only, fun _ _ ↦ le_refl _⟩
+  one := one
 
 /-- The width of an interval -/
 def size (x : Interval) : Floating := x.hi.sub x.lo true
@@ -112,10 +116,10 @@ instance : Inhabited Interval where
 -/
 
 -- Bounds properties of interval arithmetic
-@[simp] lemma lo_zero : (0 : Interval).lo = 0 := rfl
-@[simp] lemma hi_zero : (0 : Interval).hi = 0 := rfl
-@[simp] lemma lo_one : (1 : Interval).lo = 1 := rfl
-@[simp] lemma hi_one : (1 : Interval).hi = 1 := rfl
+@[simp] lemma lo_zero : (0 : Interval).lo = 0 := by fast_decide
+@[simp] lemma hi_zero : (0 : Interval).hi = 0 := by fast_decide
+@[simp] lemma lo_one : (1 : Interval).lo = 1 := by fast_decide
+@[simp] lemma hi_one : (1 : Interval).hi = 1 := by fast_decide
 @[simp] lemma lo_nan : (nan : Interval).lo = nan := rfl
 @[simp] lemma hi_nan : (nan : Interval).hi = nan := rfl
 @[simp] lemma approx_zero : approx (0 : Interval) = {0} := by
@@ -197,7 +201,7 @@ lemma approx_eq_Icc {x : Interval} (n : x ≠ nan) : approx x = Icc x.lo.val x.h
 
 /-- We're `nan` iff `approx = univ` -/
 lemma nan_iff_approx {x : Interval} : x = nan ↔ approx x = univ := by
-  simp only [approx, lo_eq_nan, ite_eq_then, isCompact_Icc.ne_univ, imp_false, Decidable.not_not]
+  simp only [approx, lo_eq_nan, ite_eq_left_iff, isCompact_Icc.ne_univ, imp_false, not_not]
 
 /-!
 ### Printing via conversion to `Decimal`

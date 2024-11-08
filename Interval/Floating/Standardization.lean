@@ -165,7 +165,7 @@ lemma val_of_ns {n : Int64} {s : UInt64} (nm : n ≠ .min) :
   simp only [n0, dite_false, coe_low_s nm, Int.cast_mul, Int.cast_pow, Int.cast_ofNat,
     UInt64.fast_log2_eq]
   simp only [low_s_2_eq, mul_assoc, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true, pow_mul_zpow,
-    mul_eq_mul_left_iff, gt_iff_lt, zero_lt_two, OfNat.ofNat_ne_one, zpow_inj, Int.cast_eq_zero,
+    mul_eq_mul_left_iff, gt_iff_lt, zero_lt_two, OfNat.ofNat_ne_one, Int.cast_eq_zero,
     Int64.coe_eq_zero, n0, or_false, Nat.cast_sub low_le_s', UInt64.toInt]
   ring_nf
 
@@ -211,13 +211,13 @@ instance {s : Int64} : CoeHead (Fixed s) Floating where
       Nat.cast_pow, Int.cast_sub, Int.cast_ofNat, Int.cast_ite, Int.cast_pow, Int.cast_ofNat,
       Int.cast_zero, UInt64.toInt, UInt64.toNat_add',
       UInt64.toNat_2_pow_63, Int.ofNat_emod, Nat.cast_add, mul_eq_mul_left_iff,
-      zero_lt_two, ne_eq, not_false_eq_true, zpow_inj, UInt64.size_eq_pow, Nat.cast_pow,
+      zero_lt_two, ne_eq, not_false_eq_true, UInt64.size_eq_pow, Nat.cast_pow,
       Nat.cast_two]
     left
     have sp : s.n.toNat < 2^64 := UInt64.toNat_lt_2_pow_64 _
     by_cases le : 2^63 ≤ s.n.toNat
     · simp only [le, CharP.cast_eq_zero, ite_true, gt_iff_lt, zero_lt_two, ne_eq,
-        OfNat.ofNat_ne_one, not_false_eq_true, zpow_inj, Int.add_emod_self]
+        OfNat.ofNat_ne_one, not_false_eq_true, zpow_right_inj₀, Int.add_emod_self]
       split_ifs
       all_goals omega
     · simp only [le, CharP.cast_eq_zero, ite_false, sub_zero, zpow_natCast]
