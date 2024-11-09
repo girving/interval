@@ -488,8 +488,8 @@ lemma valid_inter {x y : Interval} (t : (approx x ∩ approx y).Nonempty)
   rcases n with ⟨xn,yn⟩
   simp only [approx, lo_eq_nan, xn, ↓reduceIte, yn, Icc_inter_Icc, inter_eq_nan, and_self]
   apply congr_arg₂
-  · rw [inter]; simp only [Floating.val_naive_max]; rfl
-  · rw [inter]; simp only [Floating.val_naive_min (x.hi_ne_nan xn) (y.hi_ne_nan yn)]; rfl
+  · rw [inter]; simp only [Floating.val_naive_max]
+  · rw [inter]; simp only [Floating.val_naive_min (x.hi_ne_nan xn) (y.hi_ne_nan yn)]
 
 /-- `approx ⊆` version of `approx_inter` -/
 @[approx] lemma subset_approx_inter {s : Set ℝ} {x y : Interval}

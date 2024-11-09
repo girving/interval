@@ -503,10 +503,11 @@ lemma Fixed.val_le_val {x y : Fixed s} : x.val ≤ y.val ↔ x.n ≤ y.n := by
   simp only [Int.cast_le, Int64.coe_le_coe]
 
 @[simp] lemma Fixed.val_min {x y : Fixed s} : (min x y).val = min x.val y.val := by
-  simp only [min, Int64.blt_eq_decide_lt, Bool.cond_decide]
-  split_ifs with h
-  · simp only [left_eq_inf, Fixed.val_le_val]; exact h.le
-  · simp only [not_lt] at h; simp only [right_eq_inf, val_le_val]; exact h
+  simp only [min_def, Int64.blt_eq_decide_lt, Bool.cond_decide]
+  by_cases h : x.n ≤ y.n
+  · simp only [h, inf_of_le_left, val_le_val]
+  · simp only [not_le] at h
+    simp only [min_eq_right, h.le, val_le_val]
 
 lemma Fixed.val_max {x y : Fixed s} (nx : x ≠ nan) (ny : y ≠ nan) :
     (x.max y).val = Max.max x.val y.val := by
