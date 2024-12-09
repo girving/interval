@@ -186,7 +186,7 @@ lemma contDiff_bernoulliPoly : ContDiff ℝ ⊤ (bernoulliPoly s) :=
   simp only [bernoulliPoly, comm, deriv_gen]
   clear comm
   have gc : ContDiff ℝ ⊤ (fun t ↦ gen t x) := contDiff_gen.comp₂ contDiff_id contDiff_const
-  simp only [← smul_eq_mul, iteratedDeriv_mul gc, zero_smul, zero_add]
+  simp only [← smul_eq_mul, iteratedDeriv_mul (gc.of_le le_top), zero_smul, zero_add]
 
 lemma hasDerivAt_bernoulliPoly {x : ℝ} :
     HasDerivAt (bernoulliPoly s) (s • bernoulliPoly (s - 1) x) x := by
