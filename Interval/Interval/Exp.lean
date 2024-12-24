@@ -43,7 +43,7 @@ lemma approx_exp_series (n : ℕ) : Real.exp ∈ approx (exp_series n) := by
       simp only [nn]
       have h := Real.exp_bound x1 (Nat.pos_iff_ne_zero.mpr n0)
       simp only [div_eq_inv_mul] at h
-      exact le_trans h (mul_le_mul_of_nonneg_right (pow_le_pow_left (by positivity) xr' _)
+      exact le_trans h (mul_le_mul_of_nonneg_right (pow_le_pow_left₀ (by positivity) xr' _)
         (by positivity))
     · intro k
       have e : (Nat.factorial k : ℝ)⁻¹ = (Nat.factorial k : ℚ)⁻¹ := by

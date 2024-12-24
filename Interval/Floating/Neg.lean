@@ -44,7 +44,7 @@ instance : Neg Floating where
 /-- Negation flips `.val`, except at `nan` -/
 @[simp] lemma val_neg {x : Floating} (n : x ≠ nan) : (-x).val = -x.val := by
   rw [val, val]
-  simp only [n_neg, s_neg, ←neg_mul, Int64.coe_neg (x.n_ne_min n), Int.cast_neg]
+  simp only [n_neg, s_neg, ←neg_mul, Int64.coe_neg' (x.n_ne_min n), Int.cast_neg]
 
 /-- Negation negates `approx` -/
 @[simp] lemma approx_neg {x : Floating} : approx (-x) = -approx x := by

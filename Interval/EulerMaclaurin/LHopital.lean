@@ -29,7 +29,7 @@ theorem lhopital_field {f g : 𝕜 → 𝕜} {a f' g' : 𝕜} (df : HasDerivAt f
   intro e ep
   simp only [hasDerivAt_iff_isLittleO, f0, sub_zero, smul_eq_mul, Asymptotics.isLittleO_iff,
     g0] at df dg
-  have g'p : 0 < ‖g'‖ := norm_pos_iff'.mpr g'0
+  have g'p : 0 < ‖g'‖ := norm_pos_iff.mpr g'0
   generalize hb : 2 * (1 + ‖f' / g'‖) / ‖g'‖ = b
   generalize hc : min (e / 2 / b) (2⁻¹ * ‖g'‖) = c
   have b0 : 0 < b := by
@@ -49,7 +49,7 @@ theorem lhopital_field {f g : 𝕜 → 𝕜} {a f' g' : 𝕜} (df : HasDerivAt f
   intro x fx gx xa
   generalize hy : x - a = y at fx gx
   have y0 : y ≠ 0 := by simpa only [← hy, sub_ne_zero]
-  have yp : 0 < ‖y‖ := norm_pos_iff'.mpr y0
+  have yp : 0 < ‖y‖ := norm_pos_iff.mpr y0
   have lo : ‖g x‖ ≥ 2⁻¹ * ‖g'‖ * ‖y‖ := by
     calc ‖g x‖
       _ = ‖y * g' + (g x - y * g')‖ := by ring_nf

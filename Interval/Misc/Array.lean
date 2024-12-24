@@ -10,18 +10,16 @@ variable {α β : Type}
 
 @[simp] lemma Array.range_getElem (n k : ℕ) (kn : k < (range n).size) :
     ((Array.range n)[↑k]'kn) = k := by
-  have nn : ∀ n, (Nat.fold (fun b a ↦ push a b) n #[]).size = n := by
+  have nn : ∀ n, (Nat.fold n (fun b _ a ↦ push a b) #[]).size = n := by
     intro n; induction' n with n h
     · simp only [Nat.fold, size_toArray, List.length_nil, Nat.zero_eq]
     · simp only [Nat.fold, size_push, h]
   induction' n with n h
-  · simp only [range, Nat.fold, size_toArray, List.length_nil, not_lt_zero', mkEmpty, size] at kn
+  · simp only [size, range, ofFn_zero, toList_toArray, List.length_nil, not_lt_zero'] at kn
   · simp only [Nat.fold, flip, Array.getElem_push, range] at kn h ⊢
-    by_cases lt : k < size (Nat.fold (fun b a => a.push b) n #[])
-    · simp only [Function.flip_def, mkEmpty_eq, if_true, lt, forall_true_left] at *; assumption
-    · simp only [Function.flip_def, mkEmpty_eq, if_false, lt, size_push, ↓reduceDIte] at kn ⊢
-      simp only [nn] at kn lt
-      omega
+    by_cases lt : k < size (Nat.fold n (fun b _ a => a.push b) #[])
+    · simp only [size_ofFn, getElem_ofFn, implies_true, lt] at *
+    · simp only [size_ofFn, getElem_ofFn] at kn ⊢
 
 @[simp] lemma Array.getElem_map_fin (f : α → β) (x : Array α) {n : ℕ} (i : Fin n)
     (h : i < (x.map f).size) : (x.map f)[i]'h = f (x[i]'(by simpa using h)) := by
@@ -81,7 +79,7 @@ lemma Array.getElem?_eq_toList_get?' (a : Array α) (i : Nat) : a[i]? = a.toList
 
 lemma ByteArray.get!_eq_default (d : ByteArray) (i : ℕ) (le : d.size ≤ i) : d.get! i = default := by
   simp only [get!, Array.get!_eq_get?, Array.get?_eq_getElem?, Array.getElem?_eq_toList_get?',
-    List.get?_len_le le, Option.getD_none]
+    List.get?_eq_none le, Option.getD_none]
 
 lemma ByteArray.get!_append (d0 d1 : ByteArray) (i : ℕ) :
     (d0 ++ d1).get! i = if i < d0.size then d0.get! i else d1.get! (i - d0.size) := by

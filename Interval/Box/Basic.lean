@@ -125,10 +125,11 @@ instance : ApproxStar Box ℂ where
 /-- `Box.neg` respects `approx` -/
 instance : ApproxNeg Box ℂ where
   approx_neg z := by
-    simp only [Box.instApprox, ← image_neg, image_image2, image2_subset_iff, mem_image2,
-      exists_and_left]
-    intro r rz i iz
-    refine ⟨-r, ?_, -i, ?_, rfl⟩
+    intro x m
+    simp only [instApprox, mem_neg, mem_image2] at m ⊢
+    rcases m with ⟨r,rz,i,iz,e⟩
+    rw [← neg_eq_iff_eq_neg] at e
+    refine ⟨-r, ?_, -i, ?_, by rw [← e]; rfl⟩
     repeat { apply approx_neg; simpa only [mem_neg, neg_neg] }
 
 /-- `Box.add` respects `approx` -/

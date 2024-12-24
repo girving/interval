@@ -107,7 +107,7 @@ lemma Series.approx_of_taylor' (p : Series) (f : ℝ → ℝ) (a : ℕ → ℝ) 
     rcases n with yn | ry
     · simp only [yn, Interval.hi_nan, beq_self_eq_true, Floating.n_nan, Bool.true_or, cond_true,
         Interval.approx_nan, mem_univ]
-    · simp only [ry, decide_True, Bool.or_true, cond_true, Interval.approx_nan, mem_univ]
+    · simp only [ry, decide_true, Bool.or_true, cond_true, Interval.approx_nan, mem_univ]
   simp only [not_or, not_lt, Ne, Floating.val_le_val] at n
   rcases n with ⟨yn, ry⟩
   have yn' : y ≠ nan := by simpa only [ne_eq, Interval.abs_eq_nan] using yn
@@ -117,7 +117,7 @@ lemma Series.approx_of_taylor' (p : Series) (f : ℝ → ℝ) (a : ℕ → ℝ) 
     simp only [approx, Interval.lo_eq_nan, yn, ite_false, mem_Icc] at a
     exact le_trans a.2 ry
   specialize pf rn xa
-  simp only [eval, bif_eq_if, Floating.val_lt_val, not_lt.mpr ry, decide_False, Bool.or_false,
+  simp only [eval, bif_eq_if, Floating.val_lt_val, not_lt.mpr ry, decide_false, Bool.or_false,
     beq_iff_eq, Interval.hi_eq_nan, Interval.abs_eq_nan, yn', ite_false]
   rw [← add_sub_cancel (∑ n in Finset.range p.coeffs.size, a n * x ^ n) (f x)]
   apply approx_taylor_sum _ _ _ _ _ _ ac xy

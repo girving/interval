@@ -339,7 +339,7 @@ instance : Neg Interval where
   by_cases n : x = nan
   · simp only [n, neg_nan, approx_nan, neg_univ]
   · simp only [approx, lo_neg, Floating.neg_eq_nan_iff, ne_eq, n, not_false_eq_true, hi_ne_nan,
-      Floating.val_neg, hi_neg, lo_ne_nan, ite_false, preimage_neg_Icc]
+      Floating.val_neg, hi_neg, lo_ne_nan, ite_false, neg_Icc]
 
 /-- `neg` respects `approx` -/
 instance : ApproxNeg Interval ℝ where
@@ -551,7 +551,7 @@ instance : ApproxSub Interval ℝ where
   approx_sub x y := by
     by_cases n : x - y = nan
     · simp only [n, approx_nan, subset_univ]
-    simp only [approx, lo_eq_nan, ne_nan_of_sub n, ite_false, n, sub_eq_add_neg, preimage_neg_Icc]
+    simp only [approx, lo_eq_nan, ne_nan_of_sub n, ite_false, n, sub_eq_add_neg, neg_Icc]
     simp only [HSub.hSub, Sub.sub] at n ⊢
     refine subset_trans (Icc_add_Icc_subset _ _ _ _) (Icc_subset_Icc ?_ ?_)
     · simp only [lo_mix n, ←sub_eq_add_neg, Floating.sub_le (ne_nan_of_mix n).1]
@@ -679,10 +679,11 @@ instance : Coe Floating Interval where
   rw [abs] at na ⊢
   simp only [bif_eq_if, bne_iff_ne, ne_eq, ite_not, mix_eq_nan, Floating.max_eq_nan,
     Floating.abs_eq_nan, lo_eq_nan, n, hi_eq_nan, or_self, or_false, Floating.isNeg_iff,
-    decide_eq_decide] at na
+    decide_eq_decide, Int64.isNeg] at na
   simp only [approx, lo_eq_nan, n, ite_false, bif_eq_if, bne_iff_ne, ne_eq, ite_not, mix_eq_nan, na,
     Floating.max_eq_nan, Floating.abs_eq_nan, hi_eq_nan, or_self, not_false_eq_true, lo_mix, hi_mix,
-    Floating.val_max, Floating.val_abs, image_subset_iff, Floating.isNeg_iff, decide_eq_decide]
+    Floating.val_max, Floating.val_abs, image_subset_iff, Floating.isNeg_iff, decide_eq_decide,
+    Int64.isNeg]
   rcases x.sign_cases with ⟨ls,hs⟩ | ⟨ls,hs⟩ | ⟨ls,hs⟩
   all_goals try simp only [not_lt.mpr ls]
   all_goals try simp only [not_lt.mpr hs]
@@ -722,7 +723,7 @@ lemma abs_of_nonneg {x : Interval} (x0 : 0 ≤ x.lo.val) : x.abs = x := by
   rw [ext_iff, lo_mix na, hi_mix na]; clear na
   simp only [Floating.isNeg_iff, bif_eq_if, bne_iff_ne, ne_eq, decide_eq_decide, ite_not,
     ext_iff, not_lt.mpr x0, false_iff, not_lt, le_trans x0 x.le, ite_true,
-    min_def, Floating.val_le_val, Floating.abs_of_nonneg x0,
+    min_def, Floating.val_le_val, Floating.abs_of_nonneg x0, Int64.isNeg,
     Floating.abs_of_nonneg (le_trans x0 x.le), x.le, true_and,
     Floating.max_eq_right x.le (Floating.ne_nan_of_nonneg x0), min_eq_left x.le]
 
@@ -734,7 +735,7 @@ lemma abs_of_nonpos {x : Interval} (x0 : x.hi.val ≤ 0) : x.abs = -x := by
   rw [abs] at na ⊢
   rw [ext_iff, lo_mix na, hi_mix na]; clear na
   simp only [Floating.isNeg_iff, bif_eq_if, bne_iff_ne, ne_eq, decide_eq_decide, ite_not, lo_neg,
-    hi_neg]
+    hi_neg, Int64.isNeg]
   by_cases h0 : x.hi = 0
   · by_cases l0 : x.lo = 0
     · simp only [l0, Floating.val_zero, lt_self_iff_false, h0, le_refl, Floating.abs_of_nonneg,
@@ -743,7 +744,8 @@ lemma abs_of_nonpos {x : Interval} (x0 : x.hi.val ≤ 0) : x.abs = -x := by
     · replace l0 : x.lo.val < 0 := Ne.lt_of_le (Floating.val_ne_zero.mpr l0) (le_trans x.le x0)
       simp only [l0, h0, Floating.val_zero, lt_self_iff_false, iff_false, not_true_eq_false,
         Floating.abs_of_nonpos (le_trans x.le x0), le_refl, Floating.abs_of_nonneg, ite_false,
-        Floating.neg_zero, true_and]
+        Floating.neg_zero, true_and, Int64.isNeg, decide_eq_decide, Floating.n_zero,
+        Floating.isNeg_iff]
       apply Floating.max_eq_left
       · simp only [Floating.val_zero, Floating.val_neg (x.lo_ne_nan n), Left.nonneg_neg_iff, l0.le]
       · simp only [ne_eq, Floating.zero_ne_nan, not_false_eq_true]
@@ -778,7 +780,7 @@ lemma abs_pos {x : Interval} (n : x ≠ nan) (l0 : x.lo ≠ 0) (lh : x.lo.val < 
   have na : x.abs ≠ nan := by simp only [ne_eq, abs_eq_nan, n, not_false_eq_true]
   rw [abs] at na ⊢; rw [lo_mix na]; clear na
   simp only [Floating.isNeg_iff, min_def, Floating.val_le_val, bif_eq_if, bne_iff_ne, ne_eq,
-    decide_eq_decide, ite_not]
+    decide_eq_decide, ite_not, Int64.isNeg]
   by_cases z : x.lo.val < 0
   · simp only [z, lh.mp z, Floating.abs_of_nonpos z.le, Floating.val_neg (x.lo_ne_nan n),
       Floating.abs_of_nonpos (lh.mp z).le, Floating.val_neg (x.hi_ne_nan n), neg_le_neg_iff,
@@ -817,22 +819,22 @@ lemma abs_pos_of_not_zero_mem {x : Interval} (z : 0 ∉ approx x) : 0 < x.abs.lo
 @[simp] lemma zero_mem_eq (x : Interval) : x.zero_mem = decide (0 ∈ approx x) := by
   rw [zero_mem]
   simp only [Floating.isNeg_iff, Bool.beq_eq_decide_eq, approx, mem_if_univ_iff, mem_Icc,
-    ←Bool.decide_or]
+    ←Bool.decide_or, Int64.isNeg]
   by_cases n : x = nan
   · simp [n]
   · simp only [n, or_false, lo_eq_nan, not_false_eq_true, forall_true_left, Bool.decide_and,
       ←Floating.val_eq_zero]
     by_cases l0 : x.lo.val = 0
-    · simpa only [l0, decide_True, lt_self_iff_false, decide_False, Bool.false_xor, Bool.true_or,
+    · simpa only [l0, decide_true, lt_self_iff_false, decide_false, Bool.false_xor, Bool.true_or,
         le_refl, Bool.true_and, true_eq_decide_iff] using x.le
-    · simp only [l0, decide_False, Bool.false_or]
+    · simp only [l0, decide_false, Bool.false_or]
       by_cases ln : x.lo.val < 0
-      · simp only [ln, decide_True, Bool.true_xor, ln.le, Bool.true_and]
+      · simp only [ln, decide_true, Bool.true_xor, ln.le, Bool.true_and]
         simp only [←not_lt, decide_not]
-      · simp only [ln, decide_False, Bool.false_xor]
+      · simp only [ln, decide_false, Bool.false_xor]
         simp only [not_lt] at ln
         have lt := ln.lt_of_ne (Ne.symm l0)
-        simp only [not_le.mpr lt, decide_False, Bool.false_and, decide_eq_false_iff_not, not_lt,
+        simp only [not_le.mpr lt, decide_false, Bool.false_and, decide_eq_false_iff_not, not_lt,
           ge_iff_le, le_trans ln x.le]
 
 /-- If we don't contain zero, each endpoint is negative iff the other is -/
@@ -854,7 +856,7 @@ lemma valid_error {e : Floating} (e0 : ¬e.n.isNeg) : Valid (-e) e where
   norm := by simp only [Floating.neg_eq_nan_iff]
   le' := by
     intro _ n
-    simp only [Floating.isNeg_iff, decide_eq_true_eq, not_lt] at e0
+    simp only [Int64.isNeg, Floating.isNeg_iff, decide_eq_true_eq, not_lt] at e0
     simp only [Floating.val_neg n, neg_le_self_iff, e0]
 
 /-- A symmetric error interval around zero: `[-e, e]` -/
@@ -893,13 +895,14 @@ lemma lo_error_le (e : Floating) : (error e).lo.val ≤ -e.val := by
     trans 0
     · exact Floating.val_nan_lt_zero.le
     · simp only [Left.nonneg_neg_iff]; exact Floating.val_nan_lt_zero.le
-  · simp only [Floating.isNeg_iff, decide_eq_true_eq] at e0
+  · simp only [Int64.isNeg, Floating.isNeg_iff, decide_eq_true_eq] at e0
     simp only [lo_zero, Floating.val_zero, Floating.val_neg n, Left.nonneg_neg_iff, e0.le]
   · simp only [le_refl, Floating.val_neg n]
 
 lemma le_hi_error (e : Floating) : e.val ≤ (error e).hi.val := by
   rw [error]
-  simp only [Floating.isNeg_iff, decide_eq_true_eq, bif_eq_if, beq_iff_eq, Floating.val_le_val]
+  simp only [Floating.isNeg_iff, decide_eq_true_eq, bif_eq_if, beq_iff_eq, Floating.val_le_val,
+    Int64.isNeg]
   split_ifs with n e0
   · simp only [n, hi_nan, le_refl]
   · simp only [hi_zero, Floating.val_zero, e0.le]

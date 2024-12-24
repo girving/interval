@@ -13,11 +13,11 @@ namespace Floating
 /-- Scale by changing the exponent -/
 @[irreducible] def scaleB (x : Floating) (t : Int64) : Floating :=
   bif x == 0 then 0 else
-  bif t.isNeg then
-    let t := (-t).n
+  if t < 0 then
+    let t := (-t).toUInt64
     bif x.s < t then nan else of_ns x.n (x.s - t)
   else
-    bif .max - t.n < x.s then nan else of_ns x.n (x.s + t.n)
+    bif .max - t.toUInt64 < x.s then nan else of_ns x.n (x.s + t.toUInt64)
 
 /-- Scale by changing the exponent -/
 @[irreducible] def scaleB' (x : Floating) (t : Fixed 0) : Floating :=
@@ -36,14 +36,14 @@ namespace Floating
       approx_eq_singleton, val_zero, mem_singleton_iff]
   simp only [x0, ↓reduceIte]
   by_cases xn : x = nan
-  · simp only [Bool.cond_decide, xn, s_nan, decide_True, n_nan, cond_true, of_ns_nan, ite_self,
+  · simp only [Bool.cond_decide, xn, s_nan, decide_true, n_nan, cond_true, of_ns_nan, ite_self,
       Bool.cond_self, approx_nan, rounds_univ, mem_univ]
   simp only [approx_eq_singleton xn, mem_singleton_iff] at xm
   simp only [bif_eq_if, decide_eq_true_eq, xm]
   clear x' xm
-  by_cases tn : t.isNeg
+  by_cases tn : t < 0
   · simp only [tn, ite_true]
-    by_cases xt : x.s < (-t).n
+    by_cases xt : x.s < (-t).toUInt64
     · simp only [xt, ↓reduceIte, approx_nan, mem_univ]
     · simp only [xt, ite_false, approx_eq_singleton (of_ns_ne_nan_iff.mpr (x.n_ne_min xn)),
         val_of_ns (x.n_ne_min xn), mem_singleton_iff]
@@ -55,7 +55,7 @@ namespace Floating
       left
       ring_nf
   · simp only [tn, ite_false, Bool.false_eq_true]
-    by_cases xt : .max - t.n < x.s
+    by_cases xt : .max - t.toUInt64 < x.s
     · simp only [Bool.false_eq_true, ↓reduceIte, xt, approx_nan, mem_univ]
     · simp only [xt, ite_false, approx_eq_singleton (of_ns_ne_nan_iff.mpr (x.n_ne_min xn)),
         val_of_ns (x.n_ne_min xn), mem_singleton_iff]
@@ -64,7 +64,7 @@ namespace Floating
       rw [val, mul_assoc, ←zpow_add₀ t0.ne']
       simp only [mul_eq_mul_left_iff, gt_iff_lt, zero_lt_two, ne_eq, OfNat.ofNat_ne_one,
         not_false_eq_true, Int.cast_eq_zero, Int64.coe_eq_zero, UInt64.toInt,
-        UInt64.toNat_add_of_le xt, Nat.cast_add, Int64.coe_of_nonneg tn]
+        UInt64.toNat_add_of_le xt, Nat.cast_add, Int64.coe_of_nonneg (not_lt.mp tn)]
       left
       ring_nf
 

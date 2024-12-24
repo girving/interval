@@ -94,4 +94,4 @@ lemma ne_nan_of_scaleB' {x : Interval} {t : Fixed 0} (n : x.scaleB' t ≠ nan) :
   simp only [ne_eq, lo_eq_nan] at xn
   simp only [xn, not_false_eq_true, forall_true_left] at xm
   simpa only [ne_eq, n.1, not_false_eq_true, Floating.val_div2, n.2,
-    div_le_div_right (by norm_num : (0 : ℝ) < 2)]
+    div_le_div_iff_of_pos_right (by norm_num : (0 : ℝ) < 2)]

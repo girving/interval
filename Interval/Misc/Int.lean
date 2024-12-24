@@ -280,3 +280,21 @@ end ZPow
   · simp only [cast_neg, cast_natCast, Nat.floor_int, toNat_neg_nat, Nat.floor_eq_zero]
     refine lt_of_le_of_lt ?_ zero_lt_one
     simp only [Left.neg_nonpos_iff, Nat.cast_nonneg]
+
+/-- Turn `|n|` into something `omega` understands -/
+lemma Int.abs_def {n : ℤ} : |n| = if n < 0 then -n else n := by
+  by_cases h : n < 0
+  · simp only [h, ↓reduceIte, abs_eq_neg_self, h.le]
+  · simp only [not_lt] at h
+    simp only [abs_of_nonneg h]
+    omega
+
+/-- Turn `n.natAbs` into something `omega` understands -/
+lemma Int.natAbs_def {n : ℤ} : n.natAbs = if n < 0 then (-n).toNat else n.toNat := by
+  simp only [natAbs]
+  induction' n with n
+  · simp only [ofNat_eq_coe, toNat_neg_nat, toNat_ofNat]
+    split_ifs
+    all_goals omega
+  · simp only [Nat.succ_eq_add_one, negSucc_eq, neg_add_rev, reduceNeg, add_neg_lt_iff_lt_add,
+      zero_add, neg_neg, toNat_ofNat_add_one]; split_ifs; omega; omega

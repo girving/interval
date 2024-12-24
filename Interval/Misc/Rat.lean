@@ -52,13 +52,13 @@ lemma Rat.log2_correct {x : ℚ} (x0 : x ≠ 0) : |x| ∈ Ico (2^x.log2) (2^(x.l
   have ae : |x| = (n : ℚ) / x.den := by rw [Rat.abs_eq_div, hn]
   have lo : 2^(a - b - 1 : ℤ) ≤ |x| := by
     rw [ae]
-    refine le_trans ?_ (div_le_div (by positivity) (Nat.cast_le.mpr an) (by positivity)
+    refine le_trans ?_ (div_le_div₀ (by positivity) (Nat.cast_le.mpr an) (by positivity)
       (Nat.cast_le.mpr db.le))
     simp only [sub_sub, zpow_sub₀ t0, zpow_natCast, Nat.cast_pow, Nat.cast_ofNat,
       ← Nat.cast_add_one, le_refl]
   have hi : |x| < 2^(a - b + 1 : ℤ) := by
     rw [ae]
-    refine lt_of_lt_of_le ((div_lt_div_right d0').mpr (Nat.cast_lt.mpr na)) ?_
+    refine lt_of_lt_of_le ((div_lt_div_iff_of_pos_right d0').mpr (Nat.cast_lt.mpr na)) ?_
     refine le_trans (div_le_div_of_nonneg_left (by positivity) (by positivity) (Nat.cast_le.mpr bd)) ?_
     simp only [Nat.cast_pow, Nat.cast_ofNat, ← add_sub_right_comm, zpow_sub₀ t0, zpow_natCast,
       ← Nat.cast_add_one, le_refl]

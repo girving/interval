@@ -19,7 +19,7 @@ namespace Floating
   rw [floor]
   simp only [bif_eq_if, Bool.or_eq_true, beq_iff_eq, decide_eq_true_eq]
   by_cases xn : x = nan
-  · simp only [xn, s_nan, true_or, n_nan, decide_True, ite_true, Fixed.approx_nan, mem_univ]
+  · simp only [xn, s_nan, true_or, n_nan, decide_true, ite_true, Fixed.approx_nan, mem_univ]
   simp only [xn, false_or]
   by_cases s63 : 2^63 < x.s
   · simp only [s63, ite_true, Fixed.approx_nan, mem_univ]

@@ -504,7 +504,7 @@ lemma UInt128.testBit_eq {x : UInt128} {i : ℕ} :
   rw [UInt128.toNat, Nat.shiftLeft_eq, ←Nat.lor_eq_add]
   · simp only [Nat.testBit_lor]
     by_cases c : i < 64
-    · simp only [Nat.testBit_mul_two_pow, not_le.mpr c, ge_iff_le, false_and, decide_False,
+    · simp only [Nat.testBit_mul_two_pow, not_le.mpr c, ge_iff_le, false_and, decide_false,
         Bool.false_or, c, ite_true]
     · simp only [Nat.testBit_mul_two_pow, not_lt.mp c, ge_iff_le, true_and, Bool.decide_coe,
         z1 _ (not_lt.mp c), Bool.or_false, c, ite_false]
@@ -679,7 +679,7 @@ lemma UInt128.toNat_shiftLeft' (x : UInt128) {s : UInt64} :
 @[simp] lemma UInt128.shiftLeft_zero (x : UInt128) : x <<< (0 : UInt64) = x := by
   have h : (0 : UInt64) < 64 := by decide
   rw [shiftLeft_def, shiftLeft]
-  simp only [UInt64.land_eq_hand, UInt64.zero_land, h, decide_True,
+  simp only [UInt64.land_eq_hand, UInt64.zero_land, h, decide_true,
     UInt64.shiftLeft_zero, cond_true, beq_self_eq_true, sub_zero, zero_sub]
 
 /-- Shifting zero does nothing -/
@@ -813,7 +813,7 @@ lemma UInt128.toNat_shiftLeftSaturate {x : UInt128} {s : UInt64}
   by_cases t0 : t = 0
   · rw [shiftLeftSaturate]
     simp only [t0, Nat.cast_zero, (by decide : ¬128 ≤ (0 : UInt64)),
-      decide_False, Bool.false_and, bne_self_eq_false, sub_zero, Bool.or_self, shiftLeft_zero,
+      decide_false, Bool.false_and, bne_self_eq_false, sub_zero, Bool.or_self, shiftLeft_zero,
       cond_false, pow_zero, mul_one]
     rw [min_eq_left (by omega)]
   by_cases t128 : t < 128
@@ -825,12 +825,12 @@ lemma UInt128.toNat_shiftLeftSaturate {x : UInt128} {s : UInt64}
         Nat.mod_eq_of_lt t64]
       omega
     simp only [shiftLeftSaturate, UInt64.le_iff_toNat_le, p128, UInt64.toNat_cast, t128, ts1,
-      Nat.mod_eq_of_lt, not_le.mpr t128, decide_False, Bool.false_and, Bool.false_or, bif_eq_if,
+      Nat.mod_eq_of_lt, not_le.mpr t128, decide_false, Bool.false_and, Bool.false_or, bif_eq_if,
       Bool.and_eq_true, bne_iff_ne, ne_eq, UInt64.eq_iff_toNat_eq, UInt64.toNat_zero, t0,
       not_false_eq_true, eq_iff_toNat_eq, UInt128.toNat_shiftRight _ sub, e9, toNat_zero,
       gt_iff_lt, zero_lt_two, pow_pos, Nat.div_eq_zero_iff, not_lt, true_and,
       apply_ite (f := fun x : UInt128 ↦ x.toNat), toNat_max, ge_iff_le, min_eq_left, if_false,
-      UInt64.toNat_cast, Bool.false_eq_true]
+      UInt64.toNat_cast, Bool.false_eq_true, pow_eq_zero_iff', two_ne_zero, false_and, false_or]
     rw [UInt128.toNat_shiftLeft]
     split_ifs with c
     · rw [min_eq_right]
@@ -848,7 +848,7 @@ lemma UInt128.toNat_shiftLeftSaturate {x : UInt128} {s : UInt64}
   · simp only [not_lt] at t128
     have t128' : 128 ≤ (t : UInt64) := by
       simpa only [UInt64.le_iff_toNat_le, p128, UInt64.toNat_cast, Nat.mod_eq_of_lt t64]
-    simp only [shiftLeftSaturate, t128', decide_True, bif_eq_if, ite_true, bne_iff_ne, ne_eq,
+    simp only [shiftLeftSaturate, t128', decide_true, bif_eq_if, ite_true, bne_iff_ne, ne_eq,
       ite_not]
     split_ifs with x0
     · simp only [x0, zero_shiftLeft, toNat_zero, zero_mul, ge_iff_le, zero_le, min_eq_left]
@@ -921,8 +921,7 @@ lemma UInt128.shiftLeftSaturate_eq {x : UInt128} {s : UInt64}
     have h := UInt64.log2_lt_64 x.lo
     omega
   · have h := UInt64.log2_lt_64 x.hi
-    rw [UInt64.fast_log2_eq, UInt64.toNat_add, UInt64.toNat_log2, e, UInt64.size_eq_pow,
-      Nat.mod_eq_of_lt]
+    rw [UInt64.fast_log2_eq, UInt64.toNat_add, UInt64.toNat_log2, e, Nat.mod_eq_of_lt]
     · omega
     · norm_num; omega
 

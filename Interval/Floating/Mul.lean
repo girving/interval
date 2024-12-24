@@ -27,7 +27,7 @@ def mul_n_max : ℕ := (2^63 - 1) ^ 2
 
 /-- Our `64 → 128` bit integer multiplication doesn't get too big -/
 lemma mul_n_le {x y : Floating} (x0 : 0 ≤ x.val) (y0 : 0 ≤ y.val) :
-    (mul128 x.n.n y.n.n).toNat ≤ mul_n_max := by
+    (mul128 x.n.toUInt64 y.n.toUInt64).toNat ≤ mul_n_max := by
   rw [toNat_mul128, mul_n_max, pow_two]
   have hx := n_lt_of_nonneg x0
   have hy := n_lt_of_nonneg y0
@@ -166,7 +166,7 @@ lemma mul_norm_correct (n : UInt128) (up : Bool) (n0 : n ≠ 0) (lo : n.toNat �
           UInt64.toNat_one] at hb
         simp only [← hr, ← hb, Nat.cast_add, Nat.cast_one, zpow_sub₀ t0, ep, zpow_natCast, ←
           mul_div_assoc, add_one_mul, hz', z.toNat_def, Nat.cast_mul, Nat.cast_pow, Nat.cast_ofNat,
-          div_le_div_right two_pow_pos, add_le_add_iff_left, ite_false, ge_iff_le]
+          div_le_div_iff_of_pos_right (two_pow_pos (R := ℝ)), add_le_add_iff_left, ite_false]
         exact le_trans (Nat.cast_le.mpr z.lo.toNat_lt.le) (by norm_num)
 
 /-!
@@ -190,7 +190,7 @@ lemma valid_mul_finish (n : UInt64) (s : Int128) (norm : n.toNat ∈ Ico (2^62) 
     simp only [mem_Ico] at norm
     rw [Int64.abs_eq_self']
     · simp only [UInt64.le_iff_toNat_le, up62, norm.1]
-    · simp only [Int64.isNeg_eq_le, decide_eq_false_iff_not, not_le, norm.2]
+    · simp only [← not_lt, Int64.isNeg_eq_le, decide_eq_false_iff_not, not_le, norm.2, not_not]
 
 /-- Build a `Floating` with value `n * 2^s`, rounding if necessary -/
 @[irreducible, inline] def mul_finish (n : UInt64) (s : Int128) (up : Bool)
@@ -209,7 +209,7 @@ lemma valid_mul_finish (n : UInt64) (s : Int128) (norm : n.toNat ∈ Ico (2^62) 
 /-- Multiply two nonnegative, non-nan `Floating`s -/
 @[irreducible, inline] def mul_of_nonneg (x y : Floating) (up : Bool)
     (x0 : 0 ≤ x.val) (y0 : 0 ≤ y.val) : Floating :=
-  let z := mul128 x.n.n y.n.n  -- `z * 2^(x.s + y.s - 2^64)`.
+  let z := mul128 x.n.toUInt64 y.n.toUInt64  -- `z * 2^(x.s + y.s - 2^64)`.
   if z0 : z = 0 then 0 else
   let n := mul_norm z up  -- `n.1 * 2^(x.s + y.s + n.2 - 62 - 2^64)`
   let e := mul_exponent x.s y.s n.2  -- `n.1 * 2^e`
@@ -233,8 +233,8 @@ lemma mul_finish_correct (n : UInt64) (s : Int128) (up : Bool)
     (n.toNat : ℝ) * 2^((s : ℤ) - 2^63) ∈ rounds (approx (mul_finish n s up norm)) !up := by
   rw [mul_finish]
   simp only [bif_eq_if, beq_iff_eq]
-  have nn : (⟨n⟩ : Int64).isNeg = false := by
-    simp only [Int64.isNeg_eq_le, decide_eq_false_iff_not, not_le, norm.2]
+  have nn : 0 ≤ (⟨n⟩ : Int64) := by
+    simp only [← not_lt, Int64.isNeg_eq_le, decide_eq_false_iff_not, norm.2, Int64.isNeg, not_not]
   by_cases h0 : s.n.hi = 0
   · simp only [approx, h0, ite_true, apply_ite (f := fun s : Set ℝ ↦ rounds s !up), rounds_univ,
       mem_ite_univ_left, mem_rounds_singleton, Bool.not_eq_true']
@@ -283,7 +283,7 @@ lemma approx_mul_of_nonneg {x y : Floating} {up : Bool} {x0 : 0 ≤ x.val} {y0 :
   simp only [ne_eq, ne_nan_of_nonneg x0, not_false_eq_true, approx_eq_singleton,
     ne_nan_of_nonneg y0, mul_singleton, image_singleton, n, singleton_subset_iff,
     mem_rounds_singleton, Bool.not_eq_true']
-  generalize hz : (mul128 x.n.n y.n.n) = z
+  generalize hz : (mul128 x.n.toUInt64 y.n.toUInt64) = z
   generalize hm : mul_norm z up = m
   generalize he : mul_exponent x.s y.s m.2 = e
   have ce := mul_exponent_eq x.s y.s m.2
@@ -333,7 +333,7 @@ lemma approx_mul (x y : Floating) (up : Bool) :
   rcases not_or.mp n with ⟨xn, yn⟩
   generalize hz : (decide (x.val < 0) != decide (y.val < 0)) = z
   simp only [ne_eq, xn, not_false_eq_true, approx_eq_singleton, yn, mul_singleton, image_singleton,
-    or_self, bif_eq_if, isNeg_iff, hz, dite_false, singleton_subset_iff]
+    or_self, bif_eq_if, isNeg_iff, hz, dite_false, singleton_subset_iff, Int64.isNeg]
   by_cases ze : z = true
   · simp only [ze, bne_iff_ne, ne_eq, decide_eq_decide, Bool.xor_true, ite_true, approx_neg,
       rounds_neg, Bool.not_not, mem_neg] at hz ⊢

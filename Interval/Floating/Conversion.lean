@@ -59,8 +59,8 @@ lemma Convert.valid_finish (x : Convert) : Valid ⟨x.n⟩ x.s where
     rw [Int64.abs_eq_self']
     · simp only [UInt64.le_iff_toNat_le, up62, UInt64.toNat_cast, UInt64.size_eq_pow, e,
         x.norm.1]
-    · simp only [Int64.isNeg_eq_le, UInt64.toNat_cast, UInt64.size_eq_pow, e,
-        decide_eq_false_iff_not, not_le, x.norm.2]
+    · simp only [← not_lt, Int64.isNeg_eq_le, UInt64.toNat_cast, UInt64.size_eq_pow, e,
+        decide_eq_false_iff_not, not_le, x.norm.2, not_not]
   where
   e : x.n % 2^64 = x.n := x.n_mod
 
@@ -105,9 +105,9 @@ lemma Convert.approx_finish (x : Convert) (up : Bool) :
     simp only [ne_eq, UInt64.eq_iff_toNat_eq, UInt64.toNat_cast, UInt64.size_eq_pow,
       UInt64.toNat_2_pow_63, Nat.mod_eq_of_lt n1']
     exact x.norm.2.ne
-  have n0 : (⟨↑x.n⟩ : Int64).isNeg = false := by
+  have n0 : 0 ≤ (⟨↑x.n⟩ : Int64) := by
     simp only [Int64.isNeg_eq_le, UInt64.toNat_cast, UInt64.size_eq_pow, Nat.mod_eq_of_lt n1',
-      decide_eq_false_iff_not, not_le]
+      decide_eq_false_iff_not, not_le, ← not_lt, not_not, Int64.isNeg]
     exact x.norm.2
   simp only [approx, s1, ite_false, ext_iff, n_nan, Int64.ext_iff, Int64.n_min, s_nan, xne,
     false_and]
@@ -263,12 +263,12 @@ lemma approx_ofInt (n : ℤ) (up : Bool) : ↑n ∈ rounds (approx (ofInt n up))
       have le : 0 ≤ -n := by omega
       rw [e, ←Int.toNat_of_nonneg le, neg_inj, Int.cast_natCast]
       rw [Int.toNat_of_nonneg le]
-    simpa only [e, n0, decide_True, cond_true, approx_neg, rounds_neg, Bool.not_not, mem_neg,
+    simpa only [e, n0, decide_true, cond_true, approx_neg, rounds_neg, Bool.not_not, mem_neg,
       neg_neg] using approx_ofNat (-n).toNat (!up)
   · have e : (n : ℝ) = ↑n.toNat := by
       rw [←Int.toNat_of_nonneg (not_lt.mp n0), Int.cast_natCast]
       simp only [Int.toNat_of_nonneg (not_lt.mp n0)]
-    simp only [e, n0, decide_False, cond_false, approx_ofNat]
+    simp only [e, n0, decide_false, cond_false, approx_ofNat]
 
 /-- `approx_ofInt`, down version -/
 lemma ofInt_le {n : ℤ} (h : (ofInt n false) ≠ nan) : (ofInt n false).val ≤ n := by
@@ -402,11 +402,11 @@ lemma approx_ofRat_abs (x : ℚ) (up : Bool) : ↑|x| ∈ rounds (approx (ofRat_
 lemma approx_ofRat (x : ℚ) (up : Bool) : ↑x ∈ rounds (approx (ofRat x up)) !up := by
   rw [ofRat]
   by_cases x0 : x < 0
-  · simp only [Bool.cond_decide, x0, decide_True, Bool.xor_true, cond_true, approx_neg,
+  · simp only [Bool.cond_decide, x0, decide_true, Bool.xor_true, cond_true, approx_neg,
       rounds_neg, Bool.not_not, mem_neg, ←Rat.cast_neg, ←abs_of_neg x0]
     convert approx_ofRat_abs x _
     simp only [Bool.not_not]
-  · simp only [Bool.cond_decide, x0, decide_False, Bool.xor_false, ite_false]
+  · simp only [Bool.cond_decide, x0, decide_false, Bool.xor_false, ite_false]
     convert approx_ofRat_abs x _
     rw [abs_of_nonneg (by linarith)]
 

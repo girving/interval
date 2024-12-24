@@ -34,7 +34,7 @@ lemma low_le_s (g s : UInt64) : (lower g s).1 ≤ s := by
 
 /-- `lower` reduces the exponent -/
 lemma low_le_s' {g s : UInt64} : (lower g s).1.toNat ≤ s.toNat :=
-  (UInt64.le_iff_toNat_le _ _).mp (low_le_s g s)
+  UInt64.le_iff_toNat_le.mp (low_le_s g s)
 
 /-- `lower.2` in terms of `lower.1`, expressed in terms of `ℕ` -/
 lemma low_s_2_eq {g s : UInt64} : (lower g s).2.toNat = s.toNat - (lower g s).1.toNat := by
@@ -191,7 +191,7 @@ lemma val_of_ns {n : Int64} {s : UInt64} (nm : n ≠ .min) :
 
 /-- `Fixed s` to `Floating` by hiding `s` -/
 @[irreducible, coe] def _root_.Fixed.toFloating {s : Int64} (x : Fixed s) : Floating :=
-  .of_ns x.n (s.n + 2^63)
+  .of_ns x.n (s.toUInt64 + 2^63)
 
 /-- Coersion from `Fixed s` to `Floating` -/
 instance {s : Int64} : CoeHead (Fixed s) Floating where
@@ -207,23 +207,23 @@ instance {s : Int64} : CoeHead (Fixed s) Floating where
     simp only [Fixed.approx_eq_singleton n, mem_singleton_iff,
       approx_eq_singleton (of_ns_ne_nan_iff.mpr nm)] at ax ⊢
     rw [ax, Fixed.val, val_of_ns nm]
-    simp only [Int64.toInt, Int64.isNeg_eq_le, bif_eq_if, decide_eq_true_eq, Nat.cast_ite,
+    simp only [Int64.toInt_eq_if, Int64.isNeg_eq_le, bif_eq_if, decide_eq_true_eq, Nat.cast_ite,
       Nat.cast_pow, Int.cast_sub, Int.cast_ofNat, Int.cast_ite, Int.cast_pow, Int.cast_ofNat,
       Int.cast_zero, UInt64.toInt, UInt64.toNat_add',
       UInt64.toNat_2_pow_63, Int.ofNat_emod, Nat.cast_add, mul_eq_mul_left_iff,
       zero_lt_two, ne_eq, not_false_eq_true, UInt64.size_eq_pow, Nat.cast_pow,
       Nat.cast_two]
     left
-    have sp : s.n.toNat < 2^64 := UInt64.toNat_lt_2_pow_64 _
-    by_cases le : 2^63 ≤ s.n.toNat
-    · simp only [le, CharP.cast_eq_zero, ite_true, gt_iff_lt, zero_lt_two, ne_eq,
+    have sp : s.toUInt64.toNat < 2^64 := UInt64.toNat_lt_2_pow_64 _
+    by_cases le : 2^63 ≤ s.toUInt64.toNat
+    · simp only [le, CharP.cast_eq_zero, ite_true, zero_lt_two, ne_eq,
         OfNat.ofNat_ne_one, not_false_eq_true, zpow_right_inj₀, Int.add_emod_self]
       split_ifs
       all_goals omega
     · simp only [le, CharP.cast_eq_zero, ite_false, sub_zero, zpow_natCast]
-      have d0 : 0 ≤ (s.n.toNat : ℤ) + 2^63 := by omega
-      have d1 : (s.n.toNat : ℤ) + 2^63 < 2^64 := by linarith
-      have d2 : s.n.toNat + 2^63 < 2^64 := by omega
+      have d0 : 0 ≤ (s.toUInt64.toNat : ℤ) + 2^63 := by omega
+      have d1 : (s.toUInt64.toNat : ℤ) + 2^63 < 2^64 := by linarith
+      have d2 : s.toUInt64.toNat + 2^63 < 2^64 := by omega
       simp only [d2, if_true, Int.emod_eq_of_lt d0 d1, add_sub_cancel_right, zpow_natCast]
       simp only [Nat.reducePow, tsub_zero, Nat.cast_add, Nat.cast_ofNat, Int.reducePow,
         add_sub_cancel_right, zpow_natCast]

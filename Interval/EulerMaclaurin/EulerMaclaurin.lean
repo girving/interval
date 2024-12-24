@@ -410,7 +410,9 @@ lemma presaw_smul_iteratedDeriv_by_parts [CompleteSpace E] (fc : ContDiffOn ℝ 
       presaw (s+1) c a • iteratedDerivWithin s f t a -
       ∫ x in a..(a + 1), presaw (s+1) c x • iteratedDerivWithin (s+1) f t x := by
   have i0 := intervalIntegrable_presaw_smul (s := s) (c := c) fc.of_succ (by linarith) u abt
-  have i1 := intervalIntegrable_presaw_smul (s := s + 1) (c := c) fc (by linarith) u abt
+  have i1 : IntervalIntegrable (fun x ↦ presaw (s + 1) c x •
+      iteratedDerivWithin (s + 1) f t x) volume (↑a) (a + 1) :=
+    intervalIntegrable_presaw_smul (s := s + 1) (c := c) fc (by linarith) u abt
   rw [eq_sub_iff_add_eq, ← intervalIntegral.integral_add i0 i1]
   set g := fun x ↦ presaw (s + 1) c x • iteratedDerivWithin s f t x
   set g' := fun x ↦ presaw s c x • iteratedDerivWithin s f t x +

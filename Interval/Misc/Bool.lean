@@ -12,18 +12,18 @@ variable {α : Type}
 @[simp] lemma decide_eq_not_decide (p q : Prop) [Decidable p] [Decidable q] :
     (decide p = !decide q) = decide (p ↔ ¬q) := by
   by_cases h : q
-  · simp only [h, decide_True, Bool.not_true, decide_eq_false_iff_not, not_true, iff_false,
+  · simp only [h, decide_true, Bool.not_true, decide_eq_false_iff_not, not_true, iff_false,
       decide_not, Bool.not_eq_true']
-  · simp only [h, decide_False, Bool.not_false, decide_eq_true_eq, not_false_eq_true, iff_true]
+  · simp only [h, decide_false, Bool.not_false, decide_eq_true_eq, not_false_eq_true, iff_true]
 
 lemma bif_if_congr {x : Bool} {y : Prop} {a b c d : α} {dy : Decidable y}
     (xy : x = y) (ac : a = c) (bd : b = d) :
     (bif x then a else b) = (@ite _ y dy c d) := by
   rw [ac, bd]
   by_cases h : y
-  · simp only [h, decide_True] at xy
+  · simp only [h, decide_true] at xy
     simp only [h, xy, if_true, cond_true]
-  · simp only [h, decide_False] at xy
+  · simp only [h, decide_false] at xy
     simp only [h, xy, if_false, cond_false]
 
 /-- Better version of `Bool.beq_eq_decide_eq` that uses any `BEq` instance -/
@@ -34,7 +34,7 @@ lemma Bool.beq_eq_decide_eq' [BEq α] [DecidableEq α] [LawfulBEq α ] (x y : α
   · simp only [h]
     by_cases e : x = y
     · simp only [e, beq_self_eq_true, not_true_eq_false] at h
-    · simp only [e, _root_.decide_False]
+    · simp only [e, _root_.decide_false]
 
 @[simp] lemma Bool.beq_not_iff_ne (x y : Bool) : x = !y ↔ x ≠ y := by
   induction y

@@ -51,7 +51,7 @@ lemma deriv_deriv_comm {f : ℝ × ℝ → E} {z : ℝ × ℝ} (sf : ContDiff �
   simpa using fderiv_fderiv_comm sf (dx := 1) (dy := 1) (z := z)
 
 lemma _root_.ContDiff.iteratedDeriv_right {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*}
-    [NormedAddCommGroup E] [NormedSpace 𝕜 E] {f : 𝕜 → E} {m : ℕ∞} {n : ℕ∞} {i : ℕ}
+    [NormedAddCommGroup E] [NormedSpace 𝕜 E] {f : 𝕜 → E} {m : WithTop ℕ∞} {n : ℕ∞} {i : ℕ}
     (hf : ContDiff 𝕜 n f) (hmn : m + i ≤ n) : ContDiff 𝕜 m (iteratedDeriv i f) := by
   have e : iteratedDeriv i f = fun x ↦ iteratedDeriv i f x := rfl
   simp only [e, iteratedDeriv_eq_iteratedFDeriv, ← ContinuousMultilinearMap.apply_apply]
@@ -59,8 +59,8 @@ lemma _root_.ContDiff.iteratedDeriv_right {𝕜 : Type*} [NontriviallyNormedFiel
 
 lemma _root_.ContDiff.deriv {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*}
     [NormedAddCommGroup E] [NormedSpace 𝕜 E] {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
-    {f : E → 𝕜 → F} {g : E → 𝕜} {m : ℕ∞} (fc : ContDiff 𝕜 ⊤ (uncurry f)) (gc : ContDiff 𝕜 ⊤ g) :
-    ContDiff 𝕜 m fun z ↦ deriv (fun y ↦ f z y) (g z) := by
+    {f : E → 𝕜 → F} {g : E → 𝕜} {m : WithTop ℕ∞} (fc : ContDiff 𝕜 ⊤ (uncurry f))
+    (gc : ContDiff 𝕜 ⊤ g) : ContDiff 𝕜 m fun z ↦ deriv (fun y ↦ f z y) (g z) := by
   simp_rw [← fderiv_deriv]
   simp_rw [← ContinuousLinearMap.apply_apply (v := (1 : 𝕜))]
   exact contDiff_const.clm_apply (ContDiff.fderiv fc (gc.of_le le_top) le_top)
@@ -68,7 +68,7 @@ lemma _root_.ContDiff.deriv {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : T
 lemma _root_.ContDiff.iteratedDeriv {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : Type*}
     [NormedAddCommGroup E] [NormedSpace 𝕜 E] {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
     {f : E → 𝕜 → F} {g : E → 𝕜}
-    {m : ℕ∞} {n : ℕ} (fc : ContDiff 𝕜 ⊤ (uncurry f)) (gc : ContDiff 𝕜 ⊤ g) :
+    {m : WithTop ℕ∞} {n : ℕ} (fc : ContDiff 𝕜 ⊤ (uncurry f)) (gc : ContDiff 𝕜 ⊤ g) :
     ContDiff 𝕜 m fun z ↦ iteratedDeriv n (fun y ↦ f z y) (g z) := by
   revert fc f
   induction' n with n ic

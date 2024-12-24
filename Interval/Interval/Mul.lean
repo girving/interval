@@ -44,11 +44,11 @@ namespace Interval
   rw [premul]
   simp only [lo_nan, Floating.n_nan, Int64.isNeg_min, hi_nan, bne_self_eq_false, Floating.isNeg_iff,
     Bool.xor_true, Bool.false_and, Floating.nan_mul, min_self, max_self, bif_eq_if, ite_false,
-    Bool.false_eq_true]
+    Bool.false_eq_true, Int64.isNeg]
   rcases y.sign_cases with ⟨ls,hs⟩ | ⟨ls,hs⟩ | ⟨ls,hs⟩
   all_goals try simp only [not_lt.mpr ls]
   all_goals try simp only [not_lt.mpr hs]
-  all_goals simp only [ls, hs, decide_true_eq_true, decide_false_eq_false, Floating.mul_nan,
+  all_goals simp only [ls, hs, decide_true, decide_false, Floating.mul_nan,
     Floating.nan_mul, Preinterval.approx_nan_lo, Preinterval.approx_nan_hi, subset_univ,
     ←Preinterval.nan_def]
 
@@ -57,11 +57,11 @@ namespace Interval
   rw [premul]
   simp only [Floating.isNeg_iff, lo_nan, Floating.n_nan, Int64.isNeg_min, Bool.true_xor, hi_nan,
     Floating.mul_nan, min_self, max_self, bif_eq_if, Bool.and_eq_true, bne_iff_ne, ne_eq,
-    decide_eq_decide, Bool.not_eq_true', decide_eq_false_iff_not, not_lt]
+    decide_eq_decide, Bool.not_eq_true', decide_eq_false_iff_not, not_lt, Int64.isNeg]
   rcases x.sign_cases with ⟨ls,hs⟩ | ⟨ls,hs⟩ | ⟨ls,hs⟩
   all_goals try simp only [not_lt.mpr ls]
   all_goals try simp only [not_lt.mpr hs]
-  all_goals simp only [ls, hs, decide_true_eq_true, decide_false_eq_false, Floating.mul_nan,
+  all_goals simp only [ls, hs, decide_true, decide_false, Floating.mul_nan,
     Floating.nan_mul, Preinterval.approx_nan_lo, Preinterval.approx_nan_hi, subset_univ, not_true,
     bne_self_eq_false, Bool.and_self, ite_self, Preinterval.approx_nan_hi, ←Preinterval.nan_def,
     false_and, if_false, true_iff, not_false_iff, true_and, if_true, Floating.max_nan]
@@ -76,7 +76,7 @@ lemma approx_premul (x : Interval) (y : Interval) : approx x * approx y ⊆ appr
   rcases not_or.mp n with ⟨xn,yn⟩; clear n
   rw [premul]
   simp only [image2_mul, bif_eq_if, Bool.or_eq_true, beq_iff_eq, Floating.isNeg_iff,
-    Bool.and_eq_true, bne_iff_ne, ne_eq, decide_eq_decide]
+    Bool.and_eq_true, bne_iff_ne, ne_eq, decide_eq_decide, Int64.isNeg]
   -- Record Floating.mul bounds
   generalize mll0 : x.lo.mul y.lo false = ll0
   generalize mlh0 : x.lo.mul y.hi false = lh0
@@ -103,8 +103,8 @@ lemma approx_premul (x : Interval) (y : Interval) : approx x * approx y ⊆ appr
   all_goals rcases y.sign_cases with ⟨yls,yhs⟩ | ⟨yls,yhs⟩ | ⟨yls,yhs⟩
   all_goals try simp only [not_lt.mpr yls]
   all_goals try simp only [not_lt.mpr yhs]
-  all_goals simp only [xls, xhs, yls, yhs, not_true, false_and, if_false, decide_true_eq_true,
-    decide_false_eq_false, true_iff, not_false_iff, true_and, if_true, mll0, mlh0, mhl0, mhh0, mll1,
+  all_goals simp only [xls, xhs, yls, yhs, not_true, false_and, if_false, decide_true,
+    decide_false, true_iff, not_false_iff, true_and, if_true, mll0, mlh0, mhl0, mhh0, mll1,
     mlh1, mhl1, mhh1]
   all_goals clear mll0 mlh0 mhl0 mhh0 mll1 mlh1 mhl1 mhh1
   all_goals simp only [approx, xn, yn, x.lo_ne_nan xn, x.hi_ne_nan xn, y.lo_ne_nan yn,
@@ -274,7 +274,7 @@ lemma ne_nan_of_float_mul_float {x : Floating} {y : Floating}
     intro n0 n1
     refine le_trans (Floating.mul_le n0) (le_trans ?_ (Floating.le_mul n1))
     clear n0 n1
-    simp only [t, bif_eq_if, Floating.isNeg_iff, decide_eq_true_eq]
+    simp only [t, bif_eq_if, Floating.isNeg_iff, decide_eq_true_eq, Int64.isNeg]
     by_cases y0 : y.val < 0
     · simp only [y0, ite_true, mul_le_mul_right_of_neg, le]
     · simp only [y0, ite_false]; exact mul_le_mul_of_nonneg_right x.le (not_lt.mp y0))
@@ -284,7 +284,7 @@ lemma approx_mul_float (x : Interval) (y : Floating) :
     approx x * approx y ⊆ approx (x.mul_float y) := by
   -- Handle special cases
   rw [mul_float]
-  simp only [Floating.isNeg_iff, bif_eq_if, decide_eq_true_eq]
+  simp only [Floating.isNeg_iff, bif_eq_if, decide_eq_true_eq, Int64.isNeg]
   by_cases n : x = nan ∨ y = nan
   · rcases n with n | n; repeat simp [n]
   simp only [not_or, ←nonempty_iff_ne_empty] at n
@@ -350,7 +350,7 @@ def sqr (x : Interval) : Interval :=
     mix (x.hi.mul x.hi false) (x.lo.mul x.lo true) (by
       intro n0 n1
       simp only [Floating.isNeg_iff, bne_iff_ne, ne_eq, decide_eq_decide, not_not,
-        decide_eq_true_eq] at m x0
+        decide_eq_true_eq, Int64.isNeg] at m x0
       have le := x.le
       have h0 := m.mp x0
       exact le_trans (Floating.mul_le n0) (le_trans (by nlinarith) (Floating.le_mul n1)))
@@ -358,7 +358,7 @@ def sqr (x : Interval) : Interval :=
     mix (x.lo.mul x.lo false) (x.hi.mul x.hi true) (by
       intro n0 n1
       simp only [Floating.isNeg_iff, bne_iff_ne, ne_eq, decide_eq_decide, not_not,
-        decide_eq_true_eq] at m x0
+        decide_eq_true_eq, Int64.isNeg] at m x0
       have le := x.le
       exact le_trans (Floating.mul_le n0) (le_trans (by nlinarith) (Floating.le_mul n1)))
 
@@ -375,7 +375,7 @@ def sqr (x : Interval) : Interval :=
   have ihh1 : hh1 ≠ nan → x.hi.val * x.hi.val ≤ hh1.val := by rw [←mhh1]; exact Floating.le_mul
   -- Handle special cases
   simp only [sqr, Floating.isNeg_iff, bne_iff_ne, ne_eq, decide_eq_decide, decide_eq_true_eq,
-    dite_not]
+    dite_not, Int64.isNeg]
   by_cases n : x = nan
   · simp only [n, approx_nan, lo_nan, Floating.val_nan_lt_zero, hi_nan, Floating.mul_nan, mix_self,
       coe_nan, dite_eq_ite, ite_self, le_refl, Floating.max_nan, mix_nan, preimage_univ,

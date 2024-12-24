@@ -322,10 +322,10 @@ def ofBinary (n : ℤ) (s : ℤ) (prec : ℕ) (up : Bool) : Decimal :=
 lemma ofBinary_le (n : ℤ) (s : ℤ) (prec : ℕ) : ofBinary n s prec false ≤ (n : ℝ) * 2^s := by
   simp only [ofBinary, Bool.bne_false, bif_eq_if, decide_eq_true_eq]
   by_cases h : n < 0
-  · simp only [h, ↓reduceIte, decide_True, Decimal.val_neg, neg_le]
+  · simp only [h, ↓reduceIte, decide_true, Decimal.val_neg, neg_le]
     refine le_trans (le_of_eq ?_) (OfBinary.le_ofBinaryNat _ _ _)
     simp only [Int.coe_natAbs_eq_neg h.le, neg_mul]
-  · simp only [h, ↓reduceIte, decide_False]
+  · simp only [h, ↓reduceIte, decide_false]
     refine le_trans (OfBinary.ofBinaryNat_le _ _ _) (le_of_eq ?_)
     simp only [Int.coe_natAbs_eq_self (not_lt.mp h)]
 
@@ -333,10 +333,10 @@ lemma ofBinary_le (n : ℤ) (s : ℤ) (prec : ℕ) : ofBinary n s prec false ≤
 lemma le_ofBinary (n : ℤ) (s : ℤ) (prec : ℕ) : (n : ℝ) * 2^s ≤ ofBinary n s prec true := by
   simp only [ofBinary, Bool.bne_true, bif_eq_if, decide_eq_true_eq]
   by_cases h : n < 0
-  · simp only [h, ↓reduceIte, decide_True, Decimal.val_neg, le_neg]
+  · simp only [h, ↓reduceIte, decide_true, Decimal.val_neg, le_neg]
     refine le_trans (OfBinary.ofBinaryNat_le _ _ _) (le_of_eq ?_)
     simp only [Int.coe_natAbs_eq_neg h.le, neg_mul]
-  · simp only [h, ↓reduceIte, decide_False]
+  · simp only [h, ↓reduceIte, decide_false]
     refine le_trans (le_of_eq ?_) (OfBinary.le_ofBinaryNat _ _ _)
     simp only [Int.coe_natAbs_eq_self (not_lt.mp h)]
 

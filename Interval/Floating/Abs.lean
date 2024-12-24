@@ -56,7 +56,7 @@ lemma valid_abs {x : Floating} : Valid ⟨x.n.abs⟩ x.s where
 
 /-- `abs` is the identity for nonnegatives (since `nan < 0`) -/
 @[simp] lemma abs_of_nonneg {x : Floating} (x0 : 0 ≤ x.val) : x.abs = x := by
-  have xn : x.n.isNeg = false := by simpa only [isNeg_iff, decide_eq_false_iff_not, not_lt]
+  have xn : 0 ≤ x.n := by simpa only [n_nonneg_iff]
   simp only [ext_iff, n_abs, s_abs, and_true, Int64.abs_eq_self' xn]
 
 /-- `abs` is negates nonpositives (since `-nan = nan`) -/
@@ -64,7 +64,7 @@ lemma valid_abs {x : Floating} : Valid ⟨x.n.abs⟩ x.s where
   by_cases z : x = 0
   · simp only [z, val_zero, le_refl, abs_of_nonneg, neg_zero]
   have x0' := Ne.lt_of_le (val_ne_zero.mpr z) x0
-  have xn : x.n.isNeg = true := by simpa only [isNeg_iff, decide_eq_true_eq]
+  have xn : x.n < 0 := by simpa only [isNeg_iff, decide_eq_true_eq]
   simp only [ext_iff, n_abs, Int64.abs_eq_neg' xn, Int64.neg_def, n_neg, s_abs, s_neg, and_self]
 
 /-- `abs` is conservative -/

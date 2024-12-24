@@ -1,7 +1,6 @@
 import Mathlib.Data.Real.Basic
 import Interval.Approx
 import Interval.Fixed
-import Interval.Misc.Float
 import Interval.Int64
 import Interval.UInt128
 import Interval.Misc.Decimal
@@ -242,7 +241,7 @@ lemma rounds_of_ne_nan {a : ℝ} {x : Floating} {up : Bool}
 
 /-- `val` if we're nonnegative -/
 lemma val_of_nonneg {x : Floating} (x0 : 0 ≤ x.val) :
-    x.val = (x.n.n.toNat : ℝ) * 2^((x.s.toNat : ℤ) - 2^63) := by
+    x.val = (x.n.toUInt64.toNat : ℝ) * 2^((x.s.toNat : ℤ) - 2^63) := by
   rw [val, UInt64.toInt, Int64.coe_of_nonneg, Int.cast_natCast]
   rw [val] at x0
   simpa only [Int64.isNeg_eq_le, decide_eq_false_iff_not, not_le, gt_iff_lt, two_zpow_pos,
@@ -302,4 +301,4 @@ instance : Repr Floating where
 
 /-- Print raw representation of a `Floating` -/
 instance : Repr (Raw Floating) where
-  reprPrec x _ := f!"⟨⟨{x.val.n.n}⟩, ⟨{x.val.s}⟩, _⟩"
+  reprPrec x _ := f!"⟨⟨{x.val.n.toUInt64}⟩, ⟨{x.val.s}⟩, _⟩"

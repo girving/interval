@@ -134,8 +134,8 @@ set the final precision.
   generalize x.untrusted_log_shift = n
   simp only [bif_eq_if]
   by_cases x0 : x.val ≤ 0
-  · simp only [val_le_val, val_zero, x0, decide_True, ite_true, Interval.approx_nan, mem_univ]
-  simp only [val_le_val, val_zero, x0, decide_False, ite_false, Bool.false_eq_true]
+  · simp only [val_le_val, val_zero, x0, decide_true, ite_true, Interval.approx_nan, mem_univ]
+  simp only [val_le_val, val_zero, x0, decide_false, ite_false, Bool.false_eq_true]
   simp only [not_le] at x0
   simp only [approx_eq_singleton (Floating.ne_nan_of_nonneg x0.le), mem_singleton_iff] at xm
   simp only [xm]; clear xm x'

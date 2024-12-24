@@ -96,7 +96,7 @@ def inv_guess (x : Floating) : Floating :=
   -- We get maximum precision if `x.n.n / 2^a = 2^32`, so we set `a = 30`:
   --   `x⁻¹ = (2^63 / (x.n.n / 2^30)) * 2^(2^64 - 93 - x.s - 2^63)`
   let t := (2^64 - 93 : UInt64) - x.s
-  let y := ((1 : UInt64) <<< 63) / (x.n.n >>> 30)
+  let y := ((1 : UInt64) <<< 63) / (x.n.toUInt64 >>> 30)
   .of_ns ⟨y⟩ t
 
 /-- `inv_region` is valid -/
@@ -150,7 +150,7 @@ lemma valid_inv_region {x : Floating}
     have t0 : (2 : ℝ) ≠ 0 := by norm_num
     have le_n : 2^62 ≤ ((x.n : ℤ) : ℝ) := by
       apply Floating.le_coe_coe_n s0
-      simp only [Floating.isNeg_iff, decide_eq_false_iff_not, not_lt, x0.le]
+      simp only [decide_eq_false_iff_not, not_lt, x0.le, Floating.n_nonneg_iff]
     have n_lt : ((x.n : ℤ) : ℝ) < 2^63 := Floating.coe_coe_n_lt
     simp only [approx, Floating.two_pow_special_ne_nan, Floating.val_two_pow_special, ite_false,
       mem_Icc, UInt64.toNat_add_one o, UInt64.toNat_sub'' ts, e]
@@ -237,7 +237,7 @@ lemma inv_def (x : Interval) : x⁻¹ = inv x := rfl
     simp only [l0, lo_nan, not_lt, Floating.val_nan_lt_zero.le]
   have h0 := lt_of_lt_of_le l0 x.le
   have ie : (approx x)⁻¹ = Icc x.hi.val⁻¹ x.lo.val⁻¹ := by
-    simp only [approx, lo_eq_nan, xn, ite_false, inv_Icc l0 h0]
+    simp only [approx, lo_eq_nan, xn, ite_false, inv_Icc₀ l0 h0]
   simp only [ie]
   apply Icc_subset_approx
   · exact Interval.approx_union_left (Around.mem _)
@@ -250,7 +250,7 @@ noncomputable instance : ApproxInv Interval ℝ where
     split_ifs with z
     · simp only [approx_nan, subset_univ]
     simp only [zero_mem_eq, decide_eq_true_eq] at z
-    simp only [Floating.isNeg_iff, Bool.cond_decide]
+    simp only [Int64.isNeg, Floating.isNeg_iff, Bool.cond_decide]
     split_ifs with l0
     · have e : x = -x.abs := by
         rw [abs_of_nonpos, neg_neg]

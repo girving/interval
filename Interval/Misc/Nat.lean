@@ -80,11 +80,11 @@ lemma Nat.land_le_max {m n : ℕ} : m &&& n ≤ max m n := by
 
 lemma Nat.bodd_sub {n k : ℕ} : bodd (n - k) = (Bool.xor (bodd n) (bodd k) && k ≤ n) := by
   by_cases kn : k ≤ n
-  · simp only [ge_iff_le, kn, decide_True, Bool.and_true, decide_eq_true_eq]
+  · simp only [ge_iff_le, kn, decide_true, Bool.and_true, decide_eq_true_eq]
     nth_rw 2 [←Nat.sub_add_cancel kn]
     generalize n - k = m
     simp only [bodd_add, Bool.xor_assoc, bne_self_eq_false, Bool.xor_false]
-  · simp only [ge_iff_le, Nat.sub_eq_zero_of_le (not_le.mp kn).le, bodd_zero, kn, decide_False,
+  · simp only [ge_iff_le, Nat.sub_eq_zero_of_le (not_le.mp kn).le, bodd_zero, kn, decide_false,
       Bool.and_false]
 
 lemma Nat.bodd_sub_one {n : ℕ} : bodd (n-1) = decide (n ≠ 0 ∧ ¬bodd n) := by
@@ -97,7 +97,7 @@ lemma Nat.bodd_two_pow {k : ℕ} : bodd (2^k) = decide (k = 0) := by
   induction' k with k
   · rfl
   · simp only [pow_succ, bodd_mul, bodd_succ, bodd_zero, Bool.not_false, Bool.not_true,
-      Bool.and_false, succ_ne_zero, decide_False]
+      Bool.and_false, succ_ne_zero, decide_false]
 
 @[simp] lemma Nat.pow_div' {a m n : ℕ} (a0 : a ≠ 0) : a^(m + n) / a^n = a^m := by
   rw [Nat.pow_div]
@@ -121,26 +121,21 @@ lemma Nat.bodd_two_pow {k : ℕ} : bodd (2^k) = decide (k = 0) := by
   · rw [←Nat.sub_add_cancel kn]; generalize n - k = n; clear kn
     simp only [ge_iff_le, add_le_iff_nonpos_left, nonpos_iff_eq_zero, add_tsub_cancel_right]
     induction' n with n h
-    · simp only [zero_eq, zero_add, ge_iff_le, _root_.pow_zero, le_refl, tsub_eq_zero_of_le]
-      rw [Nat.div_eq_zero_iff k0]
-      exact Nat.pred_lt k0.ne'
+    · simp only [zero_add, pow_zero, tsub_self, Nat.div_eq_zero_iff, pow_eq_zero_iff',
+        OfNat.ofNat_ne_zero, ne_eq, false_and, tsub_lt_self_iff, ofNat_pos, pow_pos, zero_lt_one,
+        and_self, or_true]
     · simp only [succ_add, pow_succ, mul_two, Nat.add_sub_assoc (k1 _), Nat.add_div k0, ne_eq,
         OfNat.ofNat_ne_zero, not_false_eq_true, pow_div', h, pow_mod', zero_add, add_right_eq_self,
         ite_eq_right_iff, one_ne_zero, imp_false, not_le, gt_iff_lt]
       exact Nat.mod_lt _ k0
   · simp only [not_le] at kn
-    simp only [ge_iff_le, Nat.sub_eq_zero_of_le kn.le, _root_.pow_zero, le_refl, tsub_eq_zero_of_le,
-      Nat.div_eq_zero_iff k0, gt_iff_lt]
+    simp only [Nat.sub_eq_zero_of_le kn.le, pow_zero, tsub_self, Nat.div_eq_zero_iff,
+      pow_eq_zero_iff', OfNat.ofNat_ne_zero, ne_eq, false_and, false_or, gt_iff_lt]
     refine lt_of_lt_of_le ?_ (pow_right_mono₀ one_le_two kn)
     simp only [ge_iff_le]
     trans 2^n
     · apply Nat.pred_lt; apply pow_ne_zero; norm_num
-    · apply pow_lt_pow_right; norm_num; exact lt.base n
-
-lemma Nat.mod_eq_sub {n k : ℕ} : n % k = n - k * (n / k) := by
-  refine (Nat.sub_eq_of_eq_add ?_).symm
-  rw [add_comm]
-  exact (Nat.div_add_mod _ _).symm
+    · apply pow_lt_pow_right₀; norm_num; exact lt.base n
 
 lemma Nat.land_eq_mod {n k : ℕ} : n &&& (2^k-1) = n % 2^k := by
   revert n
@@ -154,7 +149,7 @@ lemma Nat.land_eq_mod {n k : ℕ} : n &&& (2^k-1) = n % 2^k := by
       refine Nat.eq_of_testBit_eq fun i ↦ ?_
       induction' i with i
       · simp only [and_pow_two_sub_one_eq_mod, zero_eq, testBit_mod_two_pow, zero_lt_succ,
-          decide_True, testBit_zero, Bool.true_and]
+          decide_true, testBit_zero, Bool.true_and]
       · simp only [and_pow_two_sub_one_eq_mod, testBit_mod_two_pow, succ_lt_succ_iff]
 
 lemma Nat.add_lt_add' {a b c d : ℕ} (ac : a < c) (bd : b ≤ d) : a + b < c + d := by
@@ -193,8 +188,9 @@ lemma Nat.div_mod_mul_add_mod_eq {a n : ℕ} : a / n % n * n + a % n = a % n^2 :
     have cn : c < n := by rw [←hc]; exact mod_lt a np
     have bn : b * n % n = 0 := mul_mod_left b n
     have be : (b * n + c) / n = b := by
-      simp only [Nat.add_div np, Nat.mul_div_cancel _ np, (Nat.div_eq_zero_iff np).mpr cn, add_zero,
-        Nat.mul_mod_left, Nat.mod_eq_of_lt cn, zero_add, not_le.mpr cn, if_false]
+      simp only [Nat.add_div np, Nat.mul_div_cancel _ np, mul_mod_left, Nat.mod_eq_of_lt cn,
+        zero_add, not_le.mpr cn, ↓reduceIte, add_zero, add_right_eq_self, Nat.div_eq_zero_iff, cn,
+        or_true]
     have ce : (b * n + c) % n = c := by
       rw [Nat.add_mod, bn, zero_add, Nat.mod_mod, Nat.mod_eq_of_lt cn]
     have cnn : c % n^2 = c := by
@@ -242,7 +238,7 @@ lemma Nat.lor_eq_add {a b : ℕ} (h : ∀ i, testBit a i = false ∨ testBit b i
     simp only [mul_comm _ (2 ^ k), ge_iff_le, add_le_iff_nonpos_left, nonpos_iff_eq_zero,
       tsub_eq_zero_iff_le, add_tsub_cancel_right]
     rw [Nat.mul_div_mul_left _ _ (pow_pos (by norm_num) k), Bool.decide_coe]
-  · simp only [one_and_eq_mod_two, ki, bne_iff_ne, ne_eq, mod_two_ne_zero, false_and, decide_False,
+  · simp only [one_and_eq_mod_two, ki, bne_iff_ne, ne_eq, mod_two_ne_zero, false_and, decide_false,
       bne_eq_false_iff_eq]
     simp only [not_le] at ki
     rw [←Nat.sub_add_cancel ki]
@@ -263,7 +259,7 @@ lemma Nat.div_div {n a b : ℕ} : n / a / b = n / (a * b) := by
         mul_mod_left, mod_mod, zero_add, not_le.mpr (Nat.mod_lt _ a0), ite_false]
       rw [add_mul, mul_comm b, mul_assoc, add_assoc, add_comm (m * b), add_comm (m * (b * a)),
         Nat.add_mul_div_right _ _ b0, Nat.add_mul_div_right _ _ ba0, mod_div_self, zero_add]
-      simp only [self_eq_add_left, Nat.div_eq_zero_iff ba0]
+      simp only [self_eq_add_left, Nat.div_eq_zero_iff, ba0.ne', false_or]
       have lt0 : n / a % b * a ≤ (b-1) * a := Nat.mul_le_mul_right _ (Nat.mod_le' b0)
       have lt1 : n % a ≤ a-1 := Nat.mod_le' a0
       refine lt_of_le_of_lt (add_le_add lt0 lt1) ?_
@@ -305,7 +301,7 @@ lemma Nat.add_mod_two_pow_disjoint {x y a b : ℕ} (ya : y < 2^a) :
 lemma Nat.div_eq_zero_of_lt {m n : ℕ} (h : m < n) : m / n = 0 := by
   by_cases n0 : n = 0
   · simp only [n0, Nat.div_zero]
-  · rwa [Nat.div_eq_zero_iff (Nat.pos_iff_ne_zero.mpr n0)]
+  · rw [Nat.div_eq_zero_iff]; omega
 
 lemma Nat.sub_le_sub {a b c d : ℕ} (ab : a ≤ c) (db : d ≤ b) : a - b ≤ c - d := by omega
 

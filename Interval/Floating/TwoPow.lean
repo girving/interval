@@ -16,7 +16,7 @@ namespace Floating
 
 /-- `two_pow` is valid -/
 lemma valid_two_pow {n : Fixed 0} :
-    let s : UInt64 := n.n.n + (2^63 : UInt64)
+    let s : UInt64 := n.n.toUInt64 + (2^63 : UInt64)
     Valid (2^62) (s - 62) where
   zero_same := by intro n; contrapose n; clear n; fast_decide
   nan_same := by intro n; contrapose n; clear n; fast_decide
@@ -24,7 +24,7 @@ lemma valid_two_pow {n : Fixed 0} :
 
 /-- Exact powers of two -/
 @[irreducible] def two_pow (n : Fixed 0) : Floating :=
-  let s : UInt64 := n.n.n + (2^63 : UInt64)
+  let s : UInt64 := n.n.toUInt64 + (2^63 : UInt64)
   bif n == nan || s < 62 then nan else
   { n := 2^62
     s := s - 62
@@ -34,7 +34,7 @@ lemma valid_two_pow {n : Fixed 0} :
 @[approx] lemma mem_approx_two_pow (n : Fixed 0) : 2^n.val ∈ approx (two_pow n) := by
   rw [two_pow]
   simp only [bif_eq_if, Bool.or_eq_true, beq_iff_eq, decide_eq_true_eq]
-  by_cases b : n = nan ∨ n.n.n + (2^63 : UInt64) < 62
+  by_cases b : n = nan ∨ n.n.toUInt64 + (2^63 : UInt64) < 62
   · rcases b with b | b; all_goals simp [b]
   simp only [not_or, not_lt, Ne] at b
   rcases b with ⟨nn, le⟩
@@ -43,10 +43,10 @@ lemma valid_two_pow {n : Fixed 0} :
   intro h; clear h
   rw [val, Fixed.val]
   have e62 : ((2^62 : Int64) : ℤ) = 2^62 := by fast_decide
-  have le' : 62 ≤ (n.n.n + 2^63).toNat := by simpa only [UInt64.le_iff_toNat_le, u62] using le
-  have v : ((n.n.n + 2^63).toNat : ℤ) = (n.n : ℤ) + 2^63 := by
+  have le' : 62 ≤ (n.n.toUInt64 + 2^63).toNat := by simpa only [UInt64.le_iff_toNat_le, u62] using le
+  have v : ((n.n.toUInt64 + 2^63).toNat : ℤ) = (n.n : ℤ) + 2^63 := by
     have v := Int64.toNat_add_pow_eq_coe n.n
-    have e : (2 ^ 63 : Int64).n = 2 ^ 63 := by fast_decide
+    have e : (2 ^ 63 : Int64).toUInt64 = 2 ^ 63 := by fast_decide
     rw [Int64.add_def, e] at v
     exact v
   simp only [Int64.coe_zero, zpow_zero, mul_one, Real.rpow_intCast, e62, Int.cast_pow,

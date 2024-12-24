@@ -1,6 +1,5 @@
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Data.Real.Basic
-import Mathlib.Data.Set.Pointwise.Interval
 import Mathlib.Tactic.Linarith.Frontend
 import Interval.Tactic.Approx
 
@@ -97,7 +96,7 @@ theorem image_mul_right_Icc_of_neg {a b c : 𝕜} (c0 : c < 0) :
     Icc a b * {2^n} = Icc (a * 2^n) (b * 2^n) := Icc_mul_singleton two_zpow_pos
 
 /-- `Icc` commutes with `⁻¹` if we're positive -/
-lemma Set.inv_Icc {a b : 𝕜} (a0 : 0 < a) (b0 : 0 < b) : (Icc a b)⁻¹ = Icc b⁻¹ a⁻¹ := by
+lemma Set.inv_Icc₀ {a b : 𝕜} (a0 : 0 < a) (b0 : 0 < b) : (Icc a b)⁻¹ = Icc b⁻¹ a⁻¹ := by
   ext x
   simp only [mem_inv, mem_Icc, and_comm]
   by_cases x0 : x ≤ 0

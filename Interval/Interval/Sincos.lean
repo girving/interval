@@ -370,19 +370,19 @@ into account extrema reached in between the endpoints.
   let m := n + d
   bif m == nan then nan else
   -- Conceptually, we can subtract n / 2 * 4 with no change, so w.l.o.g. 0 ≤ n < 8
-  let k := m.n.n % 4
+  let k := m.n.toUInt64 % 4
   -- We handle the interval `[-π/4, 3π/2]` via case analysis
   let x := x - Interval.pi_div_2.mul_float n
   let y := bif k == 0 || k == 2 then x.sin_small else x.cos_small
   bif decide (2 ≤ k) then -y else y
 
-lemma Int64.n_mod_4 (x : Int64) : (x.n.toNat % 4 : ℕ) = x.toInt % 4 := by
-  by_cases xn : x.isNeg
+lemma Int64.n_mod_4 (x : Int64) : (x.toUInt64.toNat % 4 : ℕ) = x.toInt % 4 := by
+  by_cases xn : x < 0
   · have e : ((2 ^ 64 : ℕ) : ℤ) % 4 = 0 := rfl
     rw [Int64.coe_of_neg xn, Int.sub_emod, e, sub_zero, Int.emod_emod, Int.ofNat_emod,
       Nat.cast_ofNat]
   · simp only [Bool.not_eq_true] at xn
-    rw [Int64.coe_of_nonneg xn, Int.ofNat_emod, Nat.cast_ofNat]
+    rw [Int64.coe_of_nonneg (not_lt.mp xn), Int.ofNat_emod, Nat.cast_ofNat]
 
 /-- `Floating.presin` is conservative -/
 @[approx] lemma Floating.mem_approx_presin {x' : ℝ} {x : Floating} (ax : x'  ∈ approx x)
@@ -390,7 +390,7 @@ lemma Int64.n_mod_4 (x : Int64) : (x.n.toNat % 4 : ℕ) = x.toInt % 4 := by
   rw [presin]
   generalize hn : ((x.mul Interval.two_div_pi.lo false).add (.ofRat (1/2) false) false).floor = n
   generalize hm : n + d = m
-  generalize hk : m.n.n % 4 = k
+  generalize hk : m.n.toUInt64 % 4 = k
   simp only [hm, hk]
   simp only [bif_eq_if, decide_eq_true_eq, Bool.or_eq_true, beq_iff_eq] at hk ⊢
   by_cases mn : m = nan
@@ -404,10 +404,11 @@ lemma Int64.n_mod_4 (x : Int64) : (x.n.toNat % 4 : ℕ) = x.toInt % 4 := by
   have ak : k = (a.val : UInt64) := by simp only [← ha, UInt64.cast_toNat]
   generalize hq : m.n.toInt / 4 = q
   have q4 : 4 % UInt64.size = 4 := rfl
+  have e4 : UInt64.toNat 4 = 4 := rfl
   have nq : m.val = 4 * q + a.val := by
     simp only [Fixed.val_of_s0, ← hq, ← ha, ← hk, UInt64.toNat_mod, UInt64.toNat_ofNat,
       (by norm_num : (4 : ℝ) = (4 : ℤ)), ← Int.cast_mul, ← Int.cast_natCast (R := ℝ),
-      ← Int.cast_add, Int.cast_inj, q4, Int64.n_mod_4, Int.ediv_add_emod]
+      ← Int.cast_add, Int.cast_inj, q4, Int64.n_mod_4, Int.ediv_add_emod, e4]
   have p0 : π / 2 * (4 * q) = q * (2 * π) := by ring
   have p1 : ∀ d, π / 2 * (4 * q + d) = π / 2 * d + q * (2 * π) := fun _ ↦ by ring
   simp only [ak, beq_iff_eq] at hk ⊢
@@ -476,21 +477,22 @@ lemma Floating.presin_inter_pm1 (x : Floating) (d : Fixed 0) :
   let y := x.lo.sin d' ∪ x.hi.sin d'
   -- If `n0 = n1`, `sin` is monotonic on the interval. Otherwise, we need to add in either +1 or -1.
   bif n0 == n1 then y else
-  bif n0.n.n &&& 1 == 0 then y ∪ 1 else y ∪ (-1)
+  bif n0.n.toUInt64 &&& 1 == 0 then y ∪ 1 else y ∪ (-1)
 
 lemma Even.sub_iff {a b : ℤ} (be : Even b) : Even (a - b) ↔ Even a := by
   simp only [Int.even_iff] at be ⊢
   omega
 
 lemma floor_even_iff {n : Floating} (nn : n.floor ≠ nan) :
-    n.floor.n.n &&& 1 = 0 ↔ Even ⌊n.val⌋ := by
+    n.floor.n.toUInt64 &&& 1 = 0 ↔ Even ⌊n.val⌋ := by
   have a := n.mem_approx_floor
   simp only [approx, nn, ↓reduceIte, Fixed.val_of_s0, mem_singleton_iff, Int.cast_inj] at a
   have ep : Even (if n.floor.n.isNeg = true then 18446744073709551616 else 0 : ℤ) := by
     split_ifs; all_goals decide
-  simp only [UInt64.eq_iff_toNat_eq, UInt64.and_toNat, UInt64.toNat_ofNat, Nat.one_mod,
-    Nat.and_one_is_mod, Nat.zero_mod, a, Int64.toInt, Nat.reducePow, bif_eq_if, Nat.cast_ite,
-    Nat.cast_ofNat, CharP.cast_eq_zero, Even.sub_iff ep, Int.even_iff]
+  simp only [UInt64.eq_iff_toNat_eq, UInt64.toNat_and, UInt64.toNat_ofNat, Nat.one_mod,
+    Nat.and_one_is_mod, Nat.zero_mod, a, Int64.toInt_eq_if, Nat.reducePow, bif_eq_if, Nat.cast_ite,
+    Nat.cast_ofNat, CharP.cast_eq_zero, Even.sub_iff ep, Int.even_iff, UInt64.toNat_one,
+    Nat.and_one_is_mod, UInt64.toNat_zero]
   omega
 
 /-- `Interval.sincos` is conservative -/
@@ -513,7 +515,7 @@ lemma floor_even_iff {n : Floating} (nn : n.floor ≠ nan) :
   generalize hk0 : ⌊n.lo.val⌋ = k0 at f0
   generalize hk1 : ⌊n.hi.val⌋ = k1 at f1
   simp only [approx, n0n, ↓reduceIte, mem_singleton_iff, n1n] at f0 f1
-  have parity : n.lo.floor.n.n &&& 1 = 0 ↔ Even k0 := by
+  have parity : n.lo.floor.n.toUInt64 &&& 1 = 0 ↔ Even k0 := by
     simp only [floor_even_iff n0n, ← f0, Int.floor_intCast, hk0]
   have an0 : x.lo.val * π⁻¹ + ((if d then 1 else (2⁻¹ : ℚ)) : ℝ) ∈ approx n := by rw [← hn]; approx
   have an1 : x.hi.val * π⁻¹ + ((if d then 1 else (2⁻¹ : ℚ)) : ℝ) ∈ approx n := by rw [← hn]; approx
