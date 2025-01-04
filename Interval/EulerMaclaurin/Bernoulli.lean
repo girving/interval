@@ -146,6 +146,7 @@ lemma integrable_bernoulliFun_comp_add_right {s : ℕ} {a b c : ℝ} :
   apply Continuous.intervalIntegrable
   continuity
 
+/-- The multiplication theorem. Proof follows https://math.stackexchange.com/a/1721099/38218. -/
 lemma bernoulliFun_mul (s m : ℕ) (m0 : m ≠ 0) (x : ℝ) :
     bernoulliFun s (m * x) =
       m ^ s / m * ∑ k ∈ Finset.range m, bernoulliFun s (x + k / m) := by
