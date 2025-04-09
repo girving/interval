@@ -335,7 +335,7 @@ lemma continuous_saw : Continuous (saw (s + 2)) := by
     · apply ContinuousWithinAt.congr_of_eventuallyEq (f := presaw (s + 2) (a - 1))
       · exact contDiff_presaw.continuous.continuousWithinAt
       · apply saw_eqOn.eventuallyEq_of_mem
-        apply Ico_mem_nhdsWithin_Iio
+        apply Ico_mem_nhdsLT_of_mem
         simp only [Int.cast_sub, Int.cast_one, sub_add_cancel, mem_Ioc, sub_lt_self_iff,
           zero_lt_one, le_refl, and_self]
       · nth_rw 2 [← sub_add_cancel (a : ℝ) 1]
@@ -343,7 +343,7 @@ lemma continuous_saw : Continuous (saw (s + 2)) := by
     · apply ContinuousWithinAt.congr_of_eventuallyEq (f := presaw (s + 2) a)
       · exact contDiff_presaw.continuous.continuousWithinAt
       · apply saw_eqOn.eventuallyEq_of_mem
-        apply Ico_mem_nhdsWithin_Ioi
+        apply Ico_mem_nhdsGT_of_mem
         simp only [Int.cast_add, Int.cast_one, mem_Ico, le_refl, lt_add_iff_pos_right, zero_lt_one,
           and_self]
       · simp only [saw_int, presaw_coe_same]

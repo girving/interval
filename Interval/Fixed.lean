@@ -1321,10 +1321,10 @@ lemma Fixed.lt_def (x y : Fixed s) : (x < y) ↔ (x.n < y.n) := by
   nth_rw 1 [LT.lt]
   simp only [instLT, blt, decide_eq_true_eq, gt_iff_lt]
 
-instance Fixed.decidableLT : @DecidableRel (Fixed s) (· < ·)
+instance Fixed.decidableLT : @DecidableRel (Fixed s) (Fixed s) (· < ·)
   | a, b => by dsimp [LT.lt]; infer_instance
 
-instance Fixed.decidableLE : @DecidableRel (Fixed s) (· ≤ ·)
+instance Fixed.decidableLE : @DecidableRel (Fixed s) (Fixed s) (· ≤ ·)
   | a, b => by dsimp [LE.le]; infer_instance
 
 lemma Fixed.blt_eq_decide_lt (x y : Fixed s) : x.blt y = decide (x < y) := by

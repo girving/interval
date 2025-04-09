@@ -134,7 +134,7 @@ lemma Complex.sinc_series_bound {z : ℂ} (z1 : abs z ≤ 1) {n : ℕ} (n0 : 0 <
   by_cases z0 : z = 0
   · induction' n with n _
     all_goals simp [sinc, z0, Finset.sum_range_succ']
-  · rw [← mul_div_cancel_left₀ (∑ k in Finset.range _, _) z0]
+  · rw [← mul_div_cancel_left₀ (∑ k ∈ Finset.range _, _) z0]
     simp only [sinc, z0, if_false, ← sub_div, map_div₀, div_le_iff₀ (Complex.abs.pos_iff.mpr z0),
       mul_comm _ (abs z), ← mul_assoc (abs z), ← pow_succ']
     exact sin_series_bound z1 n0

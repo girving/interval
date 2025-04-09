@@ -69,10 +69,9 @@ lemma presaw_smul_iteratedDeriv_by_parts [CompleteSpace E] (fc : ContDiffOn ℝ 
     · have mt := abt (Ioo_subset_Icc_self m)
       apply HasDerivWithinAt.hasDerivAt
       · rw [iteratedDerivWithin_succ, hasDerivWithinAt_derivWithin_iff]
-        · apply (fc.contDiffWithinAt mt).differentiableWithinAt_iteratedDerivWithin
-          · simp only [← Nat.cast_add_one, Nat.cast_lt, Nat.lt_add_one]
-          · simp only [mt, insert_eq_of_mem, u]
-        · exact u x mt
+        apply (fc.contDiffWithinAt mt).differentiableWithinAt_iteratedDerivWithin
+        · simp only [← Nat.cast_add_one, Nat.cast_lt, Nat.lt_add_one]
+        · simp only [mt, insert_eq_of_mem, u]
       · exact Filter.monotone_mem (subset_trans Ioo_subset_Icc_self abt) (isOpen_Ioo.mem_nhds m)
   refine Eq.trans (MeasureTheory.integral_eq_of_hasDerivWithinAt_off_countable_of_le
     (f := g) (f' := g') (Hd := df) (by linarith) countable_empty ?_ ?_) ?_

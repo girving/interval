@@ -645,15 +645,15 @@ lemma UInt128.toNat_shiftLeft (x : UInt128) {s : UInt64} (sl : s < 128) :
   · simp_all
   · simp_all
   · apply tb_false; omega
-  · simp_all; omega
-  · simp_all; omega
+  · simp_all [Nat.testBit_div_two_pow]; omega
+  · simp_all [Nat.testBit_div_two_pow]; omega
   · simp_all only [ts0, not_lt, Nat.mod_eq_of_lt, ne_eq, not_false_eq_true, shift0, Nat.testBit_or,
       Nat.testBit_mul_two_pow, tsub_right_comm, Nat.testBit_mod_two_pow, Bool.and_true, decide_eq_true_eq, Bool.decide_and,
       apply_decide, Bool.and_false, Nat.testBit_div_two_pow, e7, UInt64.testBit_eq_zero, Bool.or_false,
       Bool.ite_eq_true_distrib, if_false_right, ite_eq_right_iff, decide_eq_false_iff_not, not_le]
     split_ifs; repeat omega
-  · simp_all [tsub_right_comm]
-  · simp_all; constructor; omega; apply tb_false; omega
+  · simp_all [tsub_right_comm, Nat.testBit_div_two_pow]
+  · simp_all [Nat.testBit_div_two_pow]; constructor; omega; apply tb_false; omega
   · simp_all only [ts1, not_lt, e3, Nat.testBit_mul_two_pow, tsub_le_iff_right, e8, Nat.testBit_mod_two_pow,
       Bool.and_true, decide_eq_true_eq, Bool.decide_and, apply_decide, Bool.and_false, Bool.ite_eq_true_distrib,
       if_false_right, ite_eq_right_iff, decide_eq_false_iff_not, not_le]

@@ -85,7 +85,7 @@ lemma coe_low_s {n : Int64} {s : UInt64} (nm : n ≠ .min) :
       (n : ℤ) * 2^(lower (62 - n.abs.log2) s).2.toNat := by
   rw [Int64.coe_shiftLeft (lt_of_le_of_lt (low_d_le_62 nm s) (by norm_num))]
   have d := low_d_le_62 nm s
-  rw [←Nat.pow_div (by omega) (by norm_num), Nat.lt_div_iff_mul_lt, mul_comm]
+  rw [←Nat.pow_div (by omega) (by norm_num), Nat.lt_div_iff_mul_lt', mul_comm]
   · exact low_lt nm s
   · rw [Nat.pow_dvd_pow_iff_le_right (by omega)]; omega
 

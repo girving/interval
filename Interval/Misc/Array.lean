@@ -69,7 +69,7 @@ lemma ByteArray.get!_push (d : ByteArray) (c : UInt8) (i : ℕ) :
   · simp only [not_lt] at lt
     simp only [ByteArray.get!, Array.get!, ByteArray.data_push, Array.getD_eq_get?, Array.get?,
       Array.size_push]
-    rw [Array.getElem?_ge]
+    rw [Array.getElem?_eq_none]
     · rfl
     · simp only [Array.size_push, ByteArray.size] at *; omega
 

@@ -25,8 +25,9 @@ lemma deriv_interval_integral_of_contDiff (fc : ContDiff ℝ ⊤ (uncurry f)) (a
     intro t x
     have e : (fun t ↦ f t x) = uncurry f ∘ (fun t ↦ (t,x)) := rfl
     simp only [f']
-    rw [← fderiv_deriv, e, fderiv_comp, (hasFDerivAt_prod_mk_left _ _).fderiv]
-    · simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, ContinuousLinearMap.inl_apply]
+    rw [← fderiv_deriv, e, fderiv_comp]
+    · nth_rw 2 [(hasFDerivAt_prod_mk_left _ _).fderiv]
+      simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, ContinuousLinearMap.inl_apply]
     · exact (fc.differentiable le_top).differentiableAt
     · simp only [differentiableAt_id', differentiableAt_const, DifferentiableAt.prod]
   have dc : Continuous (uncurry f') := by

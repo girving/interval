@@ -102,11 +102,11 @@ instance : CommRing Int64 where
   zsmul := zsmulRec
 
 /-- `Int64` < is decidable -/
-instance decidableLT : @DecidableRel Int64 (· < ·)
+instance decidableLT : @DecidableRel Int64 Int64 (· < ·)
   | a, b => by dsimp [LT.lt, Int64.lt]; infer_instance
 
 /-- `Int64` ≤ is decidable -/
-instance decidableLE : @DecidableRel Int64 (· ≤ ·)
+instance decidableLE : @DecidableRel Int64 Int64 (· ≤ ·)
   | a, b => by dsimp [LE.le, Int64.le]; infer_instance
 
 /-- Negation preserves `min` -/

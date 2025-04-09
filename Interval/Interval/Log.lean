@@ -33,7 +33,7 @@ noncomputable def log1p_div (x : ℝ) : ℝ := if x = 0 then 1 else Real.log (1 
 
 /-- Exact precision series for `log1p_div` -/
 lemma log1p_div_bound {x : ℝ} (x1 : |x| < 1) (n : ℕ) :
-    |log1p_div x - ∑ k in Finset.range n, (-1)^k / (k + 1) * x^k| ≤ |x| ^ n / (1 - |x|) := by
+    |log1p_div x - ∑ k ∈ Finset.range n, (-1)^k / (k + 1) * x^k| ≤ |x| ^ n / (1 - |x|) := by
   by_cases x0 : x = 0
   · simp only [log1p_div, x0, add_zero, Real.log_one, div_zero, ite_true, abs_zero, sub_zero,
       div_one]
