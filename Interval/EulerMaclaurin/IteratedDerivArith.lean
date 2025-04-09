@@ -30,5 +30,5 @@ lemma iteratedDeriv_mul {n : ℕ} (fc : ContDiff 𝕜 n f) {y : 𝕜} :
       | 0 => simp only [iteratedDeriv_zero, zero_add, zero_smul, add_zero, one_smul]
       | n+1 => simp only [add_tsub_cancel_right, add_nsmul, one_smul]; abel
     · exact fc.deriv'
-    · exact fc.of_le (mod_cast (Nat.le_succ _))
-    · exact ContDiff.smul contDiff_id (fc.deriv'.of_le le_rfl)
+    · exact ContDiff.contDiffAt (fc.of_le (mod_cast (Nat.le_succ _)))
+    · exact ContDiff.contDiffAt (ContDiff.smul contDiff_id (fc.deriv'.of_le le_rfl))

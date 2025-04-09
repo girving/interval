@@ -3,6 +3,7 @@ import Interval.Interval.Monotone
 import Interval.Interval.Pi
 import Interval.Interval.Scale
 import Interval.Interval.Series
+import Mathlib.Algebra.BigOperators.Field
 import Mathlib.Data.Nat.EvenOddRec
 import Mathlib.Tactic.FinCases
 
@@ -99,9 +100,9 @@ lemma Finset.sum_range_even {M : Type*} [AddCommMonoid M] (n : ℕ) (f : ℕ →
   · simp
   · simp [Finset.sum_range_succ, h, mul_add]
 
-lemma Complex.sin_series_bound {z : ℂ} (z1 : abs z ≤ 1) {n : ℕ} (n0 : 0 < n) :
-    abs (sin z - z * ∑ k ∈ Finset.range n, (-1) ^ k * z ^ (2 * k) / (2 * k + 1).factorial) ≤
-      abs z ^ (2 * n + 1) * ((2 * n + 2) / ((2 * n + 1).factorial * (2 * n + 1))) := by
+lemma Complex.sin_series_bound {z : ℂ} (z1 : ‖z‖ ≤ 1) {n : ℕ} (n0 : 0 < n) :
+    ‖sin z - z * ∑ k ∈ Finset.range n, (-1) ^ k * z ^ (2 * k) / (2 * k + 1).factorial‖ ≤
+      ‖z‖ ^ (2 * n + 1) * ((2 * n + 2) / ((2 * n + 1).factorial * (2 * n + 1))) := by
   have e : z * ∑ k ∈ Finset.range n, (-1) ^ k * z ^ (2 * k) / (2 * k + 1).factorial =
       (∑ k ∈ Finset.range (2 * n + 1), (-z * I) ^ k / k.factorial -
        ∑ k ∈ Finset.range (2 * n + 1), (z * I) ^ k / k.factorial) * I / 2 := by
@@ -119,29 +120,29 @@ lemma Complex.sin_series_bound {z : ℂ} (z1 : abs z ≤ 1) {n : ℕ} (n0 : 0 < 
       simp only [mul_comm _ I, ← mul_assoc, I_mul_I, neg_mul, one_mul, neg_neg, mul_one]
     · simp [e, pow_mul, pow_add, mul_pow, neg_div]
   have r : ∀ a b c d : ℂ, (a - b) - (c - d) = (a - c) - (b - d) := fun _ _ _ _ ↦ by ring
-  rw [sin, e, ← sub_div, ← sub_mul, r, map_div₀, Complex.abs_two, div_le_iff₀ (by norm_num),
-    Complex.abs.map_mul, Complex.abs_I, mul_one]
-  refine le_trans (Complex.abs.sub_le_add _ _) ?_
+  rw [sin, e, ← sub_div, ← sub_mul, r, norm_div, Complex.norm_two, div_le_iff₀ (by norm_num),
+    norm_mul, Complex.norm_I, mul_one]
+  refine le_trans (norm_sub_le _ _) ?_
   refine le_trans (add_le_add (Complex.exp_bound (x := -z * I) (by simpa) (by omega))
     (Complex.exp_bound (x := z * I) (by simpa) (by omega))) (le_of_eq ?_)
-  simp only [Complex.abs.map_mul, Complex.abs_I, Complex.abs.map_neg, Nat.succ_eq_add_one,
+  simp only [norm_mul, Complex.norm_I, norm_neg, Nat.succ_eq_add_one,
     Nat.cast_add, Nat.cast_mul]
   ring_nf
 
-lemma Complex.sinc_series_bound {z : ℂ} (z1 : abs z ≤ 1) {n : ℕ} (n0 : 0 < n) :
-    abs (sinc z - ∑ k ∈ Finset.range n, (-1) ^ k * z ^ (2 * k) / (2 * k + 1).factorial) ≤
-      abs z ^ (2 * n) * ((2 * n + 2) / ((2 * n + 1).factorial * (2 * n + 1))) := by
+lemma Complex.sinc_series_bound {z : ℂ} (z1 : ‖z‖ ≤ 1) {n : ℕ} (n0 : 0 < n) :
+    ‖sinc z - ∑ k ∈ Finset.range n, (-1) ^ k * z ^ (2 * k) / (2 * k + 1).factorial‖ ≤
+      ‖z‖ ^ (2 * n) * ((2 * n + 2) / ((2 * n + 1).factorial * (2 * n + 1))) := by
   by_cases z0 : z = 0
   · induction' n with n _
     all_goals simp [sinc, z0, Finset.sum_range_succ']
   · rw [← mul_div_cancel_left₀ (∑ k ∈ Finset.range _, _) z0]
-    simp only [sinc, z0, if_false, ← sub_div, map_div₀, div_le_iff₀ (Complex.abs.pos_iff.mpr z0),
-      mul_comm _ (abs z), ← mul_assoc (abs z), ← pow_succ']
+    simp only [sinc, z0, if_false, ← sub_div, norm_div, div_le_iff₀ (norm_pos_iff.mpr z0),
+      mul_comm _ ‖z‖, ← mul_assoc ‖z‖, ← pow_succ']
     exact sin_series_bound z1 n0
 
-lemma Complex.cos_series_bound {z : ℂ} (z1 : abs z ≤ 1) {n : ℕ} (n0 : 0 < n) :
-    abs (cos z - ∑ k ∈ Finset.range n, (-1) ^ k * z ^ (2 * k) / (2 * k).factorial) ≤
-      abs z ^ (2 * n) * ((2 * n + 1) / ((2 * n).factorial * (2 * n))) := by
+lemma Complex.cos_series_bound {z : ℂ} (z1 : ‖z‖ ≤ 1) {n : ℕ} (n0 : 0 < n) :
+    ‖cos z - ∑ k ∈ Finset.range n, (-1) ^ k * z ^ (2 * k) / (2 * k).factorial‖ ≤
+      ‖z‖ ^ (2 * n) * ((2 * n + 1) / ((2 * n).factorial * (2 * n))) := by
   have e : ∑ k ∈ Finset.range n, (-1) ^ k * z ^ (2 * k) / (2 * k).factorial =
       (∑ k ∈ Finset.range (2 * n), (z * I) ^ k / k.factorial +
        ∑ k ∈ Finset.range (2 * n), (-z * I) ^ k / k.factorial) / 2 := by
@@ -154,39 +155,39 @@ lemma Complex.cos_series_bound {z : ℂ} (z1 : abs z ≤ 1) {n : ℕ} (n0 : 0 < 
       ring
     · simp [e, pow_mul, pow_add, mul_pow, neg_div]
   have r : ∀ a b c d : ℂ, (a + b) - (c + d) = (a - c) + (b - d) := fun _ _ _ _ ↦ by ring
-  rw [cos, e, ← sub_div, r, map_div₀, Complex.abs_two, div_le_iff₀ (by norm_num)]
-  refine le_trans (Complex.abs.add_le _ _) ?_
+  rw [cos, e, ← sub_div, r, norm_div, Complex.norm_two, div_le_iff₀ (by norm_num)]
+  refine le_trans (norm_add_le _ _) ?_
   refine le_trans (add_le_add (Complex.exp_bound (x := z * I) (by simpa) (by omega))
     (Complex.exp_bound (x := -z * I) (by simpa) (by omega))) (le_of_eq ?_)
-  simp only [Complex.abs.map_mul, Complex.abs_I, Complex.abs.map_neg, Nat.succ_eq_add_one,
+  simp only [norm_mul, Complex.norm_I, norm_neg, Nat.succ_eq_add_one,
     Nat.cast_add, Nat.cast_mul]
   ring_nf
 
 lemma Real.sin_series_bound {x : ℝ} (x1 : |x| ≤ 1) {n : ℕ} (n0 : 0 < n) :
     |sin x - x * ∑ k ∈ Finset.range n, (-1) ^ k * x ^ (2 * k) / (2 * k + 1).factorial| ≤
       |x| ^ (2 * n + 1) * ((2 * n + 2) / ((2 * n + 1).factorial * (2 * n + 1))) := by
-  have b := Complex.sin_series_bound (z := x) (by simpa only [Complex.abs_ofReal]) n0
+  have b := Complex.sin_series_bound (z := x) (by simpa only [Complex.norm_real]) n0
   simp only [← Complex.ofReal_sin, ← Complex.ofReal_pow, ← Complex.ofReal_one,
     ← Complex.ofReal_neg, ← Complex.ofReal_mul, ← Complex.ofReal_natCast, ← Complex.ofReal_div,
-    ← Complex.ofReal_sum, ← Complex.ofReal_sub, Complex.abs_ofReal] at b
+    ← Complex.ofReal_sum, ← Complex.ofReal_sub, Complex.norm_real] at b
   exact b
 
 lemma Real.sinc_series_bound {x : ℝ} (x1 : |x| ≤ 1) {n : ℕ} (n0 : 0 < n) :
     |sinc x - ∑ k ∈ Finset.range n, (-1) ^ k * x ^ (2 * k) / (2 * k + 1).factorial| ≤
       |x| ^ (2 * n) * ((2 * n + 2) / ((2 * n + 1).factorial * (2 * n + 1))) := by
-  have b := Complex.sinc_series_bound (z := x) (by simpa only [Complex.abs_ofReal]) n0
+  have b := Complex.sinc_series_bound (z := x) (by simpa only [Complex.norm_real]) n0
   simp only [← Complex.ofReal_sinc, ← Complex.ofReal_pow, ← Complex.ofReal_one,
     ← Complex.ofReal_neg, ← Complex.ofReal_mul, ← Complex.ofReal_natCast, ← Complex.ofReal_div,
-    ← Complex.ofReal_sum, ← Complex.ofReal_sub, Complex.abs_ofReal] at b
+    ← Complex.ofReal_sum, ← Complex.ofReal_sub, Complex.norm_real] at b
   exact b
 
 lemma Real.cos_series_bound {x : ℝ} (x1 : |x| ≤ 1) {n : ℕ} (n0 : 0 < n) :
     |cos x - ∑ k ∈ Finset.range n, (-1) ^ k * x ^ (2 * k) / (2 * k).factorial| ≤
       |x| ^ (2 * n) * ((2 * n + 1) / ((2 * n).factorial * (2 * n))) := by
-  have b := Complex.cos_series_bound (z := x) (by simpa only [Complex.abs_ofReal]) n0
+  have b := Complex.cos_series_bound (z := x) (by simpa only [Complex.norm_real]) n0
   simp only [← Complex.ofReal_cos, ← Complex.ofReal_pow, ← Complex.ofReal_one,
     ← Complex.ofReal_neg, ← Complex.ofReal_mul, ← Complex.ofReal_natCast, ← Complex.ofReal_div,
-    ← Complex.ofReal_sum, ← Complex.ofReal_sub, Complex.abs_ofReal] at b
+    ← Complex.ofReal_sum, ← Complex.ofReal_sub, Complex.norm_real] at b
   exact b
 
 /-!

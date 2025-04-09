@@ -1,4 +1,5 @@
 import Batteries.Lean.Float
+import Mathlib.Data.Int.Bitwise
 import Mathlib.Data.Real.Basic
 import Interval.Approx
 import Interval.Int64
@@ -832,7 +833,7 @@ instance {n : ℕ} [n.AtLeastTwo] : OfNat (Fixed s) n := ⟨.ofNat n false⟩
   --   `y * 2^s ≈ a / b`
   -- We can do this via an exact integer division if we merge `2^s` into either `a` or `b`.
   -- This might be expensive if `s` is large, but we can worry about that later.
-  let (a,b) := bif s.isNeg then (x.num >>> ↑s, x.den) else (x.num, x.den <<< s.toUInt64.toNat)
+  let (a, b) := bif s.isNeg then (x.num >>> ↑s, x.den) else (x.num, x.den <<< s.toUInt64.toNat)
   let d := a.rdiv b up
   bif |d| < 2^63 then ⟨d⟩ else nan
 

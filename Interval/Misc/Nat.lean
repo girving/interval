@@ -229,7 +229,8 @@ lemma Nat.lor_eq_add {a b : ℕ} (h : ∀ i, testBit a i = false ∨ testBit b i
         · simp only [h, Bool.false_or, Bool.toNat_false, zero_add]
         · simp only [h, Bool.or_false, Bool.toNat_false, add_zero]
 
-@[simp] lemma Nat.testBit_mul_two_pow {n k i : ℕ} :
+
+@[simp] lemma Nat.testBit_mul_two_pow' {n k i : ℕ} :
     testBit (n * 2^k) i = decide (k ≤ i ∧ testBit n (i-k)) := by
   simp only [testBit, shiftRight_eq_div_pow]
   by_cases ki : k ≤ i

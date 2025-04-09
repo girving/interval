@@ -241,7 +241,7 @@ lemma tendsto_sum {x : ℝ} {s : ℕ} (x0 : 0 ≤ x) :
   rw [(by simp : 0 = c * 0)]
   refine (tendsto_inv_atTop_zero.comp ?_).const_mul _
   refine (tendsto_pow_atTop (by omega)).comp ?_
-  apply tendsto_atTop_add_nonneg_left
+  apply Filter.Tendsto.nonneg_add_atTop
   · intro _; linarith
   · exact tendsto_natCast_atTop_atTop
 

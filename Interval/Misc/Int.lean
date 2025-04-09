@@ -11,9 +11,9 @@ import Interval.Misc.Nat
 
 /-- `abs` and `zpow` commute -/
 lemma abs_zpow {x : ℝ} {n : ℤ} : |x ^ n| = |x| ^ n := by
-  induction' n with n n
+  induction' n using Int.rec with n n
   · simp only [Int.ofNat_eq_coe, zpow_natCast, abs_pow]
-  · simp only [zpow_negSucc, abs_inv, abs_pow]
+  · simp [zpow_negSucc, abs_inv, abs_pow]
 
 /-- `Int` division, rounding up or down -/
 def Int.rdiv (a : ℤ) (b : ℕ) (up : Bool) : ℤ :=
@@ -249,7 +249,7 @@ lemma Int.emod_mul_eq_mul_emod (a n : ℤ) (n0 : 0 < n) : a * n % n^2 = a % n * 
     This is a slightly nicer induction principle on the integers that covers zero twice
     to reduce notational clutter. -/
 theorem Int.induction_overlap {p : ℤ → Prop} (hi : ∀ n : ℕ, p n) (lo : ∀ n : ℕ, p (-n)) :
-    ∀ n : ℤ, p n := by intro n; induction' n with n; exact hi n; exact lo (_ + 1)
+    ∀ n : ℤ, p n := by intro n; induction' n using Int.rec with n; exact hi n; exact lo (_ + 1)
 
 section ZPow
 attribute [bound] zpow_nonneg zpow_pos
@@ -292,7 +292,7 @@ lemma Int.abs_def {n : ℤ} : |n| = if n < 0 then -n else n := by
 /-- Turn `n.natAbs` into something `omega` understands -/
 lemma Int.natAbs_def {n : ℤ} : n.natAbs = if n < 0 then (-n).toNat else n.toNat := by
   simp only [natAbs]
-  induction' n with n
+  induction' n using Int.rec with n
   · simp only [ofNat_eq_coe, toNat_neg_nat, toNat_ofNat]
     split_ifs
     all_goals omega
