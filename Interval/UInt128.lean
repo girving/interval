@@ -504,9 +504,9 @@ lemma UInt128.testBit_eq {x : UInt128} {i : ℕ} :
   rw [UInt128.toNat, Nat.shiftLeft_eq, ←Nat.lor_eq_add]
   · simp only [Nat.testBit_lor]
     by_cases c : i < 64
-    · simp only [Nat.testBit_mul_two_pow, not_le.mpr c, ge_iff_le, false_and, decide_false,
+    · simp only [Nat.testBit_mul_two_pow', not_le.mpr c, ge_iff_le, false_and, decide_false,
         Bool.false_or, c, ite_true]
-    · simp only [Nat.testBit_mul_two_pow, not_lt.mp c, ge_iff_le, true_and, Bool.decide_coe,
+    · simp only [Nat.testBit_mul_two_pow', not_lt.mp c, ge_iff_le, true_and, Bool.decide_coe,
         z1 _ (not_lt.mp c), Bool.or_false, c, ite_false]
   · intro j
     by_cases c : j < 64
@@ -610,7 +610,7 @@ lemma UInt128.toNat_shiftLeft (x : UInt128) {s : UInt64} (sl : s < 128) :
   simp only [UInt64.land_eq_hand, t127' sl, UInt64.lt_iff_toNat_lt, UInt64.toNat_cast,
     Nat.mod_eq_of_lt t64', p64, bif_eq_if, beq_iff_eq, UInt64.eq_iff_toNat_eq,
     UInt64.toNat_zero, testBit_eq, apply_ite (f := UInt64.toNat), UInt64.toNat_shiftLeft',
-    apply_ite (f := fun x ↦ Nat.testBit x i), Nat.testBit_mul_two_pow, Nat.testBit_mod_two_pow,
+    apply_ite (f := fun x ↦ Nat.testBit x i), Nat.testBit_mul_two_pow', Nat.testBit_mod_two_pow,
     Bool.and_eq_true, Nat.zero_testBit, UInt64.toNat_lor, decide_eq_true_iff, Bool.decide_and,
     UInt64.toNat_shiftRight', Bool.ite_eq_true_distrib, Bool.and_true, Bool.and_false,
     Bool.decide_coe, decide_and_eq_if', apply_decide, Bool.and_true, Bool.and_false]
@@ -645,15 +645,15 @@ lemma UInt128.toNat_shiftLeft (x : UInt128) {s : UInt64} (sl : s < 128) :
   · simp_all
   · simp_all
   · apply tb_false; omega
-  · simp_all; omega
-  · simp_all; omega
+  · simp_all [Nat.testBit_div_two_pow]; omega
+  · simp_all [Nat.testBit_div_two_pow]; omega
   · simp_all only [ts0, not_lt, Nat.mod_eq_of_lt, ne_eq, not_false_eq_true, shift0, Nat.testBit_or,
       Nat.testBit_mul_two_pow, tsub_right_comm, Nat.testBit_mod_two_pow, Bool.and_true, decide_eq_true_eq, Bool.decide_and,
       apply_decide, Bool.and_false, Nat.testBit_div_two_pow, e7, UInt64.testBit_eq_zero, Bool.or_false,
       Bool.ite_eq_true_distrib, if_false_right, ite_eq_right_iff, decide_eq_false_iff_not, not_le]
     split_ifs; repeat omega
-  · simp_all [tsub_right_comm]
-  · simp_all; constructor; omega; apply tb_false; omega
+  · simp_all [tsub_right_comm, Nat.testBit_div_two_pow]
+  · simp_all [Nat.testBit_div_two_pow]; constructor; omega; apply tb_false; omega
   · simp_all only [ts1, not_lt, e3, Nat.testBit_mul_two_pow, tsub_le_iff_right, e8, Nat.testBit_mod_two_pow,
       Bool.and_true, decide_eq_true_eq, Bool.decide_and, apply_decide, Bool.and_false, Bool.ite_eq_true_distrib,
       if_false_right, ite_eq_right_iff, decide_eq_false_iff_not, not_le]
@@ -702,7 +702,7 @@ lemma UInt128.toNat_shiftRight (x : UInt128) {s : UInt64} (sl : s < 128) :
     apply_ite (f := UInt64.toNat), apply_ite (f := fun x ↦ Nat.testBit x i),
     apply_ite (f := fun x ↦ Nat.testBit x (i - 64)),
     UInt64.toNat_shiftRight', UInt64.toNat_lor, Nat.testBit_lor, Nat.testBit_div_two_pow,
-    Nat.testBit_mul_two_pow, UInt64.toNat_shiftLeft', Nat.testBit_mod_two_pow, apply_decide,
+    Nat.testBit_mul_two_pow', UInt64.toNat_shiftLeft', Nat.testBit_mod_two_pow, apply_decide,
     UInt64.land_eq_hand, UInt64.eq_iff_toNat_eq, UInt64.toNat_zero, UInt64.toNat_land, p127,
     UInt64.toNat_cast, Nat.mod_eq_of_lt t64', UInt64.lt_iff_toNat_lt, t127, p64, Bool.or_true,
     Bool.or_false, Nat.testBit_zero', t127' sl]

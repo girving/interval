@@ -656,7 +656,8 @@ instance : Coe Floating Interval where
     split_ifs with h
     · simp only [min_le_iff, le_refl, true_or, or_true, or_self]
     · simp only [a, b, Floating.abs_eq_nan] at n1
-      simp only [Floating.val_abs n1.1, abs_nonneg, Floating.val_abs n1.2, or_self])
+      simp_all only [not_false_eq_true, ne_eq, Floating.val_abs, abs_nonneg,
+                     or_self, a, b])
 
 /-- `x.abs` conserves `nan` -/
 @[simp] lemma abs_eq_nan {x : Interval} : x.abs = nan ↔ x = nan := by

@@ -30,7 +30,7 @@ lemma approx_taylor_sum' (c : Array Interval) (c' : ℕ → ℝ) (x p e : Interv
     (offset steps : ℕ) (os : offset + steps ≤ c.size)
     (ac : ∀ k : Fin c.size, c' k ∈ approx (c[k]))
     (xx : x' ∈ approx x) (pp : p' ∈ approx p) (ee : e' ∈ approx e) :
-    (∑ k in Finset.range steps, c' (offset + k) * p' * x' ^ k) + e' ∈
+    (∑ k ∈ Finset.range steps, c' (offset + k) * p' * x' ^ k) + e' ∈
       approx (taylor_sum' c x p e offset steps os) := by
   induction' steps with steps h generalizing p p' offset
   · simp only [Finset.range_zero, Finset.sum_empty, add_zero, taylor_sum', zero_add]
@@ -47,7 +47,7 @@ lemma approx_taylor_sum' (c : Array Interval) (c' : ℕ → ℝ) (x p e : Interv
 /-- `taylor_sum` is conservative -/
 lemma approx_taylor_sum (c : Array Interval) (c' : ℕ → ℝ) (x e : Interval) (x' e' : ℝ)
     (ac : ∀ k : Fin c.size, c' k ∈ approx (c[k])) (xx : x' ∈ approx x) (ee : e' ∈ approx e) :
-    (∑ k in Finset.range c.size, c' k * x' ^ k) + e' ∈ approx (taylor_sum c x e) := by
+    (∑ k ∈ Finset.range c.size, c' k * x' ^ k) + e' ∈ approx (taylor_sum c x e) := by
   have h := approx_taylor_sum' c c' x 1 e x' 1 e' 0 c.size (by omega) ac xx (by approx) ee
   simp only [Interval.approx_one, Interval.approx_zero, mem_singleton_iff, zero_add, mul_one,
     forall_true_left] at h
@@ -97,7 +97,7 @@ instance : Approx Series (ℝ → ℝ) where
 /-- `Approx` proof given an effective Taylor series bound -/
 lemma Series.approx_of_taylor' (p : Series) (f : ℝ → ℝ) (a : ℕ → ℝ) (b : ℝ) (x : ℝ) (y : Interval)
     (pf : p.radius ≠ nan → |x| ≤ p.radius.val →
-      |f x - ∑ n in Finset.range p.coeffs.size, a n * x ^ n| ≤ b)
+      |f x - ∑ n ∈ Finset.range p.coeffs.size, a n * x ^ n| ≤ b)
     (ac : ∀ n : Fin p.coeffs.size, a n ∈ approx p.coeffs[n.1])
     (be : p.error ≠ nan → b ≤ p.error.val)
     (xy : x ∈ approx y) :
@@ -119,15 +119,15 @@ lemma Series.approx_of_taylor' (p : Series) (f : ℝ → ℝ) (a : ℕ → ℝ) 
   specialize pf rn xa
   simp only [eval, bif_eq_if, Floating.val_lt_val, not_lt.mpr ry, decide_false, Bool.or_false,
     beq_iff_eq, Interval.hi_eq_nan, Interval.abs_eq_nan, yn', ite_false]
-  rw [← add_sub_cancel (∑ n in Finset.range p.coeffs.size, a n * x ^ n) (f x)]
+  rw [← add_sub_cancel (∑ n ∈ Finset.range p.coeffs.size, a n * x ^ n) (f x)]
   apply approx_taylor_sum _ _ _ _ _ _ ac xy
-  rw [← sub_zero (f x - ∑ n in Finset.range p.coeffs.size, a n * x ^ n)] at pf
+  rw [← sub_zero (f x - ∑ n ∈ Finset.range p.coeffs.size, a n * x ^ n)] at pf
   exact Interval.approx_grow pf be (by approx)
 
 /-- `Approx` proof given an effective Taylor series bound -/
 lemma Series.approx_of_taylor (p : Series) (f : ℝ → ℝ) (a : ℕ → ℝ) (b : ℝ)
     (pf : p.radius ≠ nan → ∀ x : ℝ,
-      |x| ≤ p.radius.val → |f x - ∑ n in Finset.range p.coeffs.size, a n * x ^ n| ≤ b)
+      |x| ≤ p.radius.val → |f x - ∑ n ∈ Finset.range p.coeffs.size, a n * x ^ n| ≤ b)
     (ac : ∀ n : Fin p.coeffs.size, a n ∈ approx p.coeffs[n.1])
     (be : p.error ≠ nan → b ≤ p.error.val) :
     f ∈ approx p := by

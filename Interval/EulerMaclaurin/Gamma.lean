@@ -170,7 +170,7 @@ lemma log_rising_em (x : ℝ) (n s : ℕ) (x0 : 0 < x) :
   rw [log_rising, hA, trapezoid_sum_eq_integral_add (s := s + 1) (t := Ioi (-x))
       contDiffOn_log_add (uniqueDiffOn_Ioi _)]
   · simp only [Int.cast_zero, zero_add, intervalIntegral.integral_comp_add_left, add_zero,
-      smul_eq_mul, ← mul_assoc, Nat.add_assoc, Nat.reduceAdd, integral_log_of_pos x0 xn0,
+      smul_eq_mul, ← mul_assoc, Nat.add_assoc, Nat.reduceAdd, integral_log,
       rem_n, sum, hD, hB, term]
     rw [Finset.sum_congr rfl (g := fun m : ℕ ↦ (-1) ^ m * saw (m + 2) 0 *
         ((-1) ^ m * m.factorial * (x + n) ^ (-(m : ℤ) - 1) -
@@ -241,7 +241,7 @@ lemma tendsto_sum {x : ℝ} {s : ℕ} (x0 : 0 ≤ x) :
   rw [(by simp : 0 = c * 0)]
   refine (tendsto_inv_atTop_zero.comp ?_).const_mul _
   refine (tendsto_pow_atTop (by omega)).comp ?_
-  apply tendsto_atTop_add_nonneg_left
+  apply Filter.Tendsto.nonneg_add_atTop
   · intro _; linarith
   · exact tendsto_natCast_atTop_atTop
 
@@ -468,8 +468,8 @@ lemma const_eq (s : ℕ) : const s = log (2 * π) / 2 := by
 -/
 
 lemma Finset.sum_range_even_odd {α : Type*} [AddCommMonoid α] {f : ℕ → α} {n : ℕ} :
-    ∑ k in Finset.range n, f k = (∑ k in Finset.range ((n + 1) / 2), f (2 * k)) +
-      (∑ k in Finset.range (n / 2), f (2 * k + 1)) := by
+    ∑ k ∈ Finset.range n, f k = (∑ k ∈ Finset.range ((n + 1) / 2), f (2 * k)) +
+      (∑ k ∈ Finset.range (n / 2), f (2 * k + 1)) := by
   induction' n with n h
   · simp only [range_zero, sum_empty, Nat.zero_div, zero_add, Nat.reduceDiv, add_zero]
   · simp only [sum_range_succ, h]

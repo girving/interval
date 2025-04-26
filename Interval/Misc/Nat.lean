@@ -229,7 +229,8 @@ lemma Nat.lor_eq_add {a b : ℕ} (h : ∀ i, testBit a i = false ∨ testBit b i
         · simp only [h, Bool.false_or, Bool.toNat_false, zero_add]
         · simp only [h, Bool.or_false, Bool.toNat_false, add_zero]
 
-@[simp] lemma Nat.testBit_mul_two_pow {n k i : ℕ} :
+
+@[simp] lemma Nat.testBit_mul_two_pow' {n k i : ℕ} :
     testBit (n * 2^k) i = decide (k ≤ i ∧ testBit n (i-k)) := by
   simp only [testBit, shiftRight_eq_div_pow]
   by_cases ki : k ≤ i
@@ -270,12 +271,6 @@ lemma Nat.div_div {n a b : ℕ} : n / a / b = n / (a * b) := by
       simp only [b0, Nat.div_zero, mul_zero]
   · simp only [not_lt, nonpos_iff_eq_zero] at a0
     simp only [a0, Nat.div_zero, Nat.zero_div, zero_mul]
-
-@[simp] lemma Nat.testBit_div_two_pow {n k i : ℕ} : testBit (n / 2^k) i = testBit n (i+k) := by
-  induction' k with k h generalizing i
-  · simp only [zero_eq, _root_.pow_zero, Nat.div_one, add_zero]
-  · have e : n / 2^(k+1) = (n / 2^k).div2 := by rw [Nat.div2_val, pow_succ, ←Nat.div_div]
-    rw [e, Nat.testBit_div2, h, add_assoc, add_comm _ k]
 
 /-- A case where `+, %` commute -/
 lemma Nat.add_mod_two_pow_disjoint {x y a b : ℕ} (ya : y < 2^a) :

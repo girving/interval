@@ -228,27 +228,27 @@ def normSq (z : Box) : Interval :=
 
 /-- `normSq` is conservative -/
 @[approx] lemma mem_approx_normSq {z' : ℂ} {z : Box} (m : z' ∈ approx z) :
-    Complex.abs z' ^ 2 ∈ approx z.normSq := by
+    ‖z'‖ ^ 2 ∈ approx z.normSq := by
   rw [normSq]
-  simp only [Complex.sq_abs, Complex.normSq, ←pow_two, MonoidWithZeroHom.coe_mk, ZeroHom.coe_mk]
+  simp only [Complex.sq_norm, Complex.normSq, ←pow_two, MonoidWithZeroHom.coe_mk, ZeroHom.coe_mk]
   approx
 
 /-- `normSq` is conservative -/
 @[approx] lemma mem_approx_normSq' {z' : ℂ} {z : Box} (m : z' ∈ approx z) :
     Complex.normSq z' ∈ approx z.normSq := by
-  simp only [Complex.normSq_eq_abs]
+  simp only [Complex.normSq_eq_norm_sq]
   exact mem_approx_normSq m
 
 /-- Lower bounds on `normSq` produce lower bounds on contained radii -/
 lemma sqrt_normSq_le_abs {z' : ℂ} {z : Box} (m : z' ∈ approx z) (n : z.normSq ≠ nan) :
-    Real.sqrt z.normSq.lo.val ≤ Complex.abs z' := by
-  simp only [Real.sqrt_le_iff, apply_nonneg, true_and]
+    Real.sqrt z.normSq.lo.val ≤ ‖z'‖ := by
+  simp only [Real.sqrt_le_iff, norm_nonneg, true_and]
   apply Interval.lo_le n
   approx
 
 /-- Upper bounds on `normSq` produce upper bounds on contained radii -/
 lemma abs_le_sqrt_normSq {z' : ℂ} {z : Box} (m : z' ∈ approx z) (n : z.normSq ≠ nan) :
-    Complex.abs z' ≤ Real.sqrt z.normSq.hi.val := by
+    ‖z'‖ ≤ Real.sqrt z.normSq.hi.val := by
   apply Real.le_sqrt_of_sq_le
   apply Interval.le_hi n
   approx

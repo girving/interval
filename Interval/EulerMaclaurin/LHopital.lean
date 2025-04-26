@@ -2,7 +2,6 @@ import Mathlib.Algebra.EuclideanDomain.Basic
 import Mathlib.Algebra.EuclideanDomain.Field
 import Mathlib.Analysis.Calculus.Deriv.Basic
 import Mathlib.Analysis.RCLike.Basic
-import Mathlib.Data.Complex.Abs
 import Mathlib.Tactic.Bound
 
 /-!
