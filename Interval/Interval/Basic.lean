@@ -116,10 +116,10 @@ instance : Inhabited Interval where
 -/
 
 -- Bounds properties of interval arithmetic
-@[simp] lemma lo_zero : (0 : Interval).lo = 0 := by fast_decide
-@[simp] lemma hi_zero : (0 : Interval).hi = 0 := by fast_decide
-@[simp] lemma lo_one : (1 : Interval).lo = 1 := by fast_decide
-@[simp] lemma hi_one : (1 : Interval).hi = 1 := by fast_decide
+@[simp] lemma lo_zero : (0 : Interval).lo = 0 := by decide +kernel
+@[simp] lemma hi_zero : (0 : Interval).hi = 0 := by decide +kernel
+@[simp] lemma lo_one : (1 : Interval).lo = 1 := by decide +kernel
+@[simp] lemma hi_one : (1 : Interval).hi = 1 := by decide +kernel
 @[simp] lemma lo_nan : (nan : Interval).lo = nan := rfl
 @[simp] lemma hi_nan : (nan : Interval).hi = nan := rfl
 @[simp] lemma approx_zero : approx (0 : Interval) = {0} := by

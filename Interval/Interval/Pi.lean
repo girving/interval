@@ -1,6 +1,5 @@
 import Interval.Interval.Conversion
 import Interval.Interval.Scale
-import Interval.Tactic.Decide
 import Mathlib.Data.Real.Pi.Bounds
 
 /-!
@@ -21,13 +20,13 @@ lemma pi_lt_314159265358979323847 : π < 3.14159265358979323847 := by
 
 /-- Optimal `Interval` approximation of `π` -/
 @[irreducible] def pi : Interval :=
-  ⟨⟨7244019458077122842, 9223372036854775747, by fast_decide⟩,
-   ⟨7244019458077122843, 9223372036854775747, by fast_decide⟩, by fast_decide⟩
+  ⟨⟨7244019458077122842, 9223372036854775747, by decide +kernel⟩,
+   ⟨7244019458077122843, 9223372036854775747, by decide +kernel⟩, by decide +kernel⟩
 
 @[approx] lemma approx_pi : π ∈ approx pi := by
-  have n : pi.lo ≠ nan := by fast_decide
-  have lo : pi.lo.valq = 3622009729038561421/1152921504606846976 := by fast_decide
-  have hi : pi.hi.valq = 7244019458077122843/2305843009213693952 := by fast_decide
+  have n : pi.lo ≠ nan := by decide +kernel
+  have lo : pi.lo.valq = 3622009729038561421/1152921504606846976 := by decide +kernel
+  have hi : pi.hi.valq = 7244019458077122843/2305843009213693952 := by decide +kernel
   simp only [approx, n, if_false, mem_Icc, ← Floating.coe_valq, lo, hi, Rat.cast_div,
     Rat.cast_ofNat]
   exact ⟨le_trans (by norm_num) pi_gt_314159265358979323846.le,
@@ -35,13 +34,13 @@ lemma pi_lt_314159265358979323847 : π < 3.14159265358979323847 := by
 
 /-- Optimal `Interval` approximation of `π⁻¹` -/
 @[irreducible] def inv_pi : Interval :=
-  ⟨⟨5871781006564002452, 9223372036854775744, by fast_decide⟩,
-   ⟨5871781006564002453, 9223372036854775744, by fast_decide⟩, by fast_decide⟩
+  ⟨⟨5871781006564002452, 9223372036854775744, by decide +kernel⟩,
+   ⟨5871781006564002453, 9223372036854775744, by decide +kernel⟩, by decide +kernel⟩
 
 @[approx] lemma approx_inv_pi : π⁻¹ ∈ approx inv_pi := by
-  have n : inv_pi.lo ≠ nan := by fast_decide
-  have lo : inv_pi.lo.valq = 1467945251641000613/4611686018427387904 := by fast_decide
-  have hi : inv_pi.hi.valq = 5871781006564002453/18446744073709551616 := by fast_decide
+  have n : inv_pi.lo ≠ nan := by decide +kernel
+  have lo : inv_pi.lo.valq = 1467945251641000613/4611686018427387904 := by decide +kernel
+  have hi : inv_pi.hi.valq = 5871781006564002453/18446744073709551616 := by decide +kernel
   simp only [approx, n, if_false, mem_Icc, ← Floating.coe_valq, lo, hi, Rat.cast_div,
     Rat.cast_ofNat]
   rw [le_inv_comm₀ (by norm_num) Real.pi_pos, inv_le_comm₀ Real.pi_pos (by norm_num)]

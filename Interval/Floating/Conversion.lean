@@ -179,7 +179,7 @@ lemma val_ofNat' {n : ℕ} (lt : n < 2^63 := by norm_num) {up : Bool}  : (ofNat 
     by_cases n0 : n = 0
     · simp only [n0, Nat.log2_zero, zero_le]
     · rw [←Nat.log2_lt n0] at lt; exact Nat.lt_succ_iff.mp lt
-  have e63 : (2^63 : UInt64).toInt = 2^63 := by fast_decide
+  have e63 : (2^63 : UInt64).toInt = 2^63 := by decide +kernel
   have nn : (n : Int64) ≠ Int64.minValue := by
     simp only [ne_eq, Int64.ext_iff, Int64.ofNat_eq_coe, Int64.n_min, UInt64.eq_iff_toNat_eq,
       UInt64.toNat_cast, UInt64.size_eq_pow, UInt64.toNat_2_pow_63]

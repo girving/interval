@@ -58,7 +58,7 @@ def valid (n : Int64) (s : UInt64) : Bool :=
 /-- `Floating.valid` decides `Floating.Valid` -/
 lemma valid_iff {n : Int64} {s : UInt64} : Valid n s ↔ valid n s = true := by
   rw [valid]
-  have e : (2 : UInt64)^62 = (1 : UInt64) <<< 62 := by fast_decide
+  have e : (2 : UInt64)^62 = (1 : UInt64) <<< 62 := by decide +kernel
   simp only [Bool.cond_eq_true_distrib, beq_iff_eq, Bool.or_eq_true, decide_eq_true_eq]
   constructor
   · intro ⟨zs, ns, norm⟩
@@ -116,7 +116,7 @@ instance : Zero Floating where
 
 /-- `1 : Floating` -/
 instance : One Floating where
-  one := ⟨2^62, 2^63 - 62, by fast_decide⟩
+  one := ⟨2^62, 2^63 - 62, by decide +kernel⟩
 
 -- Definition lemmas
 @[simp] lemma n_zero : (0 : Floating).n = 0 := rfl
@@ -140,10 +140,10 @@ instance : One Floating where
 @[simp] lemma nan_ne_zero : (nan : Floating) ≠ 0 := by decide
 
 /-- `1 ≠ nan` -/
-@[simp] lemma one_ne_nan : (1 : Floating) ≠ nan := by fast_decide
+@[simp] lemma one_ne_nan : (1 : Floating) ≠ nan := by decide +kernel
 
 /-- `nan ≠ 1` -/
-@[simp] lemma nan_ne_one : (nan : Floating) ≠ 1 := by fast_decide
+@[simp] lemma nan_ne_one : (nan : Floating) ≠ 1 := by decide +kernel
 
 /-- `0` is just zero -/
 @[simp] lemma approx_zero : approx (0 : Floating) = {0} := by
@@ -151,8 +151,8 @@ instance : One Floating where
 
 /-- `1 = 1` -/
 @[simp] lemma val_one : (1 : Floating).val = 1 := by
-  have e0 : ((2^62 : Int64) : ℤ) = 2^62 := by fast_decide
-  have e1 : (2^63 - 62 : UInt64).toInt - 2^63 = -62 := by fast_decide
+  have e0 : ((2^62 : Int64) : ℤ) = 2^62 := by decide +kernel
+  have e1 : (2^63 - 62 : UInt64).toInt - 2^63 = -62 := by decide +kernel
   simp only [val, n_one, e0, Int.cast_pow, Int.cast_ofNat, s_one, e1, zpow_neg]
   apply mul_inv_cancel₀; norm_num
 
@@ -202,7 +202,7 @@ lemma norm' {x : Floating} (x0 : x ≠ 0) (s0 : x.s.toNat ≠ 0) : 2^62 ≤ x.n.
   · simp only [xn]; decide
   · have n := x.norm (x.n_ne_zero x0) (x.n_ne_min xn) (UInt64.ne_zero_iff_toNat_ne_zero.mpr s0)
     simp only [UInt64.le_iff_toNat_le] at n
-    exact le_trans (le_of_eq (by fast_decide)) n
+    exact le_trans (le_of_eq (by decide +kernel)) n
 
 /-- Only `0` has zero `val` -/
 lemma val_eq_zero {x : Floating} : x.val = 0 ↔ x = 0 := by
@@ -230,8 +230,8 @@ This should really be cleaned up
 @[simp] lemma u65 : (65 : UInt64).toNat = 65 := rfl
 @[simp] lemma u126 : (126 : UInt64).toNat = 126 := rfl
 @[simp] lemma u127 : (127 : UInt64).toNat = 127 := rfl
-@[simp] lemma up62 : (2^62 : UInt64).toNat = 2^62 := by fast_decide
-@[simp] lemma up63 : (2^63 : UInt64).toNat = 2^63 := by fast_decide
+@[simp] lemma up62 : (2^62 : UInt64).toNat = 2^62 := by decide +kernel
+@[simp] lemma up63 : (2^63 : UInt64).toNat = 2^63 := by decide +kernel
 @[simp] lemma ua2 : (2 : ℤ).natAbs = 2 := rfl
 
 /-- Remove a `nan` possibility from a rounding statement -/
@@ -255,17 +255,17 @@ lemma val_of_nonneg {x : Floating} (x0 : 0 ≤ x.val) :
 
 /-- The smallest normalized floating point value -/
 @[irreducible] def min_norm : Floating :=
-  ⟨UInt64.toInt64 ⟨2^62⟩, 0, by fast_decide, by fast_decide, by fast_decide⟩
+  ⟨UInt64.toInt64 ⟨2^62⟩, 0, by decide +kernel, by decide +kernel, by decide +kernel⟩
 
-@[simp] lemma min_norm_ne_nan : min_norm ≠ nan := by unfold min_norm nan; fast_decide
+@[simp] lemma min_norm_ne_nan : min_norm ≠ nan := by unfold min_norm nan; decide +kernel
 
 @[simp] lemma val_min_norm : min_norm.val = 2^(62 - 2^63 : ℤ) := by
   have t0 : (2 : ℝ) ≠ 0 := by norm_num
-  have e : (2 ^ 62 : BitVec 64).toNat = 2^62 := by fast_decide
+  have e : (2 ^ 62 : BitVec 64).toNat = 2^62 := by decide +kernel
   rw [val]
   unfold min_norm  -- Tred delicately to avoid deep recursion
   simp only [UInt64.toInt_zero, zero_sub]
-  rw [Int64.coe_of_nonneg (by fast_decide)]
+  rw [Int64.coe_of_nonneg (by decide +kernel)]
   simp only [Nat.cast_pow, Nat.cast_ofNat, Int.cast_pow, Int.cast_ofNat, pow_mul_zpow t0,
     UInt64.toUInt64_toInt64, UInt64.toNat, e, ← sub_eq_add_neg]
 

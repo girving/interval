@@ -195,12 +195,12 @@ instance : LawfulBEq UInt128 where
   rw [max, succ]; rfl
 
 lemma UInt128.toNat_succ {x : UInt128} (h : x.toNat ≠ 2^128-1) : x.succ.toNat = x.toNat+1 := by
-  have e : (2:UInt64)^64 = 0 := by fast_decide
+  have e : (2:UInt64)^64 = 0 := by decide +kernel
   rw [succ]
   by_cases ll : x.lo = (2:UInt64)^64-1
   · simp only [ll, e]
     by_cases hh : x.hi = (2:UInt64)^64-1
-    · simp only [toNat_def, hh, ll, ne_eq] at h; contrapose h; clear h; fast_decide
+    · simp only [toNat_def, hh, ll, ne_eq] at h; contrapose h; clear h; decide +kernel
     · simp only [UInt64.pow_eq_zero, UInt64.zero_sub] at hh
       simp [toNat, Nat.shiftLeft_eq, UInt64.toNat_add_one' hh, add_mul, one_mul,
         UInt64.toNat_zero, add_zero, ll, to_omega, bif_eq_if, UInt64.eq_iff_toNat_eq]
@@ -530,7 +530,7 @@ lemma tb_false {x : UInt64} {i : ℕ} (il : 64 ≤ i) : Nat.testBit x.toNat i = 
 @[local simp] lemma p64 : (64 : UInt64).toNat = 64 := rfl
 @[local simp] lemma p127 : (127 : UInt64).toNat = 127 := rfl
 @[local simp] lemma p128 : (128 : UInt64).toNat = 128 := rfl
-@[local simp] lemma p64s : (2^64 - 1 : UInt64).toNat = 2^64 - 1 := by fast_decide
+@[local simp] lemma p64s : (2^64 - 1 : UInt64).toNat = 2^64 - 1 := by decide +kernel
 @[local simp] lemma ts0 {t : ℕ} (h : t < 64) : t < UInt64.size := lt_trans h (by norm_num)
 @[local simp] lemma ts1 {t : ℕ} (h : t < 128) : t < UInt64.size := lt_trans h (by norm_num)
 @[local simp] lemma shift0 {t : ℕ} (t0 : t ≠ 0) (t64 : t < 64) :

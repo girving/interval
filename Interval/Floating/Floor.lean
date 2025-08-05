@@ -62,7 +62,7 @@ lemma floor_mono {x y : Floating} (le : x ≤ y) (yn : y.floor ≠ nan) : x.floo
 def natFloor (x : Floating) : ℕ :=
   x.floor.n.natFloor
 
-@[simp] lemma natFloor_nan : (nan : Floating).natFloor = 0 := by fast_decide
+@[simp] lemma natFloor_nan : (nan : Floating).natFloor = 0 := by decide +kernel
 
 lemma natFloor_le {a : ℝ} {x : Floating} (ax : a ∈ approx x) : x.natFloor ≤ ⌊a⌋₊ := by
   rw [natFloor, Int64.natFloor_eq]

@@ -9,7 +9,6 @@ import Mathlib.Tactic.SplitIfs
 import Mathlib.Tactic.Zify
 import Interval.Misc.Nat
 import Interval.Misc.Int
-import Interval.Tactic.Decide
 import Interval.Tactic.Simp
 
 /-!
@@ -22,7 +21,7 @@ open Set
 lemma UInt64.size_eq_pow : UInt64.size = 2^64 := rfl
 
 def UInt64.max : UInt64 := UInt64.ofNat UInt64.size - 1
-lemma UInt64.max_eq_pow_sub_one : UInt64.max = 2^64 - 1 := by fast_decide
+lemma UInt64.max_eq_pow_sub_one : UInt64.max = 2^64 - 1 := by decide +kernel
 
 @[simp] lemma UInt64.toNat_lt_2_pow_64 (n : UInt64) : n.toNat < 2^64 := Fin.prop _
 @[simp] lemma UInt64.cast_toNat_lt_2_pow_64 (n : UInt64) : (n.toNat : ℤ) < (2:ℤ)^64 := by
@@ -51,7 +50,7 @@ lemma UInt64.ne_zero_iff_toNat_ne_zero {n : UInt64} : n ≠ 0 ↔ n.toNat ≠ 0 
 @[simp] lemma UInt64.nonneg {n : UInt64} : 0 ≤ n := by
   simp only [le_iff_toNat_le, UInt64.toNat_zero, zero_le]
 
-@[simp, to_omega] lemma UInt64.toNat_2_pow_63 : ((2 : UInt64) ^ 63).toNat = 2^63 := by fast_decide
+@[simp, to_omega] lemma UInt64.toNat_2_pow_63 : ((2 : UInt64) ^ 63).toNat = 2^63 := by decide +kernel
 @[simp, to_omega] lemma UInt64.toNat_2_pow_63' : (9223372036854775808 : UInt64).toNat = 2^63 := rfl
 
 @[simp] lemma UInt32.size_pos : 0 < UInt32.size := by decide
@@ -308,7 +307,7 @@ lemma UInt64.toNat_add_of_le {x y : UInt64} (h : x ≤ .max - y) :
   split_ifs with h1
   · simp only [tsub_zero]
   · exfalso
-    have e : (2^64 - 1 : UInt64).toNat = 2^64 - 1 := by fast_decide
+    have e : (2^64 - 1 : UInt64).toNat = 2^64 - 1 := by decide +kernel
     have yp : y.toNat < 2^64 := toNat_lt_2_pow_64 _
     simp only [max_eq_pow_sub_one, size_eq_pow, not_lt, le_iff_toNat_le] at h h1
     rw [UInt64.toNat_sub'', e, Nat.le_sub_iff_add_le] at h
@@ -325,7 +324,7 @@ lemma UInt64.toNat_add_of_le {x y : UInt64} (h : x ≤ .max - y) :
 @[simp] lemma UInt64.toNat_le_pow_sub_one (n : UInt64) : n.toNat ≤ 2^64 - 1 :=
   Nat.le_of_lt_succ (toNat_lt_2_pow_64 _)
 
-@[simp, to_omega, to_bitvec] lemma UInt64.pow_eq_zero : (2^64 : UInt64) = 0 := by fast_decide
+@[simp, to_omega, to_bitvec] lemma UInt64.pow_eq_zero : (2^64 : UInt64) = 0 := by decide +kernel
 
 /-!
 ### Conversion from `UInt64` to `ZMod`
@@ -468,7 +467,7 @@ lemma UInt64.coe_toNat_sub {x y : UInt64} (h : y ≤ x) :
   · simp [h]
   · rw [toInt, toInt, toNat_neg, Nat.mod_eq_of_lt, Int.ofNat_sub (le_size _), size_eq_pow]
     · simp
-    · apply Nat.sub_lt (by fast_decide)
+    · apply Nat.sub_lt (by decide +kernel)
       rwa [← UInt64.pos_iff_toNat_pos, UInt64.pos_iff_ne_zero]
 
 @[simp, to_omega] lemma UInt64.toInt_ofNat (n : ℕ) : (UInt64.ofNat n).toInt = n % 2^64 := rfl
@@ -504,7 +503,7 @@ lemma UInt64.coe_toNat_sub {x y : UInt64} (h : y ≤ x) :
     (if c then x else y).toInt = if c then x.toInt else y.toInt := by apply apply_ite
 
 @[to_bitvec] lemma UInt64.toBitVec_two_pow_63 : (2^63 : UInt64).toBitVec = 9223372036854775808 := by
-  fast_decide
+  decide +kernel
 
 lemma UInt64.induction_bitvec {p : UInt64 → Prop} (h : ∀ x : BitVec 64, p (.ofBitVec x))
     (x : UInt64) : p x :=

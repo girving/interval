@@ -252,9 +252,9 @@ lemma add_n_norm (r : UInt128) (s : UInt64) (up : Bool) :
 
 /-- `small_shift` is valid -/
 lemma valid_small_shift0 {s : UInt64} : Valid (2 ^ (62 : ℕ)) (s+1) where
-  zero_same := by intro z; contrapose z; clear z; fast_decide
-  nan_same := by intro n; contrapose n; clear n; fast_decide
-  norm := by intro _ _ _; fast_decide
+  zero_same := by intro z; contrapose z; clear z; decide +kernel
+  nan_same := by intro n; contrapose n; clear n; decide +kernel
+  norm := by intro _ _ _; decide +kernel
 
 /-- `small_shift` is valid -/
 lemma valid_small_shift1 {n s : UInt64} (n63 : n ≠ 2^63) (n0 : n ≠ 0)
@@ -312,8 +312,8 @@ lemma val_small_shift {n s : UInt64}
   · simp only [n63, Bool.cond_decide, dite_true, ne_eq, ite_eq_left_iff, not_forall,
       exists_prop] at sn
     rw [val]
-    have e : ((2^62 : Int64) : ℤ) = 2^62 := by fast_decide
-    have e' : @HPow.hPow Int64 ℕ Int64 instHPow 2 62 = 2^62 := by fast_decide
+    have e : ((2^62 : Int64) : ℤ) = 2^62 := by decide +kernel
+    have e' : @HPow.hPow Int64 ℕ Int64 instHPow 2 62 = 2^62 := by decide +kernel
     simp only [n63, sn.1, decide_false, cond_false, dite_true, e, Int.cast_pow, Int.cast_ofNat,
       UInt64.toInt, UInt64.toNat_add_one' sn.1, Nat.cast_add, Nat.cast_one, ne_eq,
       OfNat.ofNat_ne_zero, not_false_eq_true, pow_mul_zpow, Nat.cast_ofNat, UInt64.toNat_2_pow_63,

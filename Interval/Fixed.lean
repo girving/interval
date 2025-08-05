@@ -77,7 +77,7 @@ lemma Fixed.val_of_s0 {x : Fixed 0} : x.val = ↑x.n := by
 
 @[simp] lemma Fixed.zero_ne_nan : 0 ≠ (nan : Fixed s) := by
   simp only [nan, ne_eq, Fixed.ext_iff, Fixed.zero_n, Int64.ext_iff, Int64.n_zero, Int64.n_min]
-  fast_decide
+  decide +kernel
 
 lemma Fixed.val_eq_val {x y : Fixed s} : x.val = y.val ↔ x = y := by
   rw [val, val]
@@ -98,7 +98,7 @@ lemma Fixed.neg_def (x : Fixed s) : -x = x.neg := rfl
 /-- `-nan = nan` -/
 @[simp] lemma Fixed.neg_nan : -(nan : Fixed s) = nan := by
   simp only [nan, neg_def, neg, Int64.neg_def, ext_iff]
-  fast_decide
+  decide +kernel
 
 /-- The contrapose of `-nan = nan` -/
 @[simp] lemma Fixed.ne_nan_of_neg {x : Fixed s} (h : -x ≠ nan) : x ≠ nan := by
@@ -137,7 +137,7 @@ instance : InvolutiveNeg (Fixed s) where
   have i : ∀ {x : Fixed s}, x = nan → (-x) = nan := by
     intro x h
     simp only [h, nan, neg_def, neg, Int64.neg_def, mk.injEq]
-    fast_decide
+    decide +kernel
   by_cases a : x = nan
   · simp only [a, neg_nan]
   · by_cases b : (-x) = nan
@@ -240,7 +240,7 @@ instance : Approx (Fixed s) ℝ where
 @[simp] lemma Fixed.approx_zero : approx (0 : Fixed s) = {0} := by
   simp only [approx, nan, ext_iff, zero_n, Int64.zero_def, Int64.ext_iff, Int64.n_min, val_zero,
     ite_eq_right_iff]
-  intro h; contrapose h; clear h; fast_decide
+  intro h; contrapose h; clear h; decide +kernel
 
 /-- If we're not `nan`, `approx` is a singleton -/
 @[simp] lemma Fixed.approx_eq_singleton {x : Fixed s} (n : x ≠ nan) : approx x = {x.val} := by

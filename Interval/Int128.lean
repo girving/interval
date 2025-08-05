@@ -65,7 +65,7 @@ instance : Coe Int128 ℤ where
 
 /-- If `hi = 0`, conversion is just `lo` -/
 @[simp] lemma coe_of_hi_eq_zero {x : Int128} (h0 : x.n.hi = 0) : (x.n.lo.toNat : ℤ) = x := by
-  have c : ¬(9223372036854775808 : UInt64) ≤ 0 := by fast_decide
+  have c : ¬(9223372036854775808 : UInt64) ≤ 0 := by decide +kernel
   simp only [toInt, isNeg, h0, c, decide_false, bif_eq_if, ite_false, sub_zero, UInt128.toNat_def,
     UInt64.toNat_zero, zero_mul, zero_add, Bool.false_eq_true]
 

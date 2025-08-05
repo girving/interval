@@ -81,7 +81,7 @@ lemma mul_norm_correct (n : UInt128) (up : Bool) (n0 : n ≠ 0) (lo : n.toNat �
     simp only [ht, ← pow_add, ←hs]
     exact pow_le_pow_right₀ (by norm_num) (by omega)
   have nt : n.toNat * 2^s.toNat < 2^128 := lt_trans nt' (by norm_num)
-  have b1 : b.toNat ≤ 1 := by rw [← hb, bif_eq_if]; split_ifs; all_goals fast_decide
+  have b1 : b.toNat ≤ 1 := by rw [← hb, bif_eq_if]; split_ifs; all_goals decide +kernel
   simp only [Nat.mod_eq_of_lt s_lt, Nat.mod_eq_of_lt nt] at hz
   have z_lt : z.toNat < 2^127 := by rwa [←hz]
   have r_le : z.hi.toNat + b.toNat ≤ 2^63 := by
@@ -108,7 +108,7 @@ lemma mul_norm_correct (n : UInt128) (up : Bool) (n0 : n ≠ 0) (lo : n.toNat �
   · simp only [r_eq, cond_true] at hp
     simp only [←hp]
     constructor
-    · fast_decide
+    · decide +kernel
     · simp only [beq_iff_eq] at r_eq
       have not_up : up = true := by
         contrapose r_eq
@@ -263,7 +263,7 @@ lemma mul_exponent_eq (xs ys t : UInt64) :
     (mul_exponent xs ys t : ℤ) = xs.toNat + ys.toNat + 64 - t.toNat - 2 ^ 63 := by
   rw [mul_exponent]
   refine Int128.eq_of_ofInt_eq ?_ Int128.coe_small ?_
-  · have e : Int128.ofNat (2^63 - 64) = .ofInt (2^63) - .ofInt 64 := by fast_decide
+  · have e : Int128.ofNat (2^63 - 64) = .ofInt (2^63) - .ofInt 64 := by decide +kernel
     simp only [e, Int128.ofInt_coe, Int128.sub_ofInt, Int128.add_ofInt, Int128.ofInt_ofUInt64]
     abel
   · have hx := xs.toInt_mem_Ico

@@ -351,11 +351,11 @@ into account extrema reached in between the endpoints.
 @[irreducible] def Interval.pm1 : Interval := -1 ∪ 1
 
 -- `pm1` is exact
-@[simp] lemma Interval.pm1_ne_nan : pm1 ≠ nan := by fast_decide
+@[simp] lemma Interval.pm1_ne_nan : pm1 ≠ nan := by decide +kernel
 @[simp] lemma Interval.lo_pm1 : pm1.lo.val = -1 := by
-  simp [← Floating.coe_valq, (by fast_decide : pm1.lo.valq = -1)]
+  simp [← Floating.coe_valq, (by decide +kernel : pm1.lo.valq = -1)]
 @[simp] lemma Interval.hi_pm1 : pm1.hi.val = 1 := by
-  simp [← Floating.coe_valq, (by fast_decide : pm1.hi.valq = 1)]
+  simp [← Floating.coe_valq, (by decide +kernel : pm1.hi.valq = 1)]
 @[simp] lemma Interval.approx_pm1 : approx pm1 = Icc (-1) 1 := by simp [approx]
 
 /-- `sin (x + π / 2 * d)` for potentially large `x`, via argument reduction, sending `nan → nan` -/

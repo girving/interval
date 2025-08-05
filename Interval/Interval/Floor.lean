@@ -13,7 +13,7 @@ namespace Interval
 def natFloor (x : Interval) : ℕ :=
   x.lo.natFloor
 
-@[simp] lemma natFloor_nan : (nan : Interval).natFloor = 0 := by fast_decide
+@[simp] lemma natFloor_nan : (nan : Interval).natFloor = 0 := by decide +kernel
 
 lemma natFloor_le {a : ℝ} {x : Interval} (ax : a ∈ approx x) : x.natFloor ≤ ⌊a⌋₊ := by
   rw [natFloor]

@@ -1,6 +1,5 @@
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import Interval.Interval.Constants
-import Interval.Tactic.Decide
 
 /-!
 ## Interval approximations of `log 2` and friends
@@ -18,8 +17,8 @@ def x : ℚ := 1/2
 def radius : ℚ := 1 / 1180591620717411303424
 def mid : ℚ := -81026204946914272618346609082102250801114907729 /
     116896104058966015646750947554978314987992252416
-lemma radius_eq : radius = |x| ^ (n + 1) / (1 - |x|) := by fast_decide
-lemma mid_eq : mid = -∑ i ∈ Finset.range n, x ^ (i + 1) / (i + 1 : ℚ) := by fast_decide
+lemma radius_eq : radius = |x| ^ (n + 1) / (1 - |x|) := by decide +kernel
+lemma mid_eq : mid = -∑ i ∈ Finset.range n, x ^ (i + 1) / (i + 1 : ℚ) := by decide +kernel
 def interval : Interval := ((mid - radius : ℚ) : Interval) ∪ ((mid + radius : ℚ) : Interval)
 
 lemma close : |Real.log (1/2) - mid| ≤ radius := by
@@ -44,10 +43,10 @@ lemma inv_close : |(Real.log 2)⁻¹ - inv_mid| ≤ inv_radius := by
   have c0 : Real.log (1/2) < 0 := by
     refine lt_of_le_of_lt c1 ?_
     simp only [← Rat.cast_add, Rat.cast_lt_zero]
-    fast_decide
+    decide +kernel
   have c2 : -mid - radius ≤ |Real.log (1/2)| := by
     simp only [abs_le, abs_of_neg c0] at c ⊢; linarith
-  have mid0 : 0 < |(mid : ℝ)| := by simp only [← Rat.cast_abs, Rat.cast_pos]; fast_decide
+  have mid0 : 0 < |(mid : ℝ)| := by simp only [← Rat.cast_abs, Rat.cast_pos]; decide +kernel
   simp only [e, inv_mid, one_div, _root_.inv_neg, Rat.cast_neg, Rat.cast_inv, sub_neg_eq_add,
     ← sub_eq_neg_add] at c c0 c1 c2 ⊢
   rw [inv_sub_inv _ c0.ne, abs_div, abs_mul]
@@ -55,12 +54,12 @@ lemma inv_close : |(Real.log 2)⁻¹ - inv_mid| ≤ inv_radius := by
   refine le_trans (div_le_div_of_nonneg_left ?_ ?_ (mul_le_mul_of_nonneg_left c2 ?_)) ?_
   all_goals try simp only [Rat.cast_nonneg, ← Rat.cast_sub, ← Rat.cast_mul, Rat.cast_pos, ←
     Rat.cast_div, Rat.cast_le, ← Rat.cast_neg, ← Rat.cast_abs, Rat.cast_ne_zero]
-  all_goals fast_decide
+  all_goals decide +kernel
 
 lemma v0 : Floating.Valid 12053589751108223786 9223372036854775745 := by decide
 lemma v1 : Floating.Valid 12053589751108223787 9223372036854775745 := by decide
 lemma v2 : Interval.Valid ⟨12053589751108223786, 9223372036854775745, v0⟩
-    ⟨12053589751108223787, 9223372036854775745, v1⟩ := by fast_decide
+    ⟨12053589751108223787, 9223372036854775745, v1⟩ := by decide +kernel
 
 end Log2
 
@@ -77,7 +76,7 @@ end Log2
 @[irreducible] def inv_log_two : Interval := Log2.inv_mid
 
 @[approx] lemma approx_log_half : Real.log (1/2) ∈ approx log_half := by
-  rw [(by fast_decide : log_half = Log2.interval)]
+  rw [(by decide +kernel : log_half = Log2.interval)]
   exact approx_of_rat_ball Log2.close
 
 @[approx] lemma approx_log_two : Real.log 2 ∈ approx log_two := by
@@ -85,7 +84,7 @@ end Log2
   approx
 
 @[approx] lemma approx_inv_log_two : (Real.log 2)⁻¹ ∈ approx inv_log_two := by
-  rw [(by fast_decide : inv_log_two = Log2.inv_interval)]
+  rw [(by decide +kernel : inv_log_two = Log2.inv_interval)]
   exact approx_of_rat_ball Log2.inv_close
 
 /-- For use in untrusted contexts, `inv_log_two.hi` is closer to the true value -/

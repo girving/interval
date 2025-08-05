@@ -3,7 +3,6 @@ import Mathlib.Tactic.IntervalCases
 import Interval.Misc.Bool
 import Interval.Misc.BitVec
 import Interval.Misc.Int
-import Interval.Tactic.Decide
 import Interval.Tactic.Init
 import Interval.UInt64
 
@@ -40,10 +39,10 @@ lemma Int64.mul_def (x y : Int64) : x * y = (x.toUInt64 * y.toUInt64).toInt64 :=
 -- Simplification lemmas
 @[simp] lemma Int64.n_zero : (0 : Int64).toUInt64 = 0 := rfl
 @[simp] lemma Int64.isNeg_zero : ¬((0 : Int64) < 0) := of_decide_eq_false rfl
-@[simp] lemma Int64.n_min : Int64.minValue.toUInt64 = 2^63 := by fast_decide
+@[simp] lemma Int64.n_min : Int64.minValue.toUInt64 = 2^63 := by decide +kernel
 @[simp] lemma Int64.toNat_min : Int64.minValue.toUInt64.toNat = 2^63 := rfl
 @[simp] lemma Int64.toInt_min : Int64.minValue.toInt = -2^63 := rfl
-@[simp] lemma Int64.toBitVec_min : Int64.minValue.toBitVec = 2^63 := by fast_decide
+@[simp] lemma Int64.toBitVec_min : Int64.minValue.toBitVec = 2^63 := by decide +kernel
 @[simp] lemma Int64.isNeg_min : Int64.minValue < 0 := rfl
 @[simp] lemma Int64.neg_min : -Int64.minValue = .minValue := rfl
 @[simp] lemma Int64.zero_undef : (UInt64.toInt64 0 : Int64) = 0 := rfl
@@ -275,7 +274,7 @@ lemma Int64.isNeg_neg {x : Int64} (x0 : x ≠ 0) (xn : x ≠ .minValue) : (-x) <
     (x.toInt64 : ℤ) = if x < 2^63 then x.toInt else x.toInt - 2^64 := by
   induction' x using UInt64.induction_nat with x h
   have e0 : (ofNat x).toInt64 = (x : Int64) := UInt64.toInt64_ofNat
-  have e1 : (2 ^ 63 : UInt64).toNat = 2^63 := by fast_decide
+  have e1 : (2 ^ 63 : UInt64).toNat = 2^63 := by decide +kernel
   simp only [to_omega, e0, UInt64.lt_iff_toNat_lt, e1] at h ⊢
   omega
 
@@ -392,7 +391,7 @@ lemma Int64.toInt_eq_toNat_of_lt {x : Int64} (h : x.toUInt64.toNat < 2^63) :
   have add := coe_add (x := n) (y := 2^63)
   generalize n + 2 ^ 63 = z at add
   have be : ∀ z : Int64, z.toBitVec.toNat = z.toUInt64.toNat := fun _ ↦ rfl
-  have pe : (2 ^ 63 : Int64).toUInt64.toNat = 2 ^ 63 := by fast_decide
+  have pe : (2 ^ 63 : Int64).toUInt64.toNat = 2 ^ 63 := by decide +kernel
   simp only [toInt, BitVec.toInt, be, pe] at add ⊢
   have zu := z.toUInt64.toNat_lt_2_pow_64
   have nu := n.toUInt64.toNat_lt_2_pow_64
@@ -545,7 +544,7 @@ def Int64.uabs (x : Int64) : UInt64 :=
 @[simp] lemma Int64.abs_zero : (0 : Int64).abs = 0 := rfl
 @[simp] lemma Int64.uabs_zero : (0 : Int64).uabs = 0 := rfl
 @[simp] lemma Int64.abs_min : Int64.minValue.abs = Int64.minValue := rfl
-@[simp] lemma Int64.uabs_min : Int64.minValue.uabs = 2^63 := by fast_decide
+@[simp] lemma Int64.uabs_min : Int64.minValue.uabs = 2^63 := by decide +kernel
 
 /-- `.abs` is absolute value (`ℕ` version) -/
 @[to_omega] lemma Int64.toNat_abs {x : Int64} :
@@ -767,7 +766,7 @@ lemma Int64.coe_shiftLeft {x : Int64} {s : UInt64} (s64 : s.toNat < 64)
   all_goals {
     simp only [Nat.reduceMod, Int.reducePow, BitVec.ofInt_ofNat, BitVec.shiftLeft_eq_mul_twoPow]
     apply congr_arg₂ _ rfl
-    fast_decide }
+    decide +kernel }
 
 /-- `0 <<< s = 0` -/
 @[simp] lemma Int64.zero_shiftLeft' (s : UInt64) : (0 : Int64) <<< s = 0 := by
