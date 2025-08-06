@@ -53,8 +53,8 @@ lemma inv_close : |(Real.log 2)⁻¹ - inv_mid| ≤ inv_radius := by
   rw [inv_sub_inv _ c0.ne, abs_div, abs_mul]
   refine le_trans (div_le_div_of_nonneg_right c (by positivity)) ?_
   refine le_trans (div_le_div_of_nonneg_left ?_ ?_ (mul_le_mul_of_nonneg_left c2 ?_)) ?_
-  all_goals try simp only [Rat.cast_nonneg, ← Rat.cast_sub, ← Rat.cast_mul, Rat.cast_pos,
-    ← Rat.cast_div, Rat.cast_le, ← Rat.cast_neg, ← Rat.cast_abs, Rat.cast_ne_zero, c0.ne]
+  all_goals try simp only [Rat.cast_nonneg, ← Rat.cast_sub, ← Rat.cast_mul, Rat.cast_pos, ←
+    Rat.cast_div, Rat.cast_le, ← Rat.cast_neg, ← Rat.cast_abs, Rat.cast_ne_zero]
   all_goals fast_decide
 
 lemma v0 : Floating.Valid 12053589751108223786 9223372036854775745 := by decide

@@ -97,7 +97,7 @@ def inv_guess (x : Floating) : Floating :=
   --   `x⁻¹ = (2^63 / (x.n.n / 2^30)) * 2^(2^64 - 93 - x.s - 2^63)`
   let t := (2^64 - 93 : UInt64) - x.s
   let y := ((1 : UInt64) <<< 63) / (x.n.toUInt64 >>> 30)
-  .of_ns ⟨y⟩ t
+  .of_ns y.toInt64 t
 
 /-- `inv_region` is valid -/
 lemma valid_inv_region {x : Floating}
@@ -109,11 +109,11 @@ lemma valid_inv_region {x : Floating}
     norm := by simp only [Floating.two_pow_special_ne_nan]
     le' := by
       intro _ _
-      simp only [t, UInt64.pow_eq_zero, zero_sub, not_lt] at ts
+      simp only [t, UInt64.pow_eq_zero, UInt64.zero_sub, not_lt] at ts
       have o : (-62 - 63 - x.s).toNat ≠ 2 ^ 64 - 1 := by
         rw [UInt64.toNat_sub'' ts]
         exact ne_of_lt (lt_of_le_of_lt (Nat.sub_le _ _) (by decide))
-      simp only [t, UInt64.pow_eq_zero, zero_sub, Floating.val_two_pow_special]
+      simp only [t, UInt64.pow_eq_zero, UInt64.zero_sub, Floating.val_two_pow_special]
       apply zpow_le_zpow_right₀ (by norm_num)
       simp only [UInt64.toNat_add_one o, UInt64.toNat_sub'' ts]
       omega }
@@ -138,9 +138,9 @@ lemma valid_inv_region {x : Floating}
 @[approx] lemma approx_inv_region {x : Floating} (x0 : 0 < x.val) :
     x.val⁻¹ ∈ approx (inv_region x) := by
   rw [inv_region]
-  simp only [UInt64.pow_eq_zero, zero_sub, bif_eq_if, beq_iff_eq]
+  simp only [UInt64.pow_eq_zero, UInt64.zero_sub, bif_eq_if, beq_iff_eq]
   split_ifs with s0 ts
-  · simp only [s0, sub_zero, ite_true, approx_nan, mem_univ]
+  · simp only [approx_nan, mem_univ]
   · simp only [approx_nan, mem_univ]
   · simp only [not_lt] at ts
     have o : (-62 - 63 - x.s).toNat ≠ 2 ^ 64 - 1 := by
@@ -150,7 +150,7 @@ lemma valid_inv_region {x : Floating}
     have t0 : (2 : ℝ) ≠ 0 := by norm_num
     have le_n : 2^62 ≤ ((x.n : ℤ) : ℝ) := by
       apply Floating.le_coe_coe_n s0
-      simp only [decide_eq_false_iff_not, not_lt, x0.le, Floating.n_nonneg_iff]
+      simp only [x0.le, Floating.n_nonneg_iff]
     have n_lt : ((x.n : ℤ) : ℝ) < 2^63 := Floating.coe_coe_n_lt
     simp only [approx, Floating.two_pow_special_ne_nan, Floating.val_two_pow_special, ite_false,
       mem_Icc, UInt64.toNat_add_one o, UInt64.toNat_sub'' ts, e]
@@ -185,8 +185,7 @@ lemma valid_inv_region {x : Floating}
   rcases ne_nan_of_add n with ⟨cn,ran⟩
   rcases ne_nan_of_mul ran with ⟨rn,_⟩
   have xn := x.ne_nan_of_nonneg x0.le
-  simp only [mem_inv, Floating.approx_eq_singleton xn, approx, inv_eq_iff_eq_inv,
-    xn, if_false, r.lo_ne_nan rn, inv_singleton, mem_Icc] at xr
+  simp only [approx, if_false, r.lo_ne_nan rn, mem_Icc] at xr
   simp only [ne_eq, coe_eq_nan] at cn
   apply approx_inv_step_reason' c.val x0 xr
   simp only [←approx_eq_Icc n, ←approx_eq_Icc rn, image_subset_iff]

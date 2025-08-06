@@ -28,9 +28,9 @@ structure Floating.Valid (n : Int64) (s : UInt64) : Prop where
   /-- `0` has a single, standardized representation -/
   zero_same : n = 0 → s = 0
   /-- `nan` has a single, standardized representation -/
-  nan_same : n = .min → s = .max
+  nan_same : n = .minValue → s = .max
   /-- If we're not `0`, `nan`, or denormalized, the high bit of `n` is set -/
-  norm : n ≠ 0 → n ≠ .min → s ≠ 0 → 2^62 ≤ n.abs
+  norm : n ≠ 0 → n ≠ .minValue → s ≠ 0 → 2^62 ≤ n.uabs
 
 /-- Floating point number -/
 @[unbox] structure Floating where
@@ -46,26 +46,26 @@ namespace Floating
 
 -- Direct access to the fields of `Floating.Valid`
 lemma zero_same (x : Floating) : x.n = 0 → x.s = 0 := x.v.zero_same
-lemma nan_same (x : Floating) : x.n = .min → x.s = .max := x.v.nan_same
-lemma norm (x : Floating) : x.n ≠ 0 → x.n ≠ .min → x.s ≠ 0 → 2^62 ≤ x.n.abs := x.v.norm
+lemma nan_same (x : Floating) : x.n = .minValue → x.s = .max := x.v.nan_same
+lemma norm (x : Floating) : x.n ≠ 0 → x.n ≠ .minValue → x.s ≠ 0 → 2^62 ≤ x.n.uabs := x.v.norm
 
 /-- Computational version of `Floating.Valid` -/
 def valid (n : Int64) (s : UInt64) : Bool :=
   bif n == 0 then s == 0 else
-  bif n == .min then s == .max else
-  s == 0 || ((1 : UInt64) <<< 62) ≤ n.abs
+  bif n == .minValue then s == .max else
+  s == 0 || ((1 : UInt64) <<< 62) ≤ n.uabs
 
 /-- `Floating.valid` decides `Floating.Valid` -/
 lemma valid_iff {n : Int64} {s : UInt64} : Valid n s ↔ valid n s = true := by
   rw [valid]
-  have e : (2 : UInt64)^62 = (1 : UInt64) <<< 62 := rfl
+  have e : (2 : UInt64)^62 = (1 : UInt64) <<< 62 := by fast_decide
   simp only [Bool.cond_eq_true_distrib, beq_iff_eq, Bool.or_eq_true, decide_eq_true_eq]
   constructor
   · intro ⟨zs, ns, norm⟩
     split_ifs
     all_goals simp_all
     by_cases s0 : s = 0
-    all_goals simp_all [s0]
+    all_goals simp_all
   · split_ifs
     · intro s0; refine ⟨by simp_all, by simp_all, by simp_all⟩
     · intro s0; refine ⟨by simp_all, by simp_all, by simp_all⟩
@@ -96,7 +96,7 @@ lemma ext_iff {x y : Floating} : x = y ↔ x.n = y.n ∧ x.s = y.s := by
 
 /-- Standard floating point nan -/
 instance : Nan Floating where
-  nan := ⟨.min, .max, by decide⟩
+  nan := ⟨.minValue, .max, by decide⟩
 
 /-- The `ℝ` that a `Floating` represents, if it's not `nan` -/
 noncomputable def val (x : Floating) : ℝ :=
@@ -123,7 +123,7 @@ instance : One Floating where
 @[simp] lemma s_zero : (0 : Floating).s = 0 := rfl
 @[simp] lemma n_one : (1 : Floating).n = 2^62 := rfl
 @[simp] lemma s_one : (1 : Floating).s = 2^63 - 62 := rfl
-@[simp] lemma n_nan : (nan : Floating).n = .min := rfl
+@[simp] lemma n_nan : (nan : Floating).n = .minValue := rfl
 @[simp] lemma s_nan : (nan : Floating).s = .max := rfl
 
 /-- `nan` could be anything -/
@@ -152,7 +152,7 @@ instance : One Floating where
 /-- `1 = 1` -/
 @[simp] lemma val_one : (1 : Floating).val = 1 := by
   have e0 : ((2^62 : Int64) : ℤ) = 2^62 := by fast_decide
-  have e1 : (2^63 - 62 : UInt64).toInt - 2^63 = -62 := by decide
+  have e1 : (2^63 - 62 : UInt64).toInt - 2^63 = -62 := by fast_decide
   simp only [val, n_one, e0, Int.cast_pow, Int.cast_ofNat, s_one, e1, zpow_neg]
   apply mul_inv_cancel₀; norm_num
 
@@ -173,7 +173,7 @@ lemma val_nan : (nan : Floating).val = -(2 ^ 63) * 2 ^ (2 ^ 63 - 1) := by
   · simp only [ne_eq, n, not_false_eq_true, approx_eq_singleton, mem_singleton_iff]
 
 /-- If we're not nan, `x.n ≠ .min` -/
-lemma n_ne_min {x : Floating} (n : x ≠ nan) : x.n ≠ .min := by
+lemma n_ne_min {x : Floating} (n : x ≠ nan) : x.n ≠ .minValue := by
   contrapose n
   simp only [ne_eq, not_not, ext_iff, n_nan, s_nan, not_and, not_forall, exists_prop] at n ⊢
   exact ⟨n, x.nan_same n⟩
@@ -181,13 +181,13 @@ lemma n_ne_min {x : Floating} (n : x ≠ nan) : x.n ≠ .min := by
 /-- If we're not zero, `x.n ≠ 0` -/
 lemma n_ne_zero {x : Floating} (n : x ≠ 0) : x.n ≠ 0 := by
   contrapose n
-  simp only [ne_eq, not_not, ext_iff, n_nan, s_nan, not_and, not_forall, exists_prop] at n ⊢
+  simp only [ne_eq, not_not, ext_iff, not_and, not_forall, exists_prop] at n ⊢
   exact ⟨n, x.zero_same n⟩
 
 /-- If `x.s ≠ 0`, `x.n ≠ 0` -/
 lemma n_ne_zero' {x : Floating} (n : x.s ≠ 0) : x.n ≠ 0 := by
   contrapose n
-  simp only [ne_eq, not_not, ext_iff, n_nan, s_nan, not_and, not_forall, exists_prop] at n ⊢
+  simp only [ne_eq, not_not] at n ⊢
   simp only [x.zero_same n]
 
 /-- `x.n = 0` exactly at 0 -/
@@ -197,10 +197,12 @@ lemma n_eq_zero_iff {x : Floating} : x.n = 0 ↔ x = 0 := by
   · intro e; simp only [e, n_zero]
 
 /-- More user friendly version of `x.norm` -/
-lemma norm' {x : Floating} (x0 : x ≠ 0) (s0 : x.s.toNat ≠ 0) : 2^62 ≤ x.n.abs.toNat := by
+lemma norm' {x : Floating} (x0 : x ≠ 0) (s0 : x.s.toNat ≠ 0) : 2^62 ≤ x.n.uabs.toNat := by
   by_cases xn : x = nan
   · simp only [xn]; decide
-  · exact x.norm (x.n_ne_zero x0) (x.n_ne_min xn) (UInt64.ne_zero_iff_toNat_ne_zero.mpr s0)
+  · have n := x.norm (x.n_ne_zero x0) (x.n_ne_min xn) (UInt64.ne_zero_iff_toNat_ne_zero.mpr s0)
+    simp only [UInt64.le_iff_toNat_le] at n
+    exact le_trans (le_of_eq (by fast_decide)) n
 
 /-- Only `0` has zero `val` -/
 lemma val_eq_zero {x : Floating} : x.val = 0 ↔ x = 0 := by
@@ -228,8 +230,8 @@ This should really be cleaned up
 @[simp] lemma u65 : (65 : UInt64).toNat = 65 := rfl
 @[simp] lemma u126 : (126 : UInt64).toNat = 126 := rfl
 @[simp] lemma u127 : (127 : UInt64).toNat = 127 := rfl
-@[simp] lemma up62 : (2^62 : UInt64).toNat = 2^62 := rfl
-@[simp] lemma up63 : (2^63 : UInt64).toNat = 2^63 := rfl
+@[simp] lemma up62 : (2^62 : UInt64).toNat = 2^62 := by fast_decide
+@[simp] lemma up63 : (2^63 : UInt64).toNat = 2^63 := by fast_decide
 @[simp] lemma ua2 : (2 : ℤ).natAbs = 2 := rfl
 
 /-- Remove a `nan` possibility from a rounding statement -/
@@ -253,18 +255,19 @@ lemma val_of_nonneg {x : Floating} (x0 : 0 ≤ x.val) :
 
 /-- The smallest normalized floating point value -/
 @[irreducible] def min_norm : Floating :=
-  ⟨⟨2^62⟩, 0, by decide, by decide, by decide⟩
+  ⟨UInt64.toInt64 ⟨2^62⟩, 0, by fast_decide, by fast_decide, by fast_decide⟩
 
-@[simp] lemma min_norm_ne_nan : min_norm ≠ nan := by unfold min_norm nan; decide
+@[simp] lemma min_norm_ne_nan : min_norm ≠ nan := by unfold min_norm nan; fast_decide
 
 @[simp] lemma val_min_norm : min_norm.val = 2^(62 - 2^63 : ℤ) := by
   have t0 : (2 : ℝ) ≠ 0 := by norm_num
-  rw [val, min_norm]
+  have e : (2 ^ 62 : BitVec 64).toNat = 2^62 := by fast_decide
+  rw [val]
+  unfold min_norm  -- Tred delicately to avoid deep recursion
   simp only [UInt64.toInt_zero, zero_sub]
-  rw [Int64.coe_of_nonneg (by decide)]
-  simp only [up62, Nat.cast_pow, Nat.cast_ofNat, Int.cast_pow, Int.cast_ofNat,
-    pow_mul_zpow t0]
-  exact congr_arg₂ _ rfl (by ring_nf)
+  rw [Int64.coe_of_nonneg (by fast_decide)]
+  simp only [Nat.cast_pow, Nat.cast_ofNat, Int.cast_pow, Int.cast_ofNat, pow_mul_zpow t0,
+    UInt64.toUInt64_toInt64, UInt64.toNat, e, ← sub_eq_add_neg]
 
 /-!
 ### Conversion to `Float`

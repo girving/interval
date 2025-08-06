@@ -1,8 +1,8 @@
 import Interval.EulerMaclaurin.DerivUnderIntegral
 import Interval.EulerMaclaurin.IteratedDerivArith
 import Interval.EulerMaclaurin.LHopital
+import Mathlib.Analysis.Calculus.LocalExtr.Rolle
 import Mathlib.Analysis.Complex.RemovableSingularity
-import Mathlib.Analysis.SpecialFunctions.Integrals
 import Mathlib.NumberTheory.ZetaValues
 
 /-!
@@ -104,7 +104,7 @@ lemma bernoulliFun_eval_one_sub {s : ℕ} {x : ℝ} :
   induction' s with s h generalizing x
   · simp only [bernoulliFun_zero, pow_zero, mul_one]
   · simp only [bernoulliFun_eq_integral _ 1 (1 - x), bernoulliFun_eval_one, bernoulliFun_eval_zero,
-      add_left_eq_self, Nat.cast_add, Nat.cast_one, add_tsub_cancel_right, integral_const_mul,
+      add_eq_right, Nat.cast_add, Nat.cast_one, add_tsub_cancel_right, integral_const_mul,
       bernoulliFun_eq_integral _ 0 x]
     by_cases s0 : s = 0
     · simp [s0]
@@ -169,7 +169,7 @@ lemma bernoulliFun_mul (s m : ℕ) (m0 : m ≠ 0) (x : ℝ) :
       · rw [mul_assoc, mul_comm (m : ℝ) _, ← Nat.cast_add_one]
         apply (hasDerivAt_bernoulliFun _ _).comp
         apply hasDerivAt_const_mul
-      · refine HasDerivAt.sum fun k _ ↦ ?_
+      · refine HasDerivAt.fun_sum fun k _ ↦ ?_
         simp only [mul_assoc, ← Nat.cast_add_one]
         apply HasDerivAt.const_mul
         rw [← mul_one (_ * _)]
@@ -239,12 +239,12 @@ lemma hasDerivAt_presaw {x : ℝ} : HasDerivAt (presaw (s + 1) a) (presaw s a x)
   have e : presaw (s + 1) a = (fun x ↦ presaw (s + 1) a x) := rfl
   simp only [presaw, Nat.factorial_succ, mul_comm _ s.factorial, Nat.cast_mul,
     mul_inv, ← smul_smul, e]
-  apply HasDerivAt.const_smul
+  apply HasDerivAt.fun_const_smul
   have s0 : ((s + 1 : ℕ) : ℝ) ≠ 0 := by simp only [Nat.cast_ne_zero]; omega
   have sc : s = s + 1 - 1 := by omega
   rw [← inv_smul_smul₀ s0 (x := (bernoulliFun s (x - ↑a)))]
   nth_rw 5 [sc]
-  apply HasDerivAt.const_smul
+  apply HasDerivAt.fun_const_smul
   rw [Nat.cast_smul_eq_nsmul]
   rw [← mul_one (((s + 1) • bernoulliFun (s + 1 - 1) (x - ↑a)))]
   simp only [nsmul_eq_mul]
@@ -270,9 +270,8 @@ def saw (s : ℕ) (x : ℝ) :=
 lemma saw_eqOn {a : ℤ} :
     EqOn (saw s) (presaw s a) (Ico a (a+1)) := by
   intro x m
-  simp only [Int.cast_add, Int.cast_one, mem_Ico, ← Int.floor_eq_iff] at m
-  simp only [saw, presaw, smul_eq_mul, mul_eq_mul_left_iff, inv_eq_zero, Nat.cast_eq_zero,
-    Int.fract, m]
+  simp only [mem_Ico, ← Int.floor_eq_iff] at m
+  simp only [saw, presaw, smul_eq_mul, Int.fract, m]
 
 /-- `presaw` at integer values in terms of `saw` -/
 @[simp] lemma presaw_coe_same {a : ℤ} : presaw s a a = saw s 0 := by
@@ -281,13 +280,13 @@ lemma saw_eqOn {a : ℤ} :
 
 /-- `presaw` at integer values in terms of `saw` -/
 @[simp] lemma presaw_coe_succ {a : ℤ} : presaw (s + 2) a (a + 1) = saw (s + 2) 0 := by
-  simp only [presaw, Int.cast_add, Int.cast_one, add_sub_cancel_left, bernoulliPoly_one_eq_zero,
-    smul_eq_mul, saw, Int.fract_zero]
+  simp only [presaw, add_sub_cancel_left, bernoulliPoly_one_eq_zero, smul_eq_mul, saw,
+    Int.fract_zero]
 
 /-- `presaw` at integer values in terms of `saw` -/
 @[simp] lemma presaw_one_coe_succ {a : ℤ} : presaw 1 a (a + 1) = 1 / 2 := by
-  simp only [presaw, Nat.factorial_one, Nat.cast_one, inv_one, Int.cast_add, Int.cast_one,
-    add_sub_cancel_left, bernoulliFun_one, one_div, smul_eq_mul, one_mul]
+  simp only [presaw, Nat.factorial_one, Nat.cast_one, inv_one, add_sub_cancel_left,
+    bernoulliFun_one, one_div, smul_eq_mul, one_mul]
   norm_num
 
 /-- Saw is nice on `[a,a+1)` -/
@@ -308,8 +307,7 @@ lemma hasDerivAt_saw {s : ℕ} {a : ℤ} {x : ℝ} (m : x ∈ Ioo (a : ℝ) (a +
     apply saw_eqOn.eventuallyEq_of_mem
     exact Ico_mem_nhds_iff.mpr m
   refine HasDerivAt.congr_of_eventuallyEq ?_ e
-  simp only [saw_eqOn (mem_Ico_of_Ioo m), Nat.factorial_succ, mul_comm _ s.factorial, Nat.cast_mul,
-    mul_inv, ← smul_smul]
+  simp only [saw_eqOn (mem_Ico_of_Ioo m)]
   exact hasDerivAt_presaw
 
 @[simp] lemma deriv_saw {x : ℝ} (m : x ∈ Ioo (a : ℝ) (a + 1)) :
@@ -344,15 +342,14 @@ lemma continuous_saw : Continuous (saw (s + 2)) := by
       · exact contDiff_presaw.continuous.continuousWithinAt
       · apply saw_eqOn.eventuallyEq_of_mem
         apply Ico_mem_nhdsGT_of_mem
-        simp only [Int.cast_add, Int.cast_one, mem_Ico, le_refl, lt_add_iff_pos_right, zero_lt_one,
-          and_self]
+        simp only [mem_Ico, le_refl, lt_add_iff_pos_right, zero_lt_one, and_self]
       · simp only [saw_int, presaw_coe_same]
   · apply ContinuousAt.congr_of_eventuallyEq (f := presaw (s + 2) a)
     · exact contDiff_presaw.continuous.continuousAt
     · apply saw_eqOn.eventuallyEq_of_mem
       apply Ico_mem_nhds
       · exact (Ne.symm xa).lt_of_le (Int.floor_le x)
-      · simp only [Int.cast_add, Int.cast_one, Int.lt_floor_add_one, a]
+      · simp only [Int.lt_floor_add_one, a]
 
 /-!
 ### Saw values at 0
@@ -389,7 +386,7 @@ lemma pres_eq_reflect {s : ℕ} {x y b : ℝ} :
   intro x y b
   apply Set.encard_le_encard_of_injOn (f := fun x ↦ 1 - x)
   · intro u m
-    simp only [pres, mem_inter_iff, mem_Ioo, mem_preimage, mem_singleton_iff,
+    simp only [mem_inter_iff, mem_Ioo, mem_preimage, mem_singleton_iff,
       bernoulliFun_eval_one_sub] at m ⊢
     refine ⟨⟨by linarith, by linarith⟩, ?_⟩
     simp only [m.2, ← mul_assoc, ← mul_pow, mul_neg, mul_one, neg_neg, one_pow, one_mul]
@@ -414,9 +411,8 @@ lemma pres_eq_reflect {s : ℕ} {x y b : ℝ} :
 @[simp] lemma pres_two_eq_zero : pres 2 0 1 6⁻¹ = 0 := by
   apply Set.encard_eq_zero.mpr
   ext x
-  simp only [bernoulli_two, Rat.cast_inv, Rat.cast_ofNat, mem_inter_iff, mem_Ioo, mem_preimage,
-    bernoulliFun_two, mem_singleton_iff, add_left_eq_self, mem_empty_iff_false, iff_false, not_and,
-    and_imp, sub_eq_zero]
+  simp only [mem_inter_iff, mem_Ioo, mem_preimage, bernoulliFun_two, mem_singleton_iff,
+    add_eq_right, mem_empty_iff_false, iff_false, not_and, and_imp, sub_eq_zero]
   intro x0 x1
   by_contra h
   cases' eq_zero_or_one_of_sq_eq_self h
@@ -471,7 +467,7 @@ lemma pres_eq_zero {s : ℕ} {x y b : ℝ} (xy : x < y) (h : pres s x y 0 ≤ 1)
 
 /-- If there's no derivative zeros in an interval, there is at most one preimage -/
 lemma pres_le_one {s : ℕ} {x y b : ℝ} (h : pres s x y 0 = 0) : pres (s + 1) x y b ≤ 1 := by
-  simp only [pres, encard_eq_zero, eq_empty_iff_forall_not_mem, mem_inter_iff, mem_Ioo,
+  simp only [pres, encard_eq_zero, eq_empty_iff_forall_notMem, mem_inter_iff, mem_Ioo,
     mem_preimage, mem_singleton_iff, not_and, and_imp, encard_le_one_iff] at h ⊢
   intro u v xu uy ub xv vy vb
   apply le_antisymm
@@ -498,7 +494,7 @@ lemma pres_union_le {s : ℕ} {x y z b : ℝ} (xy : x < y) (yz : y < z) :
     simp only [mem_Ioo, union_singleton, mem_union, mem_insert_iff]
     constructor
     · intro ⟨a, b⟩
-      simp only [a, true_and, ← le_iff_eq_or_lt, b, and_true, le_or_lt]
+      simp only [a, true_and, ← le_iff_eq_or_lt, b, and_true, le_or_gt]
     · intro h
       rcases h with (h | h) | h
       · simp only [h, xy, yz, true_and]
@@ -520,7 +516,7 @@ lemma bernoulliFun_zeros (s : ℕ) (s1 : 2 ≤ s) :
       pres_two_eq_one, le_refl, and_self]
   · intro s s2 h
     rcases s.even_or_odd' with ⟨t, e | e⟩
-    · simp only [e, even_two, Even.mul_right, ↓reduceIte, Nat.not_even_bit1, mem_Ioo] at h ⊢
+    · simp only [e, even_two, Even.mul_right, ↓reduceIte, Nat.not_even_bit1] at h ⊢
       obtain ⟨h, r⟩ := h
       refine pres_eq_zero (by norm_num) r ?_ bernoulliFun_eval_half_eq_zero
       rw [bernoulliFun_eval_zero, bernoulli_odd_eq_zero (by omega), Rat.cast_zero]
@@ -566,13 +562,12 @@ lemma IsLocalMax.deriv_eq_zero_of_abs {f : ℝ → ℝ} {y : ℝ} (m : IsLocalMa
     simp only [abs_of_nonneg fy0] at le
     exact le_trans (le_abs_self _) le
   · simp only [not_le] at fy0
-    rw [← neg_eq_zero, ← deriv.neg]
+    rw [← neg_eq_zero, ← deriv.fun_neg]
     apply IsLocalMax.deriv_eq_zero
     filter_upwards [m]
     intro x le
-    simp only [abs_of_neg fy0, neg_le_neg_iff] at le ⊢
-    refine le_trans ?_ (neg_abs_le _)
-    linarith
+    simp only [abs_of_neg fy0] at le ⊢
+    exact le_trans (neg_le_abs _) le
 
 lemma abs_bernoulliFun_le_even (s : ℕ) {x : ℝ} (m : x ∈ Icc 0 1) :
     |bernoulliFun (2 * s) x| ≤ |bernoulli (2 * s)| := by

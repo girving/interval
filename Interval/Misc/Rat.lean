@@ -9,14 +9,14 @@ import Interval.Misc.Real
 -/
 
 open Set
+variable {𝕜 : Type} [Field 𝕜] [LinearOrder 𝕜] [IsStrictOrderedRing 𝕜]
 
 lemma Rat.abs_eq_div {x : ℚ} : |x| = (x.num.natAbs : ℚ) / x.den := by
   nth_rw 1 [←Rat.num_div_den x]
   have d0 : 0 < (x.den : ℚ) := Nat.cast_pos.mpr x.den_pos
   rw [abs_div, abs_of_pos d0, ←Int.cast_abs, Int.abs_eq_natAbs, Int.cast_natCast]
 
-lemma Rat.abs_eq_div' {𝕜 : Type} [LinearOrderedField 𝕜] {x : ℚ} :
-    (|x| : 𝕜) = (x.num.natAbs : 𝕜) / x.den := by
+lemma Rat.abs_eq_div' {x : ℚ} : (|x| : 𝕜) = (x.num.natAbs : 𝕜) / x.den := by
   nth_rw 1 [←Rat.num_div_den x]
   have d0 : 0 < (x.den : 𝕜) := Nat.cast_pos.mpr x.den_pos
   simp only [cast_div, cast_intCast, cast_natCast, abs_div, abs_of_pos d0, ←Int.cast_abs,
@@ -37,8 +37,8 @@ lemma Rat.abs_eq_div' {𝕜 : Type} [LinearOrderedField 𝕜] {x : ℚ} :
 lemma Rat.log2_correct {x : ℚ} (x0 : x ≠ 0) : |x| ∈ Ico (2^x.log2) (2^(x.log2 + 1)) := by
   have t0 : (2:ℚ) ≠ 0 := by norm_num
   rw [log2]
-  simp only [sub_nonneg, Nat.cast_le, neg_sub, Bool.cond_decide, bif_eq_if, decide_eq_true_eq,
-    Nat.shiftLeft_eq, Nat.fast_log2_eq]
+  simp only [sub_nonneg, Nat.cast_le, neg_sub, bif_eq_if, decide_eq_true_eq, Nat.shiftLeft_eq,
+    Nat.fast_log2_eq]
   generalize hn : x.num.natAbs = n
   generalize ha : n.log2 = a
   generalize hb : x.den.log2 = b
@@ -62,24 +62,22 @@ lemma Rat.log2_correct {x : ℚ} (x0 : x ≠ 0) : |x| ∈ Ico (2^x.log2) (2^(x.l
     refine le_trans (div_le_div_of_nonneg_left (by positivity) (by positivity) (Nat.cast_le.mpr bd)) ?_
     simp only [Nat.cast_pow, Nat.cast_ofNat, ← add_sub_right_comm, zpow_sub₀ t0, zpow_natCast,
       ← Nat.cast_add_one, le_refl]
-  simp only [←Nat.cast_le (α := ℚ), ←Nat.cast_lt (α := ℚ), ←ae, mem_Ico,
-    apply_ite (fun n : ℤ ↦ (2:ℚ)^n), apply_ite (fun y : ℚ ↦ y ≤ |x|),
-    apply_ite (fun y : ℚ ↦ |x| < y), apply_ite (fun n : ℤ ↦ n + 1),
-    Nat.cast_mul, Nat.cast_pow, Nat.cast_two, mul_comm (x.den : ℚ),
-    ←le_div_iff₀ d0', lo, hi, sub_add_cancel, Nat.fast_log2_eq]
+  simp only [← Nat.cast_le (α := ℚ), ← ae, mem_Ico, apply_ite (fun n : ℤ ↦ (2 : ℚ) ^ n),
+    apply_ite (fun y : ℚ ↦ y ≤ |x|), apply_ite (fun y : ℚ ↦ |x| < y), apply_ite (fun n : ℤ ↦ n + 1),
+    Nat.cast_mul, Nat.cast_pow, Nat.cast_two, mul_comm (x.den : ℚ), ← le_div_iff₀ d0', lo, hi,
+    sub_add_cancel]
   by_cases ba : b ≤ a
-  · simp only [Nat.cast_le, ba, ite_true, decide_eq_true_eq, sub_add_cancel, ←Nat.cast_sub ba,
-      Int.toNat_ofNat, zpow_ofNat, zpow_natCast]
+  · simp only [Nat.cast_le, ba, ite_true, decide_eq_true_eq, ← Nat.cast_sub ba, Int.toNat_natCast,
+    zpow_natCast]
     split_ifs with h
     · simp only [h, and_self]
     · simp only [not_le.mp h, and_self]
   · have ab : a ≤ b := (not_le.mp ba).le
     have e : (a : ℤ) - (b : ℤ) = -((b - a : ℕ) : ℤ) := by simp only [Nat.cast_sub ab, neg_sub]
-    simp [Nat.cast_le, ba, ↓reduceIte, ← Nat.cast_sub ab, Int.toNat_ofNat,
-      mul_comm _ ((2 : ℚ) ^ _), decide_eq_true_eq, e, zpow_neg, zpow_natCast, ae, not_le,
-      inv_le_iff_one_le_mul₀ (two_pow_pos (R := ℚ)), ← mul_div_assoc, one_le_div d0', if_true_right,
-      lt_or_le, div_lt_iff₀ d0', ← div_eq_inv_mul, lt_div_iff₀ (two_pow_pos (R := ℚ)), if_true_left,
-      le_or_lt, and_self]
+    simp [Nat.cast_le, ba, ↓reduceIte, ← Nat.cast_sub ab, mul_comm _ ((2 : ℚ) ^ _),
+      decide_eq_true_eq, e, zpow_neg, zpow_natCast, ae, not_le,
+      inv_le_iff_one_le_mul₀ (two_pow_pos (R := ℚ)), ← mul_div_assoc, one_le_div d0',
+      div_lt_iff₀ d0', ← div_eq_inv_mul, lt_div_iff₀ (two_pow_pos (R := ℚ)), if_true_left, and_self]
 
 lemma Rat.log2_self_le {x : ℚ} (x0 : x ≠ 0) : 2 ^ x.log2 ≤ |x| := (Rat.log2_correct x0).1
 

@@ -21,8 +21,8 @@ lemma pi_lt_314159265358979323847 : π < 3.14159265358979323847 := by
 
 /-- Optimal `Interval` approximation of `π` -/
 @[irreducible] def pi : Interval :=
-  ⟨⟨⟨7244019458077122842⟩, ⟨9223372036854775747⟩, by fast_decide⟩,
-   ⟨⟨7244019458077122843⟩, ⟨9223372036854775747⟩, by fast_decide⟩, by fast_decide⟩
+  ⟨⟨7244019458077122842, 9223372036854775747, by fast_decide⟩,
+   ⟨7244019458077122843, 9223372036854775747, by fast_decide⟩, by fast_decide⟩
 
 @[approx] lemma approx_pi : π ∈ approx pi := by
   have n : pi.lo ≠ nan := by fast_decide
@@ -35,8 +35,8 @@ lemma pi_lt_314159265358979323847 : π < 3.14159265358979323847 := by
 
 /-- Optimal `Interval` approximation of `π⁻¹` -/
 @[irreducible] def inv_pi : Interval :=
-  ⟨⟨⟨5871781006564002452⟩, ⟨9223372036854775744⟩, by fast_decide⟩,
-   ⟨⟨5871781006564002453⟩, ⟨9223372036854775744⟩, by fast_decide⟩, by fast_decide⟩
+  ⟨⟨5871781006564002452, 9223372036854775744, by fast_decide⟩,
+   ⟨5871781006564002453, 9223372036854775744, by fast_decide⟩, by fast_decide⟩
 
 @[approx] lemma approx_inv_pi : π⁻¹ ∈ approx inv_pi := by
   have n : inv_pi.lo ≠ nan := by fast_decide

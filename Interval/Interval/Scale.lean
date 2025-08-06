@@ -15,7 +15,7 @@ namespace Interval
 @[irreducible] def scaleB (x : Interval) (t : Int64) : Interval :=
   mix (x.lo.scaleB t) (x.hi.scaleB t) (by
     intro n0 n1
-    simp only [ne_eq, n0, not_false_eq_true, Floating.val_scaleB, n1, gt_iff_lt, two_zpow_pos,
+    simp only [ne_eq, n0, not_false_eq_true, Floating.val_scaleB, n1, two_zpow_pos,
       mul_le_mul_right, le])
 
 /-- Scale by changing the exponent -/
@@ -66,10 +66,8 @@ lemma ne_nan_of_scaleB' {x : Interval} {t : Fixed 0} (n : x.scaleB' t ≠ nan) :
   rw [scaleB']
   by_cases tn : t = nan
   · simp only [tn, beq_self_eq_true, Fixed.nan_n, cond_true, approx_nan, mem_univ]
-  simp only [bif_eq_if, beq_iff_eq, ne_eq, neg_neg, tn, not_false_eq_true, Fixed.ne_nan_of_neg,
-    ite_false]
-  simp only [approx, ne_eq, neg_neg, tn, not_false_eq_true, Fixed.ne_nan_of_neg, ite_false,
-    mem_singleton_iff] at tm
+  simp only [bif_eq_if, beq_iff_eq, tn, ite_false]
+  simp only [approx, tn, ite_false, mem_singleton_iff] at tm
   rw [tm, Fixed.val, Int64.coe_zero, zpow_zero, mul_one, Real.rpow_intCast]
   exact mem_approx_scaleB xm
 

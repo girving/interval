@@ -21,3 +21,16 @@ declare_aesop_rule_sets [Approx]
 
 initialize Lean.registerTraceClass `interval
 initialize Lean.registerTraceClass `interval.debug
+
+/-!
+### Simp lemma sets
+-/
+
+/-- Simp lemmas for cleaning up `bif` statements -/
+register_simp_attr to_if
+
+/-- Simp lemmas for reducing from `Int64` and `UInt64` to `BitVec` -/
+register_simp_attr to_bitvec
+
+/-- Simp lemmas for reducing from `Int64` and `UInt64` to `ℕ` and `ℤ` as prep for `omega` -/
+register_simp_attr to_omega

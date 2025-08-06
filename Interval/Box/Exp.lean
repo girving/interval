@@ -38,7 +38,7 @@ variable {w : ℂ} {z : Box}
     (s * Complex.I).exp ∈ approx t.cis := by
   rw [Complex.exp_eq_exp_re_mul_sin_add_cos, Interval.cis]
   rw [Box.mem_approx_iff_ext]
-  simp [Complex.exp_ofReal_re, Complex.cos_ofReal_re, Complex.sin_ofReal_re]
+  simp [Complex.cos_ofReal_re, Complex.sin_ofReal_re]
   approx
 
 @[approx] lemma Box.mem_approx_exp (wz : w ∈ approx z) : w.exp ∈ approx z.exp := by
@@ -53,8 +53,8 @@ variable {w : ℂ} {z : Box}
   simp only [Complex.add_re, Complex.mul_re, Complex.sin_ofReal_re, Complex.div_ofNat_re,
     Complex.exp_ofReal_re, Complex.sin_ofReal_im, Complex.div_ofNat_im, Complex.add_im,
     Complex.exp_ofReal_im, zero_add, zero_mul, sub_zero, Complex.cos_ofReal_re, Complex.sub_re,
-    Complex.cos_ofReal_im, Complex.sub_im, zero_sub, Complex.I_re, mul_zero, Complex.mul_im,
-    add_zero, Complex.I_im, mul_one, ← Complex.ofReal_neg, zero_div]
+    Complex.cos_ofReal_im, Complex.sub_im, Complex.I_re, mul_zero, Complex.mul_im, add_zero,
+    Complex.I_im, mul_one, ← Complex.ofReal_neg, zero_div]
   approx
 
 @[approx] lemma Box.mem_approx_cos (wz : w ∈ approx z) : w.cos ∈ approx z.cos := by
@@ -62,7 +62,7 @@ variable {w : ℂ} {z : Box}
   rw [mem_approx_iff_ext] at wz ⊢
   simp only [Complex.add_re, Complex.mul_re, Complex.sin_ofReal_re, Complex.div_ofNat_re,
     Complex.exp_ofReal_re, Complex.sin_ofReal_im, Complex.div_ofNat_im, Complex.add_im,
-    Complex.exp_ofReal_im, zero_add, zero_mul, sub_zero, Complex.cos_ofReal_re, Complex.sub_re,
+    Complex.exp_ofReal_im, zero_mul, sub_zero, Complex.cos_ofReal_re, Complex.sub_re,
     Complex.cos_ofReal_im, Complex.sub_im, zero_sub, Complex.I_re, mul_zero, Complex.mul_im,
     add_zero, Complex.I_im, mul_one, ← Complex.ofReal_neg, zero_div, ← neg_mul]
   approx

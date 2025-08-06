@@ -65,7 +65,7 @@ lemma nan_def : (nan : Preinterval) = ⟨nan, nan⟩ := rfl
   rw [mix, Interval.mix]
   by_cases n : x.lo = nan ∨ x.hi = nan
   · rcases n with n | n
-    all_goals simp only [n, true_or, or_true, dite_true, Interval.approx_nan, approx]
+    all_goals simp only [n, true_or, or_true, dite_true, approx]
     all_goals simp only [Interval.lo_nan, Interval.hi_nan, Icc_self, ite_true]
   rcases not_or.mp n with ⟨ln,hn⟩
   simp only [approx, ln, hn, or_self, dite_false, ite_false]

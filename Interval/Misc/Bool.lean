@@ -1,5 +1,6 @@
 import Mathlib.Data.Bool.Basic
 import Mathlib.Tactic.NormNum.Core
+import Interval.Tactic.Simp
 
 open Classical
 
@@ -50,7 +51,8 @@ lemma bif_congr {x y : Bool} {a b c d : α} (xy : x = y) (ac : a = c) (bd : b = 
   induction x; repeat { induction y; repeat norm_num }
 
 /-- Change `bif` to `if` -/
-lemma bif_eq_if {b : Bool} {x y : α} : (bif b then x else y) = if b then x else y := by
+@[to_if, to_bitvec, to_omega] lemma bif_eq_if {b : Bool} {x y : α} :
+    (bif b then x else y) = if b then x else y := by
   induction b
   · simp only [cond_false, Bool.false_eq_true, ↓reduceIte]
   · simp only [cond_true, ↓reduceIte]

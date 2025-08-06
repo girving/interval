@@ -43,28 +43,23 @@ namespace Interval
 @[simp] lemma nan_premul {y : Interval} : (nan : Interval).premul y = nan := by
   rw [premul]
   simp only [lo_nan, Floating.n_nan, Int64.isNeg_min, hi_nan, bne_self_eq_false, Floating.isNeg_iff,
-    Bool.xor_true, Bool.false_and, Floating.nan_mul, min_self, max_self, bif_eq_if, ite_false,
-    Bool.false_eq_true, Int64.isNeg]
+    Bool.false_and, Floating.nan_mul, min_self, bif_eq_if, ite_false, Bool.false_eq_true,
+    Int64.isNeg]
   rcases y.sign_cases with ⟨ls,hs⟩ | ⟨ls,hs⟩ | ⟨ls,hs⟩
   all_goals try simp only [not_lt.mpr ls]
   all_goals try simp only [not_lt.mpr hs]
-  all_goals simp only [ls, hs, decide_true, decide_false, Floating.mul_nan,
-    Floating.nan_mul, Preinterval.approx_nan_lo, Preinterval.approx_nan_hi, subset_univ,
-    ←Preinterval.nan_def]
+  all_goals simp only [ls, hs, decide_true, decide_false, Floating.nan_mul, ← Preinterval.nan_def]
 
 /-- `premul` propagates `y = nan` -/
 @[simp] lemma premul_nan {x : Interval} : x.premul nan = nan := by
   rw [premul]
-  simp only [Floating.isNeg_iff, lo_nan, Floating.n_nan, Int64.isNeg_min, Bool.true_xor, hi_nan,
-    Floating.mul_nan, min_self, max_self, bif_eq_if, Bool.and_eq_true, bne_iff_ne, ne_eq,
-    decide_eq_decide, Bool.not_eq_true', decide_eq_false_iff_not, not_lt, Int64.isNeg]
+  simp only [Floating.isNeg_iff, lo_nan, Floating.n_nan, Int64.isNeg_min, hi_nan, Floating.mul_nan,
+    min_self, bif_eq_if, Bool.and_eq_true, bne_iff_ne, ne_eq, decide_eq_decide, Int64.isNeg]
   rcases x.sign_cases with ⟨ls,hs⟩ | ⟨ls,hs⟩ | ⟨ls,hs⟩
   all_goals try simp only [not_lt.mpr ls]
   all_goals try simp only [not_lt.mpr hs]
-  all_goals simp only [ls, hs, decide_true, decide_false, Floating.mul_nan,
-    Floating.nan_mul, Preinterval.approx_nan_lo, Preinterval.approx_nan_hi, subset_univ, not_true,
-    bne_self_eq_false, Bool.and_self, ite_self, Preinterval.approx_nan_hi, ←Preinterval.nan_def,
-    false_and, if_false, true_iff, not_false_iff, true_and, if_true, Floating.max_nan]
+  all_goals simp only [ls, hs, decide_true, decide_false, Floating.mul_nan, not_true, ite_self, ←
+    Preinterval.nan_def, false_and, true_iff, not_false_iff, true_and, Floating.max_nan]
 
 set_option maxHeartbeats 10000000 in
 /-- `mul` respects `approx` -/
@@ -75,8 +70,8 @@ lemma approx_premul (x : Interval) (y : Interval) : approx x * approx y ⊆ appr
     all_goals simp only [n, nan_premul, premul_nan, Preinterval.approx_nan, subset_univ]
   rcases not_or.mp n with ⟨xn,yn⟩; clear n
   rw [premul]
-  simp only [image2_mul, bif_eq_if, Bool.or_eq_true, beq_iff_eq, Floating.isNeg_iff,
-    Bool.and_eq_true, bne_iff_ne, ne_eq, decide_eq_decide, Int64.isNeg]
+  simp only [bif_eq_if, Floating.isNeg_iff, Bool.and_eq_true, bne_iff_ne, ne_eq, decide_eq_decide,
+    Int64.isNeg]
   -- Record Floating.mul bounds
   generalize mll0 : x.lo.mul y.lo false = ll0
   generalize mlh0 : x.lo.mul y.hi false = lh0
@@ -107,9 +102,9 @@ lemma approx_premul (x : Interval) (y : Interval) : approx x * approx y ⊆ appr
     decide_false, true_iff, not_false_iff, true_and, if_true, mll0, mlh0, mhl0, mhh0, mll1,
     mlh1, mhl1, mhh1]
   all_goals clear mll0 mlh0 mhl0 mhh0 mll1 mlh1 mhl1 mhh1
-  all_goals simp only [approx, xn, yn, x.lo_ne_nan xn, x.hi_ne_nan xn, y.lo_ne_nan yn,
-    y.hi_ne_nan yn, if_false, subset_if_univ_iff, not_or, and_imp, Icc_mul_Icc_subset_Icc xle yle,
-    Floating.min_eq_nan, Floating.max_eq_nan, Floating.val_min, min_le_iff]
+  all_goals simp only [approx, x.lo_ne_nan xn, y.lo_ne_nan yn, if_false, subset_if_univ_iff, not_or,
+    and_imp, Icc_mul_Icc_subset_Icc xle yle, Floating.min_eq_nan, Floating.max_eq_nan,
+    Floating.val_min, min_le_iff]
   -- Dispatch everything with nlinarith
   · intro m0 m1; specialize ihh0 m0; specialize ill1 m1
     exact ⟨by nlinarith, by nlinarith, by nlinarith, by nlinarith,
@@ -220,18 +215,17 @@ lemma ne_nan_of_mul {x : Interval} {y : Interval} (n : x * y ≠ nan) : x ≠ na
 lemma approx_float_mul_float (x : Floating) (y : Floating) :
     approx x * approx y ⊆ approx (float_mul_float x y) := by
   intro a m
-  simp only [mem_mul, exists_and_left] at m
+  simp only [mem_mul] at m
   rcases m with ⟨b,bm,c,cm,bc⟩
   rw [float_mul_float]
   simp only [approx, mem_ite_univ_left, mem_singleton_iff, mem_Icc] at bm cm ⊢
   by_cases n : x = nan ∨ y = nan ∨ Floating.mul x y false = nan ∨ Floating.mul x y true = nan
   · rcases n with n | n | n | n; repeat simp [n]
-  simp only [not_or, Ne] at n
+  simp only [not_or] at n
   rcases n with ⟨n0,n1,n2,n3⟩
   intro nm
   simp only [n0, not_false_eq_true, forall_true_left, n1, lo_eq_nan] at bm cm nm
-  simp only [n2, n3, or_self, not_false_eq_true, ← bc, bm, cm, forall_true_left, lo_mix nm,
-    hi_mix nm]
+  simp only [← bc, bm, cm, lo_mix nm, hi_mix nm]
   exact ⟨Floating.mul_le n2, Floating.le_mul n3⟩
 
 /-- `approx_float_mul_float` in `approx` form, `⊆` version -/
@@ -287,7 +281,7 @@ lemma approx_mul_float (x : Interval) (y : Floating) :
   simp only [Floating.isNeg_iff, bif_eq_if, decide_eq_true_eq, Int64.isNeg]
   by_cases n : x = nan ∨ y = nan
   · rcases n with n | n; repeat simp [n]
-  simp only [not_or, ←nonempty_iff_ne_empty] at n
+  simp only [not_or] at n
   rcases n with ⟨n0,n1⟩
   have xle : x.lo.val ≤ x.hi.val := x.le
   -- Record Floating.mul bounds
@@ -301,12 +295,12 @@ lemma approx_mul_float (x : Interval) (y : Floating) :
   have ih1 : h1 ≠ nan → x.hi.val * y.val ≤ h1.val := by rw [←mh1]; exact Floating.le_mul
   -- Split on signs
   by_cases ys : y.val < 0
-  all_goals simp only [ys, n0, n1, ite_true, ite_false, approx, false_or, subset_if_univ_iff,
-    not_or, and_imp, ml0, mh0, ml1, mh1, mul_singleton, x.lo_ne_nan n0]
+  all_goals simp only [ys, n1, ite_true, ite_false, approx, subset_if_univ_iff, ml0, mh0, ml1, mh1,
+    mul_singleton, x.lo_ne_nan n0]
   all_goals intro m
   all_goals simp only [lo_eq_nan] at m
   all_goals simp only [lo_mix m, hi_mix m]
-  all_goals simp only [mix_eq_nan, not_or, Ne] at m
+  all_goals simp only [mix_eq_nan, not_or] at m
   -- Handle each case
   · have le : x.hi.val * y.val ≤ x.lo.val * y.val := by nlinarith
     simp only [image_mul_right_Icc_of_neg ys, Icc_subset_Icc_iff le]
@@ -337,12 +331,12 @@ lemma approx_mul_float (x : Interval) (y : Floating) :
 -/
 
 /-- Tighter than `mul x x` -/
-def sqr (x : Interval) : Interval :=
+@[irreducible] def sqr (x : Interval) : Interval :=
   if m : x.lo.n.isNeg != x.hi.n.isNeg then  -- x has mixed sign
     mix 0 ((x.lo.mul x.lo true).max (x.hi.mul x.hi true)) (by
       intro _ n
       simp only [ne_eq, Floating.max_eq_nan, not_or] at n
-      simp only [Floating.isNeg_iff, bne_iff_ne, ne_eq, decide_eq_decide] at m
+      simp only [bne_iff_ne, ne_eq] at m
       simp only [Floating.val_zero, Floating.val_max n.1 n.2, le_max_iff]
       left
       exact le_trans (by nlinarith) (Floating.le_mul n.1))
@@ -378,19 +372,16 @@ def sqr (x : Interval) : Interval :=
     dite_not, Int64.isNeg]
   by_cases n : x = nan
   · simp only [n, approx_nan, lo_nan, Floating.val_nan_lt_zero, hi_nan, Floating.mul_nan, mix_self,
-      coe_nan, dite_eq_ite, ite_self, le_refl, Floating.max_nan, mix_nan, preimage_univ,
-      subset_univ]
+    coe_nan, dite_eq_ite, ite_self, Floating.max_nan, mix_nan, subset_univ]
   -- Split on signs
   rcases x.sign_cases with ⟨xls,xhs⟩ | ⟨xls,xhs⟩ | ⟨xls,xhs⟩
   all_goals try simp only [not_lt.mpr xls]
   all_goals try simp only [not_lt.mpr xhs]
-  all_goals simp only [xls, xhs, bne_self_eq_false, Bool.false_and, if_false, not_or, dite_false,
-    Bool.xor_false, Bool.and_self, dite_true, Bool.and_false, ite_false, approx, false_or,
-    Floating.max_eq_nan, subset_if_univ_iff, and_imp, mll0, mhh0, mll1, mhh1, sqr_Icc_subset_Icc,
-    x.lo_ne_nan n, x.hi_ne_nan n, lo_eq_nan, n, true_iff]
+  all_goals simp only [xls, xhs, if_false, dite_false, dite_true, approx, subset_if_univ_iff, mll0,
+    mhh0, mll1, mhh1, sqr_Icc_subset_Icc, x.lo_ne_nan n, lo_eq_nan, true_iff]
   all_goals intro m
   all_goals simp only [lo_mix m, hi_mix m]
-  all_goals simp only [mix_eq_nan, true_iff, not_lt, not_or, Floating.max_eq_nan] at m
+  all_goals simp only [mix_eq_nan, not_or, Floating.max_eq_nan] at m
   -- Dispatch everything with nlinarith
   · intro u lu uh
     specialize ihh0 m.1; specialize ill1 m.2

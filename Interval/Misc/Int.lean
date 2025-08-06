@@ -23,7 +23,7 @@ def Int.rdiv (a : ℤ) (b : ℕ) (up : Bool) : ℤ :=
 lemma Int.rdiv_nonneg {a : ℤ} {b : ℕ} {up : Bool} (a0 : 0 ≤ a) : 0 ≤ a.rdiv b up := by
   simp only [Int.rdiv]
   induction up
-  · simp only [cond_false, neg_nonneg, Int.ediv_nonneg a0 (Nat.cast_nonneg _)]
+  · simp only [cond_false, Int.ediv_nonneg a0 (Nat.cast_nonneg _)]
   · simp only [cond_true, Left.nonneg_neg_iff]
     by_cases b0 : b = 0
     · simp only [b0, Nat.cast_zero, Int.ediv_zero, le_refl]
@@ -89,7 +89,7 @@ lemma Int.rdiv_lt {a : ℤ} {b : ℕ} {up : Bool} : (a.rdiv b up : ℝ) < a / b 
 
 /-- `rdiv` reduces `abs` -/
 lemma Int.abs_rdiv_le (x : Int) (y : ℕ) (up : Bool) : |(x.rdiv y up : ℤ)| ≤ |(x : ℤ)| := by
-  simp only [ne_eq, Int.rdiv, Nat.cast_pow, Nat.cast_ofNat]
+  simp only [Int.rdiv]
   induction up
   · simp only [cond_false]
     apply Int.abs_ediv_le_abs
@@ -106,7 +106,7 @@ lemma Int.rdiv_div {a : ℤ} {b c : ℕ} (bc : c ∣ b) : a.rdiv (b / c) = (a * 
   rcases dvd_def.mp bc with ⟨k, e⟩
   simp only [e, Nat.mul_div_cancel_left _ cp]
   induction up
-  repeat simp only [rdiv, cond_false, cond_true, Nat.cast_mul, mul_comm (c : ℤ), neg_inj, ←neg_mul,
+  repeat simp only [rdiv, cond_false, cond_true, Nat.cast_mul, mul_comm (c : ℤ), ← neg_mul,
     Int.mul_ediv_mul_of_pos_left _ _ (Nat.cast_pos.mpr cp)]
 
 @[simp] lemma Int.mul_rdiv_cancel {a : ℤ} {b : ℕ} (b0 : b ≠ 0) {up : Bool} :
@@ -118,14 +118,14 @@ lemma Int.rdiv_div {a : ℤ} {b c : ℕ} (bc : c ∣ b) : a.rdiv (b / c) = (a * 
 /-- `Int.ediv (-small) big = -1` -/
 lemma Int.ediv_eq_neg_one {a b : ℤ} (a0 : 0 < a) (ab : a ≤ b) : -a / b = -1 := by
   refine Eq.trans (Int.ediv_of_neg_of_pos (by omega) (by omega)) ?_
-  simp only [neg_neg, neg_add_rev, add_right_eq_self, neg_eq_zero]
+  simp only [neg_neg, neg_add_rev, add_eq_left, neg_eq_zero]
   exact Int.ediv_eq_zero_of_lt (by omega) (by omega)
 
 /-- A sufficient condition for `Int.ediv = -1` -/
 lemma Int.ediv_eq_neg_one' {a b : ℤ} (a0 : a < 0) (b0 : 0 < b) (ab : -a < b) : a / b = -1 := by
   generalize hc : a + b = c
   have ca : a = c + (-1) * b := by rw [←hc]; ring
-  rw [ca, Int.add_mul_ediv_right _ _ b0.ne', add_left_eq_self]
+  rw [ca, Int.add_mul_ediv_right _ _ b0.ne', add_eq_right]
   apply Int.ediv_eq_zero_of_lt
   repeat { rw [←hc]; omega }
 
@@ -139,7 +139,10 @@ lemma Int.neg_ediv_neg {a b : ℤ} (b0 : 0 < b) (ab : ¬b ∣ a) : -(-a / b) = a
     rcases emod_pos_of_not_dvd ab with h | h
     · simp only [h, lt_self_iff_false] at b0
     · exact h
-  have yb : y < b := by rw [←hy]; convert emod_lt a b0.ne'; rw [abs_of_pos b0]
+  have yb : y < b := by
+    rw [← hy]
+    convert emod_lt a b0.ne'
+    rw [Int.cast_natAbs, abs_of_pos b0, cast_id]
   have e0 : -(b * x + y) = -y + (-x) * b := by ring
   have e1 : (b * x + y) = y + (x) * b := by ring
   rw [e0, e1]
@@ -164,7 +167,7 @@ lemma Int.neg_ediv_pow_of_le {a : ℤ} {n k : ℕ} (a0 : a ≠ 0) (kn : k ≤ n)
 
 /-- `ℕ`'s `-ceilDiv` in terms of `Int.ediv` -/
 lemma Int.cast_neg_ceilDiv_eq_ediv (a b : ℕ) : -((a ⌈/⌉ b : ℕ) : ℤ) = (-a) / b := by
-  simp only [Nat.ceilDiv_eq_add_pred_div, ofNat_ediv]
+  simp only [Nat.ceilDiv_eq_add_pred_div, natCast_ediv]
   by_cases b0 : b = 0
   · simp only [b0, add_zero, Nat.cast_zero, Int.ediv_zero, neg_zero]
   have b0' : (b : ℤ) ≠ 0 := by omega
@@ -177,7 +180,7 @@ lemma Int.cast_neg_ceilDiv_eq_ediv (a b : ℕ) : -((a ⌈/⌉ b : ℕ) : ℤ) = 
   by_cases y0 : y = 0
   · simp only [y0, add_zero, Nat.cast_mul, ←Int.neg_mul, Nat.add_sub_assoc b1,
       Int.mul_ediv_cancel _ b0', Nat.cast_add, Nat.cast_mul, neg_inj]
-    rw [add_comm, Int.add_mul_ediv_right, add_left_eq_self]
+    rw [add_comm, Int.add_mul_ediv_right, add_eq_right]
     · apply Int.ediv_eq_zero_of_lt; omega; omega
     · omega
   · have y1 : 1 ≤ y := by omega
@@ -209,14 +212,14 @@ lemma Int.natAbs_eq_toNat_neg {a : ℤ} (a0 : a ≤ 0) : a.natAbs = (-a).toNat :
   simp [e]
 
 /-- Coercion of `natAbs` to any linearly ordered ring is equal to `a` for nonnegative `a` -/
-lemma Int.coe_natAbs_eq_self {R : Type*} [LinearOrderedRing R] {a : ℤ} (h : 0 ≤ a) :
-    (a.natAbs : R) = a := by
+lemma Int.coe_natAbs_eq_self {R : Type*} [Ring R] [LinearOrder R] [IsStrictOrderedRing R] {a : ℤ}
+    (h : 0 ≤ a) : (a.natAbs : R) = a := by
   obtain ⟨n, rfl⟩ := Int.eq_ofNat_of_zero_le h
   simp [Int.natAbs_eq_toNat]
 
 /-- Coercion of `natAbs` to any linearly ordered ring is equal to `-a` for nonpositive `a` -/
-lemma Int.coe_natAbs_eq_neg {R : Type*} [LinearOrderedRing R] {a : ℤ} (h : a ≤ 0) :
-    (a.natAbs : R) = -a := by
+lemma Int.coe_natAbs_eq_neg {R : Type*} [Ring R] [LinearOrder R] [IsStrictOrderedRing R] {a : ℤ}
+    (h : a ≤ 0) : (a.natAbs : R) = -a := by
   obtain ⟨n, rfl⟩ := Int.exists_eq_neg_ofNat h
   simp [Int.natAbs_eq_toNat]
 
@@ -236,8 +239,8 @@ lemma Int.emod_mul_eq_mul_emod' (a n m : ℤ) (n0 : 0 ≤ n) (m0 : 0 < m) :
       (Nat.cast_le.mpr z1) (abs_nonneg _)) _)
     simp only [Nat.cast_one, mul_one]
     exact le_trans (by simp) (add_le_add_left (neg_le_abs a) _)
-  rw [e, hx, Int.add_mul_emod_self, add_mul, mul_assoc, Int.add_mul_emod_self]
-  simp only [←Nat.cast_mul, ←Int.ofNat_emod, Nat.cast_inj]
+  rw [e, hx, Int.add_mul_emod_self_right, add_mul, mul_assoc, Int.add_mul_emod_self_right]
+  simp only [←Nat.cast_mul, ← Int.natCast_emod, Nat.cast_inj]
   apply Nat.mod_mul_eq_mul_mod'
   omega
 
@@ -254,7 +257,7 @@ theorem Int.induction_overlap {p : ℤ → Prop} (hi : ∀ n : ℕ, p n) (lo : �
 section ZPow
 attribute [bound] zpow_nonneg zpow_pos
 
-variable {𝕜 : Type*} [LinearOrderedSemifield 𝕜]
+variable {𝕜 : Type*} [Semifield 𝕜] [LinearOrder 𝕜] [IsStrictOrderedRing 𝕜]
 
 lemma zpow_anti {a : 𝕜} (a0 : 0 < a) (a1 : a ≤ 1) : Antitone fun n : ℤ ↦ a ^ n := by
   intro n m nm
@@ -293,8 +296,8 @@ lemma Int.abs_def {n : ℤ} : |n| = if n < 0 then -n else n := by
 lemma Int.natAbs_def {n : ℤ} : n.natAbs = if n < 0 then (-n).toNat else n.toNat := by
   simp only [natAbs]
   induction' n using Int.rec with n
-  · simp only [ofNat_eq_coe, toNat_neg_nat, toNat_ofNat]
+  · simp only [ofNat_eq_coe, toNat_neg_nat, toNat_natCast]
     split_ifs
     all_goals omega
   · simp only [Nat.succ_eq_add_one, negSucc_eq, neg_add_rev, reduceNeg, add_neg_lt_iff_lt_add,
-      zero_add, neg_neg, toNat_ofNat_add_one]; split_ifs; omega; omega
+      zero_add, neg_neg, toNat_natCast_add_one]; split_ifs; omega; omega

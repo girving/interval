@@ -13,6 +13,6 @@ namespace Floating
 @[irreducible] def log2 (x : Floating) : Fixed 0 :=
   bif x == 0 || x == nan || x.s == .max then nan else
   -- The result is `x.n.abs.log2 + x.s - 2^63` if that doesn't overflow.
-  let a : Fixed 0 := ⟨⟨x.n.abs.log2⟩ - 1⟩
-  let b : Fixed 0 := ⟨⟨x.s - 2^63 + 1⟩⟩
+  let a : Fixed 0 := ⟨x.n.uabs.log2.toInt64 - 1⟩
+  let b : Fixed 0 := ⟨(x.s - 2^63 + 1).toInt64⟩
   a + b

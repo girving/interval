@@ -33,11 +33,10 @@ lemma approx_taylor_sum' (c : Array Interval) (c' : ℕ → ℝ) (x p e : Interv
     (∑ k ∈ Finset.range steps, c' (offset + k) * p' * x' ^ k) + e' ∈
       approx (taylor_sum' c x p e offset steps os) := by
   induction' steps with steps h generalizing p p' offset
-  · simp only [Finset.range_zero, Finset.sum_empty, add_zero, taylor_sum', zero_add]
+  · simp only [Finset.range_zero, Finset.sum_empty, taylor_sum', zero_add]
     approx
-  · simp only [Finset.sum_range_succ', pow_zero, mul_one, add_zero, add_comm (Finset.sum _ _),
-      ← add_assoc, pow_succ, ←mul_assoc _ x', mul_assoc _ _ x', add_right_comm _ _ (1:ℕ),
-      taylor_sum']
+  · simp only [Finset.sum_range_succ', pow_zero, mul_one, add_zero, add_comm (Finset.sum _ _), ←
+    add_assoc, pow_succ, add_right_comm _ _ (1 : ℕ), taylor_sum']
     simp only [add_assoc _ _ e']
     apply mem_approx_add (mem_approx_mul (ac ⟨offset, by omega⟩) pp)
     specialize h (p * x) (p' * x') (offset + 1) (by omega) (by approx)
@@ -49,8 +48,7 @@ lemma approx_taylor_sum (c : Array Interval) (c' : ℕ → ℝ) (x e : Interval)
     (ac : ∀ k : Fin c.size, c' k ∈ approx (c[k])) (xx : x' ∈ approx x) (ee : e' ∈ approx e) :
     (∑ k ∈ Finset.range c.size, c' k * x' ^ k) + e' ∈ approx (taylor_sum c x e) := by
   have h := approx_taylor_sum' c c' x 1 e x' 1 e' 0 c.size (by omega) ac xx (by approx) ee
-  simp only [Interval.approx_one, Interval.approx_zero, mem_singleton_iff, zero_add, mul_one,
-    forall_true_left] at h
+  simp only [zero_add, mul_one] at h
   rw [taylor_sum]
   exact h
 
@@ -91,8 +89,7 @@ instance : Approx Series (ℝ → ℝ) where
 /-- `Series.eval` propagates `nan` -/
 @[simp] lemma Series.eval_nan {p : Series} : p.eval (nan : Interval) = nan := by
   rw [Series.eval]
-  simp only [Interval.abs_nan, Interval.hi_nan, beq_self_eq_true, Floating.n_nan, Bool.true_or,
-    cond_true]
+  simp only [Interval.abs_nan, Interval.hi_nan, beq_self_eq_true, Bool.true_or, cond_true]
 
 /-- `Approx` proof given an effective Taylor series bound -/
 lemma Series.approx_of_taylor' (p : Series) (f : ℝ → ℝ) (a : ℕ → ℝ) (b : ℝ) (x : ℝ) (y : Interval)
@@ -105,10 +102,10 @@ lemma Series.approx_of_taylor' (p : Series) (f : ℝ → ℝ) (a : ℕ → ℝ) 
   by_cases n : y.abs = nan ∨ p.radius < y.abs.hi
   · rw [Series.eval]
     rcases n with yn | ry
-    · simp only [yn, Interval.hi_nan, beq_self_eq_true, Floating.n_nan, Bool.true_or, cond_true,
-        Interval.approx_nan, mem_univ]
+    · simp only [yn, Interval.hi_nan, beq_self_eq_true, Bool.true_or, cond_true,
+      Interval.approx_nan, mem_univ]
     · simp only [ry, decide_true, Bool.or_true, cond_true, Interval.approx_nan, mem_univ]
-  simp only [not_or, not_lt, Ne, Floating.val_le_val] at n
+  simp only [not_or, not_lt, Floating.val_le_val] at n
   rcases n with ⟨yn, ry⟩
   have yn' : y ≠ nan := by simpa only [ne_eq, Interval.abs_eq_nan] using yn
   have rn : p.radius ≠ nan := Floating.ne_nan_of_le (y.abs.hi_ne_nan yn) ry

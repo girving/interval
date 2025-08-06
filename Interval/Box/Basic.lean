@@ -43,7 +43,7 @@ instance : Repr Box where
 /-- Simplification of `∈ image2` for `Box` -/
 @[simp] lemma mem_image2_iff {z : ℂ} {s t : Set ℝ} :
     z ∈ image2 (fun r i ↦ (⟨r,i⟩ : ℂ)) s t ↔ z.re ∈ s ∧ z.im ∈ t := by
-  simp only [image2, Complex.ext_iff, exists_and_left, exists_eq_right_right, mem_setOf_eq]
+  simp only [image2, Complex.ext_iff, exists_eq_right_right, mem_setOf_eq]
 
 /-- `Box` approximates `ℂ` -/
 instance instApprox : Approx Box ℂ where
@@ -177,7 +177,7 @@ noncomputable instance : ApproxRing Box ℂ where
 
 /-- `Box` squaring approximates `ℂ` -/
 @[approx] lemma approx_sqr (z : Box) : (fun z ↦ z^2) '' approx z ⊆ approx z.sqr := by
-  simp only [instApprox, image_image2, Box.mem_image2_iff, subset_def, Box.sqr, mem_image2]
+  simp only [instApprox, image_image2, subset_def, Box.sqr, mem_image2]
   rintro w ⟨r,rz,i,iz,e⟩
   refine ⟨r^2 - i^2, ?_, 2*r*i, ?_, ?_⟩
   · apply approx_sub
@@ -188,8 +188,7 @@ noncomputable instance : ApproxRing Box ℂ where
     rw [mul_assoc, mul_comm, e]
     exact Interval.mem_approx_scaleB (mem_approx_mul rz iz)
   · rw [←e]
-    simp only [Complex.ext_iff, pow_two, Complex.mul_re, Complex.mul_im, two_mul, add_mul,
-      mul_comm _ r, true_and]
+    simp only [Complex.ext_iff, pow_two, Complex.mul_re, Complex.mul_im, mul_comm _ r, true_and]
     ring
 
 /-- `Box` squaring approximates `ℂ`, `∈` version -/
@@ -200,8 +199,8 @@ noncomputable instance : ApproxRing Box ℂ where
 ### Multiplication and division by `I`
 -/
 
-def mul_I (z : Box) : Box := ⟨-z.im, z.re⟩
-def div_I (z : Box) : Box := ⟨z.im, -z.re⟩
+@[irreducible] def mul_I (z : Box) : Box := ⟨-z.im, z.re⟩
+@[irreducible] def div_I (z : Box) : Box := ⟨z.im, -z.re⟩
 
 @[approx] lemma mem_approx_mul_I {z' : ℂ} {z : Box} (m : z' ∈ approx z) :
     z' * Complex.I ∈ approx z.mul_I := by
@@ -223,7 +222,7 @@ def div_I (z : Box) : Box := ⟨z.im, -z.re⟩
 -/
 
 /-- `Box` square magnitude -/
-def normSq (z : Box) : Interval :=
+@[irreducible] def normSq (z : Box) : Interval :=
   z.re.sqr + z.im.sqr
 
 /-- `normSq` is conservative -/
@@ -257,12 +256,15 @@ lemma abs_le_sqrt_normSq {z' : ℂ} {z : Box} (m : z' ∈ approx z) (n : z.normS
 ### Conversion
 -/
 
-@[coe] def _root_.Complex.ofRat (z : ℚ × ℚ) : ℂ := ⟨z.1, z.2⟩
+@[coe, irreducible] def _root_.Complex.ofRat (z : ℚ × ℚ) : ℂ := ⟨z.1, z.2⟩
+
+lemma _root_.Complex.ofRat_def (z : ℚ × ℚ) : Complex.ofRat z = ⟨z.1, z.2⟩ := by
+  rw [Complex.ofRat]
 
 noncomputable instance : Coe (ℚ × ℚ) ℂ where
   coe z := Complex.ofRat z
 
-def ofRat (z : ℚ × ℚ) : Box :=
+@[irreducible] def ofRat (z : ℚ × ℚ) : Box :=
   ⟨.ofRat z.1, .ofRat z.2⟩
 
 @[approx] lemma approx_ofRat (z : ℚ × ℚ) : ↑z ∈ approx (ofRat z) := by

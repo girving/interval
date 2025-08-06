@@ -4,6 +4,7 @@ import Interval.Interval.Pi
 import Interval.Interval.Scale
 import Interval.Interval.Series
 import Mathlib.Algebra.BigOperators.Field
+import Mathlib.Analysis.SpecialFunctions.Trigonometric.Sinc
 import Mathlib.Data.Nat.EvenOddRec
 import Mathlib.Tactic.FinCases
 
@@ -13,7 +14,6 @@ import Mathlib.Tactic.FinCases
 
 open Set
 open scoped Real
-open scoped UInt64.CommRing
 
 /-!
 ### Monotonicity of `sin` on intervals
@@ -47,8 +47,6 @@ lemma Real.sin_antitone (n : ℤ) :
 
 noncomputable def Complex.sinc (z : ℂ) : ℂ := if z = 0 then 1 else Complex.sin z / z
 
-noncomputable def Real.sinc (x : ℝ) : ℝ := if x = 0 then 1 else Real.sin x / x
-
 noncomputable def sinc_sqrt (x : ℝ) : ℝ := Real.sinc (Real.sqrt x)
 
 noncomputable def cos_sqrt (x : ℝ) : ℝ := Real.cos (Real.sqrt x)
@@ -66,7 +64,6 @@ lemma Real.sin_eq_sinc (x : ℝ) : sin x = x * sinc x := by
   · rw [sinc]; field_simp [x0]
 
 @[simp] lemma Complex.sinc_neg (x : ℝ) : sinc (-x) = sinc x := by simp [sinc]
-@[simp] lemma Real.sinc_neg (x : ℝ) : sinc (-x) = sinc x := by simp [sinc]
 
 /-- `sinc` is even -/
 @[simp] lemma Real.sinc_abs (x : ℝ) : sinc |x| = sinc x := by
@@ -113,12 +110,12 @@ lemma Complex.sin_series_bound {z : ℂ} (z1 : ‖z‖ ≤ 1) {n : ℕ} (n0 : 0 
     refine Finset.sum_congr rfl fun k _ ↦ ?_
     rcases Nat.even_or_odd' k with ⟨a, e | e⟩
     · simp only [e, even_two, Even.mul_right, ↓reduceIte, ne_eq, OfNat.ofNat_ne_zero,
-        not_false_eq_true, mul_div_cancel_left₀, pow_mul, pow_succ', pow_zero, mul_one, mul_pow,
-        neg_mul, mul_neg, neg_neg, sub_neg_eq_add, ← add_mul]
+      not_false_eq_true, mul_div_cancel_left₀, pow_mul, pow_succ', pow_zero, mul_one, mul_pow,
+      neg_mul, mul_neg, neg_neg]
       ring_nf
-      simp only [mul_comm _ 2, pow_mul, I_sq, inv_I, mul_neg]
-      simp only [mul_comm _ I, ← mul_assoc, I_mul_I, neg_mul, one_mul, neg_neg, mul_one]
-    · simp [e, pow_mul, pow_add, mul_pow, neg_div]
+      simp only [mul_comm _ 2, pow_mul, I_sq, mul_neg]
+      simp only [neg_mul, neg_neg, mul_one]
+    · simp [e, pow_mul, pow_add, mul_pow]
   have r : ∀ a b c d : ℂ, (a - b) - (c - d) = (a - c) - (b - d) := fun _ _ _ _ ↦ by ring
   rw [sin, e, ← sub_div, ← sub_mul, r, norm_div, Complex.norm_two, div_le_iff₀ (by norm_num),
     norm_mul, Complex.norm_I, mul_one]
@@ -146,7 +143,7 @@ lemma Complex.cos_series_bound {z : ℂ} (z1 : ‖z‖ ≤ 1) {n : ℕ} (n0 : 0 
   have e : ∑ k ∈ Finset.range n, (-1) ^ k * z ^ (2 * k) / (2 * k).factorial =
       (∑ k ∈ Finset.range (2 * n), (z * I) ^ k / k.factorial +
        ∑ k ∈ Finset.range (2 * n), (-z * I) ^ k / k.factorial) / 2 := by
-    simp only [← Finset.sum_add_distrib, ← sub_div, Finset.sum_range_even n, Finset.sum_div]
+    simp only [← Finset.sum_add_distrib, Finset.sum_range_even n, Finset.sum_div]
     refine Finset.sum_congr rfl fun k _ ↦ ?_
     rcases Nat.even_or_odd' k with ⟨a, e | e⟩
     · simp only [e, even_two, Even.mul_right, ↓reduceIte, ne_eq, OfNat.ofNat_ne_zero,
@@ -238,8 +235,8 @@ lemma mem_approx_sinc_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interv
       have x1 : |√(|x|)| ≤ 1 := abs_sqrt_abs_le_one xr'
       simp only [nn, sinc_sqrt]
       have h := Real.sinc_series_bound x1 (Nat.pos_iff_ne_zero.mpr n0)
-      simp only [div_eq_inv_mul, ← mul_assoc, mul_comm _ ((-1 : ℝ)^_), pow_mul, abs_nonneg,
-        Real.sq_sqrt x0, sq_abs, abs_of_nonneg x0] at h ⊢
+      simp only [div_eq_inv_mul, ← mul_assoc, mul_comm _ ((-1 : ℝ) ^ _), pow_mul, Real.sq_sqrt x0,
+        sq_abs, abs_of_nonneg x0] at h ⊢
       refine le_trans h ?_
       simp only [mul_assoc]
       apply mul_le_mul_of_nonneg_right
@@ -249,16 +246,15 @@ lemma mem_approx_sinc_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interv
     · intro k
       have e : (Nat.factorial (2 * k + 1) : ℝ)⁻¹ = (Nat.factorial (2 * k + 1) : ℚ)⁻¹ := by
         simp only [Rat.cast_inv, Rat.cast_natCast]
-      simp only [sinc_sqrt_series, Array.getElem_map, Array.range_getElem, ← Rat.cast_inv, e,
-        (by norm_num : (-1 : ℝ) = (-1 : ℚ)), ← Rat.cast_pow, ← Rat.cast_inv, ← Rat.cast_mul]
+      simp only [sinc_sqrt_series, Array.getElem_map, Array.range_getElem, e,
+        (by norm_num : (-1 : ℝ) = (-1 : ℚ)), ← Rat.cast_pow, ← Rat.cast_mul]
       apply Interval.approx_ofRat
     · intro en
       rw [sinc_sqrt_series, bif_eq_if] at en ⊢
-      simp only [beq_iff_eq, ne_eq, ite_eq_left_iff, not_forall, exists_prop, n0, not_false_iff,
-        true_or, if_false] at en ⊢
+      simp only [beq_iff_eq, ne_eq, n0, if_false] at en ⊢
       refine le_trans (le_of_eq ?_) (Floating.le_ofRat en)
-      simp only [div_eq_inv_mul, mul_inv, mul_comm _ ((n:ℚ)⁻¹), Rat.cast_mul, Rat.cast_pow,
-        Rat.cast_inv, Rat.cast_natCast, Rat.cast_add, Rat.cast_one]
+      simp only [div_eq_inv_mul, mul_inv, Rat.cast_mul, Rat.cast_pow, Rat.cast_inv,
+        Rat.cast_natCast, Rat.cast_add, Rat.cast_one]
       ring
 
 /-- Our power series for `cos (sqrt x)` is correct -/
@@ -279,8 +275,8 @@ lemma mem_approx_cos_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interva
       have x1 : |√(|x|)| ≤ 1 := abs_sqrt_abs_le_one xr'
       simp only [nn, cos_sqrt]
       have h := Real.cos_series_bound x1 (Nat.pos_iff_ne_zero.mpr n0)
-      simp only [div_eq_inv_mul, ← mul_assoc, mul_comm _ ((-1 : ℝ)^_), pow_mul, abs_nonneg,
-        Real.sq_sqrt x0, sq_abs, abs_of_nonneg x0] at h ⊢
+      simp only [div_eq_inv_mul, ← mul_assoc, mul_comm _ ((-1 : ℝ) ^ _), pow_mul, Real.sq_sqrt x0,
+        sq_abs, abs_of_nonneg x0] at h ⊢
       refine le_trans h ?_
       simp only [mul_assoc]
       apply mul_le_mul_of_nonneg_right
@@ -290,13 +286,12 @@ lemma mem_approx_cos_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interva
     · intro k
       have e : (Nat.factorial (2 * k) : ℝ)⁻¹ = (Nat.factorial (2 * k) : ℚ)⁻¹ := by
         simp only [Rat.cast_inv, Rat.cast_natCast]
-      simp only [cos_sqrt_series, Array.getElem_map, Array.range_getElem, ← Rat.cast_inv, e,
-        (by norm_num : (-1 : ℝ) = (-1 : ℚ)), ← Rat.cast_pow, ← Rat.cast_inv, ← Rat.cast_mul]
+      simp only [cos_sqrt_series, Array.getElem_map, Array.range_getElem, e,
+        (by norm_num : (-1 : ℝ) = (-1 : ℚ)), ← Rat.cast_pow, ← Rat.cast_mul]
       apply Interval.approx_ofRat
     · intro en
       rw [cos_sqrt_series, bif_eq_if] at en ⊢
-      simp only [beq_iff_eq, ne_eq, ite_eq_left_iff, not_forall, exists_prop, n0, not_false_iff,
-        true_or, if_false] at en ⊢
+      simp only [beq_iff_eq, ne_eq, n0, if_false] at en ⊢
       refine le_trans (le_of_eq ?_) (Floating.le_ofRat en)
       simp only [div_eq_inv_mul, mul_inv, mul_comm _ ((n:ℚ)⁻¹), Rat.cast_mul, Rat.cast_pow,
         Rat.cast_inv, Rat.cast_natCast, Rat.cast_add, Rat.cast_one]
@@ -380,10 +375,10 @@ into account extrema reached in between the endpoints.
 lemma Int64.n_mod_4 (x : Int64) : (x.toUInt64.toNat % 4 : ℕ) = x.toInt % 4 := by
   by_cases xn : x < 0
   · have e : ((2 ^ 64 : ℕ) : ℤ) % 4 = 0 := rfl
-    rw [Int64.coe_of_neg xn, Int.sub_emod, e, sub_zero, Int.emod_emod, Int.ofNat_emod,
+    rw [Int64.coe_of_neg xn, Int.sub_emod, e, sub_zero, Int.emod_emod, Int.natCast_emod,
       Nat.cast_ofNat]
-  · simp only [Bool.not_eq_true] at xn
-    rw [Int64.coe_of_nonneg (not_lt.mp xn), Int.ofNat_emod, Nat.cast_ofNat]
+  · simp only at xn
+    rw [Int64.coe_of_nonneg (not_lt.mp xn), Int.natCast_emod, Nat.cast_ofNat]
 
 /-- `Floating.presin` is conservative -/
 @[approx] lemma Floating.mem_approx_presin {x' : ℝ} {x : Floating} (ax : x'  ∈ approx x)
@@ -392,7 +387,7 @@ lemma Int64.n_mod_4 (x : Int64) : (x.toUInt64.toNat % 4 : ℕ) = x.toInt % 4 := 
   generalize hn : ((x.mul Interval.two_div_pi.lo false).add (.ofRat (1/2) false) false).floor = n
   generalize hm : n + d = m
   generalize hk : m.n.toUInt64 % 4 = k
-  simp only [hm, hk]
+  simp only
   simp only [bif_eq_if, decide_eq_true_eq, Bool.or_eq_true, beq_iff_eq] at hk ⊢
   by_cases mn : m = nan
   · simp only [mn, ↓reduceIte, Interval.approx_nan, mem_univ]
@@ -402,17 +397,17 @@ lemma Int64.n_mod_4 (x : Int64) : (x.toUInt64.toNat % 4 : ℕ) = x.toInt % 4 := 
     rw [← hk, UInt64.toNat_mod, (by rfl : UInt64.toNat 4 = 4)]
     exact Nat.mod_lt _ (by norm_num)
   generalize ha : Fin.mk k.toNat k4 = a
-  have ak : k = (a.val : UInt64) := by simp only [← ha, UInt64.cast_toNat]
+  have ak : k = UInt64.ofNat a.val := by simp only [← ha, UInt64.cast_toNat]
   generalize hq : m.n.toInt / 4 = q
   have q4 : 4 % UInt64.size = 4 := rfl
   have e4 : UInt64.toNat 4 = 4 := rfl
   have nq : m.val = 4 * q + a.val := by
     simp only [Fixed.val_of_s0, ← hq, ← ha, ← hk, UInt64.toNat_mod, UInt64.toNat_ofNat,
-      (by norm_num : (4 : ℝ) = (4 : ℤ)), ← Int.cast_mul, ← Int.cast_natCast (R := ℝ),
-      ← Int.cast_add, Int.cast_inj, q4, Int64.n_mod_4, Int.ediv_add_emod, e4]
+      (by norm_num : (4 : ℝ) = (4 : ℤ)), ← Int.cast_mul, ← Int.cast_natCast (R := ℝ), ←
+      Int.cast_add, q4, Int64.n_mod_4, Int.ediv_add_emod]
   have p0 : π / 2 * (4 * q) = q * (2 * π) := by ring
   have p1 : ∀ d, π / 2 * (4 * q + d) = π / 2 * d + q * (2 * π) := fun _ ↦ by ring
-  simp only [ak, beq_iff_eq] at hk ⊢
+  simp only [ak] at hk ⊢
   have fa : ∀ {n : Fixed 0} {f : ℝ → ℝ} {g : Interval → Interval},
       (h : ∀ (z : ℝ) (w : Interval), z ∈ approx w → f (z + π / 2 * n.val) ∈ approx (g w)) →
       f x' ∈ approx (g (x - Interval.pi_div_2.mul_float n)) := by
@@ -491,9 +486,8 @@ lemma floor_even_iff {n : Floating} (nn : n.floor ≠ nan) :
   have ep : Even (if n.floor.n.isNeg = true then 18446744073709551616 else 0 : ℤ) := by
     split_ifs; all_goals decide
   simp only [UInt64.eq_iff_toNat_eq, UInt64.toNat_and, UInt64.toNat_ofNat, Nat.one_mod,
-    Nat.and_one_is_mod, Nat.zero_mod, a, Int64.toInt_eq_if, Nat.reducePow, bif_eq_if, Nat.cast_ite,
-    Nat.cast_ofNat, CharP.cast_eq_zero, Even.sub_iff ep, Int.even_iff, UInt64.toNat_one,
-    Nat.and_one_is_mod, UInt64.toNat_zero]
+    Nat.and_one_is_mod, Nat.zero_mod, a, Int64.toInt_eq_if, Nat.reducePow, Nat.cast_ite,
+    Nat.cast_ofNat, CharP.cast_eq_zero, Int.even_iff, Nat.and_one_is_mod]
   omega
 
 /-- `Interval.sincos` is conservative -/
@@ -517,7 +511,7 @@ lemma floor_even_iff {n : Floating} (nn : n.floor ≠ nan) :
   generalize hk1 : ⌊n.hi.val⌋ = k1 at f1
   simp only [approx, n0n, ↓reduceIte, mem_singleton_iff, n1n] at f0 f1
   have parity : n.lo.floor.n.toUInt64 &&& 1 = 0 ↔ Even k0 := by
-    simp only [floor_even_iff n0n, ← f0, Int.floor_intCast, hk0]
+    simp only [floor_even_iff n0n, hk0]
   have an0 : x.lo.val * π⁻¹ + ((if d then 1 else (2⁻¹ : ℚ)) : ℝ) ∈ approx n := by rw [← hn]; approx
   have an1 : x.hi.val * π⁻¹ + ((if d then 1 else (2⁻¹ : ℚ)) : ℝ) ∈ approx n := by rw [← hn]; approx
   have ax' : a ∈ Icc x.lo.val x.hi.val := by
@@ -563,7 +557,7 @@ lemma floor_even_iff {n : Floating} (nn : n.floor ≠ nan) :
         mul_right_comm _ _ π, one_mul, (by ring : π + π / 2 = 3 * π / 2), add_assoc] at an0 an1
       have u : x.lo.sin j ∪ x.hi.sin j ∪ 1 = (x.lo.sin j ∪ 1) ∪ (1 ∪ x.hi.sin j) := by
         simp only [union_comm _ 1, ← union_assoc, union_self]
-      simp only [e, k01, self_eq_add_right, one_ne_zero, ↓reduceIte, even_two, Even.mul_right, u]
+      simp only [e, k01, left_eq_add, one_ne_zero, ↓reduceIte, even_two, Even.mul_right, u]
       by_cases s : b ≤ 2 * π * ↑k + π / 2
       · apply approx_union_left
         apply mem_approx_of_monotone' (u := x.lo.val + π / 2 * j.val) (v := 2 * π * k + π / 2)
@@ -578,8 +572,7 @@ lemma floor_even_iff {n : Floating} (nn : n.floor ≠ nan) :
         · simp [Real.sin_add_pi_div_two, mul_comm (2 * π)]
         · approx
   · by_cases k01 : k0 = k1
-    · simp only [e, Int.cast_mul, Int.cast_ofNat, Int.cast_add, Int.cast_one, ← k01,
-        mul_right_comm _ _ π] at an0 an1
+    · simp only [e, Int.cast_mul, Int.cast_ofNat, Int.cast_add, Int.cast_one, ← k01] at an0 an1
       simp only [k01, ↓reduceIte]
       apply mem_approx_of_antitone' (u := x.lo.val + π / 2 * j.val) (v := x.hi.val + π / 2 * j.val)
       · exact (Real.sin_antitone k).mono (Icc_subset_Icc (by linarith) (by linarith))
@@ -591,8 +584,7 @@ lemma floor_even_iff {n : Floating} (nn : n.floor ≠ nan) :
         mul_right_comm _ _ π, one_mul, (by ring : π - π / 2 = π / 2), add_sub_assoc] at an0 an1
       have u : x.lo.sin j ∪ x.hi.sin j ∪ -1 = (x.lo.sin j ∪ -1) ∪ (-1 ∪ x.hi.sin j) := by
         simp only [union_comm _ (-1), ← union_assoc, union_self]
-      simp only [e, k01, self_eq_add_right, one_ne_zero, ↓reduceIte, even_two, Even.mul_right, u,
-        Int.not_even_two_mul_add_one]
+      simp only [e, k01, left_eq_add, one_ne_zero, ↓reduceIte, u, Int.not_even_two_mul_add_one]
       by_cases s : b ≤ 2 * π * k + 3 * π / 2
       · apply approx_union_left
         apply mem_approx_of_antitone' (u := x.lo.val + π / 2 * j.val) (v := 2 * π * k + 3 * π / 2)

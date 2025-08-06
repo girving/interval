@@ -14,7 +14,7 @@ lemma valid_neg {x : Floating} : Valid (-x.n) x.s where
   norm := by
     intro z n d
     simp only [ne_eq, neg_eq_zero, Int64.neg_eq_min] at z n
-    simp only [ne_eq, not_false_eq_true, Int64.abs_neg, z, n, x.norm, d]
+    simp only [ne_eq, not_false_eq_true, Int64.uabs_neg, z, n, x.norm, d]
 
 instance : Neg Floating where
   neg x := {

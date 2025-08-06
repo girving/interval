@@ -34,10 +34,10 @@ lemma integral_saw_eq_integral_presaw :
     ∫ x : ℝ in a..a + 1, saw s x • iteratedDerivWithin s f t x =
     ∫ x : ℝ in a..a + 1, presaw s a x • iteratedDerivWithin s f t x := by
   apply intervalIntegral.integral_congr_ae
-  have e : Ι (a : ℝ) (a + 1)  =ᵐ[volume] Ioo a (a + 1) := by
+  have e : uIoc (a : ℝ) (a + 1) =ᵐ[volume] Ioo a (a + 1) := by
     rw [uIoc_of_le]
     · exact MeasureTheory.Ioo_ae_eq_Ioc.symm
-    · simp only [Int.cast_le, (lt_add_one _).le]
+    · simp only [(lt_add_one _).le]
   simp only [← MeasureTheory.ae_restrict_iff' measurableSet_uIoc,
     MeasureTheory.ae_restrict_congr_set e, MeasureTheory.ae_restrict_iff' measurableSet_Ioo]
   filter_upwards
@@ -73,12 +73,12 @@ lemma presaw_smul_iteratedDeriv_by_parts [CompleteSpace E] (fc : ContDiffOn ℝ 
         · simp only [← Nat.cast_add_one, Nat.cast_lt, Nat.lt_add_one]
         · simp only [mt, insert_eq_of_mem, u]
       · exact Filter.monotone_mem (subset_trans Ioo_subset_Icc_self abt) (isOpen_Ioo.mem_nhds m)
-  refine Eq.trans (MeasureTheory.integral_eq_of_hasDerivWithinAt_off_countable_of_le
+  refine Eq.trans (MeasureTheory.integral_eq_of_hasDerivAt_off_countable_of_le
     (f := g) (f' := g') (Hd := df) (by linarith) countable_empty ?_ ?_) ?_
   · apply contDiff_presaw.continuous.continuousOn.smul
     exact (fc.continuousOn_iteratedDerivWithin le_self_add u).mono abt
   · exact i0.add i1
-  · simp only [g, smul_sub]
+  · simp only [g]
 
 /-- Iterated integration by parts, `presaw` version -/
 lemma presaw_iterated_by_parts [CompleteSpace E] (fc : ContDiffOn ℝ (s+1) f t)
@@ -99,8 +99,8 @@ lemma presaw_iterated_by_parts [CompleteSpace E] (fc : ContDiffOn ℝ (s+1) f t)
     simp only [sub_sub, add_left_cancel_iff, sub_right_inj, Finset.sum_range_succ, add_assoc,
       ← smul_smul, pow_succ, ← smul_add, neg_smul, ← sub_eq_add_neg, one_smul, smul_right_inj z]
     refine (presaw_smul_iteratedDeriv_by_parts fc u abt (c := a)).trans ?_
-    simp only [(by omega : s + 1 + 1 = s + 2), presaw_coe_same, Nat.reduceAdd, sub_left_inj,
-      presaw_coe_succ, ← smul_sub]
+    simp only [(by omega : s + 1 + 1 = s + 2), presaw_coe_same, Nat.reduceAdd, presaw_coe_succ, ←
+      smul_sub]
 
 end EulerMaclaurin
 
@@ -166,8 +166,7 @@ theorem trapezoid_sum_eq_integral_add [CompleteSpace E] (fc : ContDiffOn ℝ (s 
     have ab1 : Icc (a + n : ℝ) (a + n + 1) ⊆ t :=
       subset_trans (Icc_subset_Icc (by simp) (by simp [add_assoc])) abt
     simp only [hb', Nat.cast_add, Nat.cast_one, ← add_assoc] at ab0 ab1 h ⊢
-    simp only [trapezoid_sum_succ, ← add_assoc, Nat.cast_add_one, Int.cast_add,
-      Int.cast_natCast, Int.cast_one]
+    simp only [trapezoid_sum_succ]
     rw [← intervalIntegral.integral_add_adjacent_intervals (b := a + n),
       ← intervalIntegral.integral_add_adjacent_intervals (a := a) (b := b) (c := b + 1), h ab0]
     · simp only [presaw_iterated_by_parts (a := b) fc u ab1, ← integral_saw_eq_integral_presaw,

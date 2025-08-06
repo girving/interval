@@ -1,4 +1,5 @@
 import Interval.EulerMaclaurin.EulerMaclaurin
+import Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
 import Mathlib.Analysis.SpecialFunctions.Gamma.BohrMollerup
 import Mathlib.Analysis.SpecialFunctions.Stirling
 
@@ -183,11 +184,10 @@ lemma log_rising_em (x : ℝ) (n s : ℕ) (x0 : 0 < x) :
         simp only [Nat.factorial_succ]
         field_simp
         ring
-      simp only [← neg_add', Int.reduceNeg, add_zero, mul_sub, ← mul_assoc,
-        mul_comm _ ((-1 : ℝ) ^ _), ← mul_pow, mul_neg, mul_one, neg_neg, one_pow, one_mul,
-        mul_comm (saw (_ + 2) 0) (Nat.factorial _), mul_div_assoc, zpow_neg, zpow_natCast,
+      simp only [← neg_add', add_zero, mul_sub, ← mul_assoc, mul_comm _ ((-1 : ℝ) ^ _), ← mul_pow,
+        mul_neg, mul_one, neg_neg, one_pow, one_mul, mul_div_assoc, zpow_neg, zpow_natCast,
         intervalIntegral.integral_const_mul, hD, ← Nat.cast_add_one, saw_eval_zero,
-        Finset.sum_sub_distrib, hB, hAB]
+        Finset.sum_sub_distrib, hAB]
       simp only [e, Nat.cast_add, ← div_eq_mul_inv, Nat.cast_one]
       abel
     · intro t m
@@ -217,8 +217,12 @@ lemma tendsto_pre {x : ℝ} : Tendsto (pre_n x) atTop (𝓝 (-x)) := by
     rw [pre_n, ← neg_neg (log _), ← Real.log_inv, inv_div, add_div, div_self (by simp; omega)]
     ring_nf
   rw [tendsto_congr' e, (by simp : -x = -x - 0)]
-  have l0 : Tendsto (fun t ↦ -(t * log (1 + x / t))) atTop (𝓝 (-x)) :=
-    (Real.tendsto_mul_log_one_plus_div_atTop x).neg
+  have l0 : Tendsto (fun t ↦ -(t * log (1 + x / t))) atTop (𝓝 (-x)) := by
+    refine (Real.tendsto_mul_log_one_add_of_tendsto ?_).neg
+    apply tendsto_nhds_of_eventually_eq
+    filter_upwards [eventually_ne_atTop 0]
+    intro y y0
+    exact mul_div_cancel₀ x y0
   have l1 : Tendsto (fun t ↦ (x + 2⁻¹) * log (1 + x / t)) atTop (𝓝 ((x + 2⁻¹) * log 1)) := by
     apply Tendsto.const_mul
     have e : (fun t ↦ log (1 + x / t)) = log ∘ (fun t ↦ 1 + x / t) := rfl
@@ -309,7 +313,7 @@ lemma tendsto_rem {x : ℝ} {s : ℕ} (x0 : 0 < x) :
     simp only [indicator, bound, mem_Ioc]
     by_cases y0 : y ≤ 0
     · simp only [not_lt.mpr y0, false_and, ↓reduceIte, norm_zero, mem_Ioi, le_refl]
-    · simp only [not_le.mp y0, true_and, Real.norm_eq_abs, y0, ↓reduceIte]
+    · simp only [not_le.mp y0, true_and, Real.norm_eq_abs]
       have xy0 : 0 < x + y := by linarith
       by_cases yn : y ≤ n
       · simp only [yn, ↓reduceIte, abs_div, abs_pow, abs_of_pos xy0, f, mem_Ioi, not_le.mp y0]
@@ -383,7 +387,7 @@ lemma tendsto_sum_atTop {s : ℕ} : Tendsto (fun x ↦ sum x s) atTop (𝓝 0) :
 
 lemma integral_bound {c x a : ℝ} (x0 : 0 < x) (a1 : a < -1) :
     ∫ t in Ioi 0, c * (x + t) ^ a = c * (x ^ (a + 1) / (-a - 1)) := by
-  simp only [MeasureTheory.integral_mul_left, mul_div_assoc]
+  simp only [MeasureTheory.integral_const_mul]
   refine congr_arg₂ _ rfl ?_
   simp only [← integral_indicator measurableSet_Ioi]
   rw [← MeasureTheory.integral_add_left_eq_self _ (-x)]
@@ -501,7 +505,7 @@ lemma sum_eq_even (x : ℝ) (s : ℕ) : sum x (2 * s) = ∑ m ∈ Finset.range (
 /-- Not sure if this is tight -/
 lemma abs_rem_le (x : ℝ) (s : ℕ) (e : Even s) (x0 : 0 < x) :
     |rem x s| ≤ |bernoulli (s + 2)| / (s + 1) / (s + 2) / x ^ (s + 1) := by
-  simp only [rem, Nat.cast_mul, Nat.cast_add_one, Rat.cast_abs, abs_mul, ← Real.norm_eq_abs]
+  simp only [rem, Rat.cast_abs, abs_mul, ← Real.norm_eq_abs]
   have le : ∀ᵐ t ∂volume.restrict (Ioi 0), ‖saw (s + 2) t / (x + t) ^ (s + 2)‖ ≤
       ((s + 2).factorial : ℝ)⁻¹ * |bernoulli (s + 2)| * (x + t) ^ (-s - 2 : ℝ) := by
     rw [MeasureTheory.ae_restrict_iff' measurableSet_Ioi]

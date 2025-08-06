@@ -38,17 +38,15 @@ lemma log1p_div_bound {x : ℝ} (x1 : |x| < 1) (n : ℕ) :
   · simp only [log1p_div, x0, add_zero, Real.log_one, div_zero, ite_true, abs_zero, sub_zero,
       div_one]
     induction' n with n _
-    · simp only [Nat.zero_eq, Finset.range_zero, Finset.sum_empty, sub_zero, abs_one, pow_zero,
-        le_refl]
+    · simp only [Finset.range_zero, Finset.sum_empty, sub_zero, abs_one, pow_zero, le_refl]
     · simp only [Finset.sum_range_succ', Nat.cast_add, Nat.cast_one, ne_eq, add_eq_zero,
-        one_ne_zero, and_false, not_false_eq_true, zero_pow, mul_zero, Finset.sum_const_zero,
-        pow_zero, CharP.cast_eq_zero, zero_add, div_self, mul_one, sub_self, abs_zero,
-        Nat.succ_ne_zero, le_refl]
+      one_ne_zero, and_false, not_false_eq_true, zero_pow, mul_zero, Finset.sum_const_zero,
+      pow_zero, CharP.cast_eq_zero, zero_add, div_self, mul_one, sub_self, abs_zero, le_refl]
   · have n1 : |-x| < 1 := by simpa only [abs_neg] using x1
     have h := Real.abs_log_sub_add_sum_range_le n1 n
     have e : Real.log (1 + x) = x * log1p_div x := by
       simp only [log1p_div, x0, ite_false, mul_comm x, div_mul_cancel₀ _ x0]
-    simp only [pow_succ, neg_mul, neg_div] at h
+    simp only [pow_succ] at h
     simp only [mul_comm, neg_mul, neg_div, mul_div_assoc, Finset.sum_neg_distrib, sub_neg_eq_add,
       add_comm _ (Real.log _), ←sub_eq_add_neg, abs_neg] at h
     rw [←Finset.mul_sum] at h
@@ -166,9 +164,9 @@ set the final precision.
   rw [Interval.log]
   by_cases n : x.lo = nan ∨ x.hi = nan ∨ x.lo.val ≤ 0
   · rcases n with n | n | n; repeat simp [n]
-  simp only [not_or, not_le, Ne] at n
+  simp only [not_or, not_le] at n
   rcases n with ⟨ln,hn,l0⟩
-  have e : approx x = Icc x.lo.val x.hi.val := by simp only [approx, ln, hn, false_or, if_false]
+  have e : approx x = Icc x.lo.val x.hi.val := by simp only [approx, ln, if_false]
   have le : Real.log '' Icc x.lo.val x.hi.val ⊆ Icc (Real.log x.lo.val) (Real.log x.hi.val) := by
     simp only [image_subset_iff]
     intro a ⟨m0,m1⟩
@@ -191,6 +189,6 @@ set the final precision.
   by_cases n : x.lo = nan ∨ x.hi = nan
   · rcases n with n | n; repeat simp [n]
   · rcases not_or.mp n with ⟨n0,n1⟩
-    simp only [approx, ne_eq, neg_neg, n0, not_false_eq_true, n1, or_self, ite_false, mem_Icc] at ax
+    simp only [approx, n0, ite_false, mem_Icc] at ax
     have l0 : x.lo.val ≤ 0 := by linarith
     simp only [Floating.log_nonpos l0, Interval.nan_union]

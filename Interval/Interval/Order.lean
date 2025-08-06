@@ -62,7 +62,7 @@ lemma lt_of_lt_of_le' {x y z : Interval} (xy : x < y) (yz : y ≤ z) : x < z := 
 
 /-- `<` and `<` compose -/
 lemma lt_trans' {x y z : Interval} (xy : x < y) (yz : y < z) : x < z := by
-  simp only [le_def, lt_def, Floating.val_lt_val] at xy yz ⊢
+  simp only [lt_def, Floating.val_lt_val] at xy yz ⊢
   exact ⟨xy.1, by linarith [y.le]⟩
 
 /-- `<` is asymmetric -/
@@ -91,8 +91,7 @@ instance : IsAsymm Interval (· < ·) where
 /-- If we know `x < y` for intervals, we know it for approximated reals -/
 lemma approx_lt (x y : Interval) (a b : ℝ) (ax : a ∈ approx x) (ay : b ∈ approx y) (xy : x < y) :
     a < b := by
-  simp only [lt_def, Floating.blt_eq_lt, Floating.val_lt_val, Bool.and_eq_true, bne_iff_ne, ne_eq,
-    decide_eq_true_eq] at xy
+  simp only [lt_def, Floating.val_lt_val, ne_eq] at xy
   rcases xy with ⟨xn, lt⟩
   have yn : y.lo ≠ nan := Floating.ne_nan_of_le (x.hi_ne_nan xn) (by linarith)
   simp only [approx, Interval.lo_eq_nan, xn, ↓reduceIte, Set.mem_Icc, yn] at ax ay
@@ -101,8 +100,7 @@ lemma approx_lt (x y : Interval) (a b : ℝ) (ax : a ∈ approx x) (ay : b ∈ a
 /-- If we know `x ≤ y` for intervals, we know it for approximated reals -/
 lemma approx_le (x y : Interval) (a b : ℝ) (ax : a ∈ approx x) (ay : b ∈ approx y) (xy : x ≤ y) :
     a ≤ b := by
-  simp only [le_def, Floating.ble_eq_le, Floating.val_le_val, Bool.and_eq_true, bne_iff_ne, ne_eq,
-    decide_eq_true_eq] at xy
+  simp only [le_def, Floating.val_le_val, ne_eq] at xy
   rcases xy with ⟨xn, le⟩
   have yn : y.lo ≠ nan := Floating.ne_nan_of_le (x.hi_ne_nan xn) (by linarith)
   simp only [approx, Interval.lo_eq_nan, xn, ↓reduceIte, Set.mem_Icc, yn] at ax ay

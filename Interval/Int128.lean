@@ -6,7 +6,6 @@ import Interval.UInt128
 
 open Classical
 open Set
-open scoped UInt64.CommRing
 
 /-- 128-bit twos complement signed integers -/
 @[ext] structure Int128 where
@@ -15,19 +14,19 @@ open scoped UInt64.CommRing
 
 namespace Int128
 
-@[irreducible] def isNeg (x : Int128) : Bool := 2^63 ≤ x.n.hi
+@[irreducible] def isNeg (x : Int128) : Bool := 9223372036854775808 ≤ x.n.hi
 
-@[irreducible] def min : Int128 := ⟨⟨0, 2^63⟩⟩
+@[irreducible] def min : Int128 := ⟨⟨0, 9223372036854775808⟩⟩
 
 instance : Zero Int128 where zero := ⟨0⟩
 @[simp] lemma n_zero : (0 : Int128).n = 0 := rfl
 
 /-- Alternative `isNeg` characterization in terms of `n.toNat` -/
 lemma isNeg_eq_le_toNat (x : Int128) : x.isNeg = decide (2^127 ≤ x.n.toNat) := by
-  rw [isNeg]
-  simp only [UInt64.le_iff_toNat_le, UInt64.toNat_2_pow_63, UInt128.toNat_def, decide_eq_decide]
+  unfold isNeg  -- Proceed carefully here to avoid weird recursion depth issues
+  norm_num
   have lo := x.n.lo.toNat_lt
-  norm_num only at lo ⊢
+  simp [UInt64.le_iff_toNat_le, UInt128.toNat_def]
   omega
 
 /-!
@@ -66,9 +65,9 @@ instance : Coe Int128 ℤ where
 
 /-- If `hi = 0`, conversion is just `lo` -/
 @[simp] lemma coe_of_hi_eq_zero {x : Int128} (h0 : x.n.hi = 0) : (x.n.lo.toNat : ℤ) = x := by
-  have c : ¬(2:UInt64) ^ 63 ≤ 0 := by decide
-  simp only [toInt, isNeg, h0, c, decide_false, bif_eq_if, ite_false, sub_zero, Nat.cast_inj,
-    UInt128.toNat_def, UInt64.toNat_zero, zero_mul, zero_add, Bool.false_eq_true]
+  have c : ¬(9223372036854775808 : UInt64) ≤ 0 := by fast_decide
+  simp only [toInt, isNeg, h0, c, decide_false, bif_eq_if, ite_false, sub_zero, UInt128.toNat_def,
+    UInt64.toNat_zero, zero_mul, zero_add, Bool.false_eq_true]
 
 /-- `isNeg` is nicer in terms of integers -/
 @[simp] lemma isNeg_iff {x : Int128} : x.isNeg = decide ((x : ℤ) < 0) := by
@@ -98,9 +97,9 @@ lemma coe_ofInt (x : ℤ) : (Int128.ofInt x : ℤ) = (x + 2^127) % 2^128 - 2^127
 /-- `ofInt_coe` if we start with `UInt64` -/
 @[simp] lemma ofInt_ofUInt64 (x : UInt64) : Int128.ofInt (x.toNat : ℤ) = x := by
   rw [Int128.ext_iff, ofInt, of_lo, UInt128.ofInt]
-  simp only [Int.cast_ofNat, UInt64.cast_toNat, UInt128.mk.injEq, true_and, Int.cast_natCast]
+  simp only [UInt128.mk.injEq]
   rw [Int.ediv_eq_zero_of_lt]
-  · rfl
+  · simp only [UInt64.natCast_toNat, UInt64.ofInt_toInt, true_and]; rfl
   · apply Nat.cast_nonneg
   · exact lt_of_lt_of_le (Nat.cast_lt.mpr x.toNat_lt) (by norm_num)
 
@@ -146,7 +145,7 @@ instance : AddCommGroup Int128 where
 
 /-- Small integers roundtrip through `ℤ → Int128 → ℤ` -/
 lemma coe_ofInt_of_abs_lt {x : ℤ} (sx : x ∈ Ico (-2^127) (2^127)) : (Int128.ofInt x : ℤ) = x := by
-  simp only [coe_ofInt, abs_lt, mem_Ico] at sx ⊢
+  simp only [coe_ofInt, mem_Ico] at sx ⊢
   norm_num only at sx ⊢
   omega
 

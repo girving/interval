@@ -108,7 +108,7 @@ lemma subset_rounds [Preorder R] (s : Set R) (up : Bool) : s ⊆ rounds s up := 
 @[approx] lemma rounds_mono (st : s ⊆ t) : rounds s up ⊆ rounds t up := by
   intro x m; rcases m with ⟨y,m,h⟩; exact ⟨y, st m, h⟩
 
-@[simp] lemma rounds_neg [OrderedAddCommGroup J] {s : Set J} :
+@[simp] lemma rounds_neg [AddCommGroup J] [PartialOrder J] [IsOrderedAddMonoid J] {s : Set J} :
     rounds (-s) up = -(rounds s !up) := by
   ext x
   simp only [rounds, mem_neg, mem_setOf_eq, Bool.not_eq_true']
@@ -117,7 +117,7 @@ lemma subset_rounds [Preorder R] (s : Set R) (up : Bool) : s ⊆ rounds s up := 
     constructor
     · intro ⟨y,m,h⟩; exact ⟨-y, m, by simpa only [u, neg_le_neg_iff, ite_false, ite_true] using h⟩
     · intro ⟨y,m,h⟩; refine ⟨-y, by simpa only [neg_neg], ?_⟩
-      simp only [u, ite_false, ite_true] at h ⊢; simpa only [neg_le, le_neg] }
+      simp only [u, ite_true] at h ⊢; simpa only [neg_le, le_neg] }
 
 @[simp] lemma mem_rounds_singleton {x y : I} :
     x ∈ rounds {y} up ↔ (if up then y ≤ x else x ≤ y) := by

@@ -26,22 +26,22 @@ lemma fderiv_fderiv_comm {f : E × F → G} {z : E × F} {dx : E} {dy : F} (sf :
   have px : ∀ x y, fderiv ℝ (fun x ↦ f (x, y)) x dx = f' (x,y) (dx,0) := by
     intro x y
     have h : HasFDerivAt (fun x : E ↦ f (x,y)) ((f' (x,y)).comp (.inl ℝ E F)) x :=
-      (h1 _).comp _ (hasFDerivAt_prod_mk_left _ _)
+      (h1 _).comp _ (hasFDerivAt_prodMk_left _ _)
     simp [h.fderiv]
   have py : ∀ x y, fderiv ℝ (fun y ↦ f (x, y)) y dy = f' (x,y) (0,dy) := by
     intro x y
     have h : HasFDerivAt (fun y : F ↦ f (x,y)) ((f' (x,y)).comp (.inr ℝ E F)) y :=
-      (h1 _).comp _ (hasFDerivAt_prod_mk_right _ _)
+      (h1 _).comp _ (hasFDerivAt_prodMk_right _ _)
     simp [h.fderiv]
   have pxy : fderiv ℝ (fun x ↦ f' (x,z.2) (0,dy)) z.1 dx = f'' (dx,0) (0,dy) := by
     have h : HasFDerivAt (fun x : E ↦ f' (x,z.2) (0,dy))
         ((f' z).comp (0 : E →L[ℝ] E × F) + (f''.comp (.inl ℝ E F)).flip (0,dy)) z.1 :=
-      (h2.comp _ (hasFDerivAt_prod_mk_left _ _)).clm_apply (hasFDerivAt_const _ _)
+      (h2.comp _ (hasFDerivAt_prodMk_left _ _)).clm_apply (hasFDerivAt_const _ _)
     simp [h.fderiv]
   have pyx : fderiv ℝ (fun y ↦ f' (z.1,y) (dx,0)) z.2 dy = f'' (0,dy) (dx,0) := by
     have h : HasFDerivAt (fun y : F ↦ f' (z.1,y) (dx,0))
         ((f' z).comp (0 : F →L[ℝ] E × F) + (f''.comp (.inr ℝ E F)).flip (dx,0)) z.2 :=
-      (h2.comp _ (hasFDerivAt_prod_mk_right _ _)).clm_apply (hasFDerivAt_const _ _)
+      (h2.comp _ (hasFDerivAt_prodMk_right _ _)).clm_apply (hasFDerivAt_const _ _)
     simp [h.fderiv]
   simp only [py, px, pxy, pyx, h]
 
@@ -74,7 +74,7 @@ lemma _root_.ContDiff.iteratedDeriv {𝕜 : Type*} [NontriviallyNormedField 𝕜
   induction' n with n ic
   · intro f fc
     simp only [iteratedDeriv_zero]
-    exact (fc.of_le le_top).comp (contDiff_id.prod (gc.of_le le_top))
+    exact (fc.of_le le_top).comp (contDiff_id.prodMk (gc.of_le le_top))
   · intro f fc
     simp only [iteratedDeriv_succ']
     apply ic

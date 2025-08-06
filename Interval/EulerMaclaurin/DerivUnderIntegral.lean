@@ -26,13 +26,13 @@ lemma deriv_interval_integral_of_contDiff (fc : ContDiff ℝ ⊤ (uncurry f)) (a
     have e : (fun t ↦ f t x) = uncurry f ∘ (fun t ↦ (t,x)) := rfl
     simp only [f']
     rw [← fderiv_deriv, e, fderiv_comp]
-    · nth_rw 2 [(hasFDerivAt_prod_mk_left _ _).fderiv]
+    · nth_rw 2 [(hasFDerivAt_prodMk_left _ _).fderiv]
       simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, ContinuousLinearMap.inl_apply]
     · exact (fc.differentiable le_top).differentiableAt
-    · simp only [differentiableAt_id', differentiableAt_const, DifferentiableAt.prod]
+    · simp only [differentiableAt_fun_id, differentiableAt_const, DifferentiableAt.prodMk]
   have dc : Continuous (uncurry f') := by
     simp only [f'] at de ⊢
-    simp only [de, Prod.mk.eta, ← ContinuousLinearMap.apply_apply ((1 : ℝ),(0 : ℝ))]
+    simp only [de, ← ContinuousLinearMap.apply_apply ((1 : ℝ), (0 : ℝ))]
     exact (ContinuousLinearMap.continuous _).comp (fc.continuous_fderiv le_top)
   have pc : IsCompact (closedBall t 1 ×ˢ Icc a b) := (isCompact_closedBall _ _).prod isCompact_Icc
   have pn : (closedBall t 1 ×ˢ Icc a b).Nonempty := by use (t,a); simp [ab]
@@ -57,7 +57,7 @@ lemma deriv_interval_integral_of_contDiff (fc : ContDiff ℝ ⊤ (uncurry f)) (a
     simp only [hasDerivAt_deriv_iff, f', e]
     apply DifferentiableAt.comp
     · exact fc.contDiffAt.differentiableAt le_top
-    · exact differentiableAt_id.prod (differentiableAt_const _)
+    · exact differentiableAt_id.prodMk (differentiableAt_const _)
 
 /-- Iterated differentiation under the integral sign -/
 lemma iteratedDeriv_interval_integral_of_contDiff (fc : ContDiff ℝ ⊤ (uncurry f)) (ab : a ≤ b)

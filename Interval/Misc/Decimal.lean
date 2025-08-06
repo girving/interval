@@ -67,7 +67,7 @@ lemma Rat.ofScientific_eq (n : ℕ) (neg : Bool) (e : ℕ) :
   simp only [OfScientific.ofScientific, Rat.ofScientific_def, en, ee]
   split_ifs
   · simp [Rat.mkRat_eq_div, div_eq_mul_inv]
-  · simp [Rat.mkRat_eq_div]
+  · simp
 
 lemma Real.ofScientific_eq (n : ℕ) (neg : Bool) (e : ℕ) :
     (OfScientific.ofScientific n neg e : ℝ) = (n : ℚ) * 10 ^ (if neg then -(e : ℤ) else e) := by
@@ -99,15 +99,15 @@ lemma valq_eq (x : Decimal) : x.valq = x.n * 10 ^ x.s := by
   simp only [decide_eq_true_eq, Int.natCast_natAbs, pow_ite, zpow_neg, mul_ite, bif_eq_if]
   by_cases s0 : x.s < 0
   · by_cases n0 : x.n < 0
-    · simp only [n0, ↓reduceIte, s0, Int.coe_natAbs_eq_neg n0.le, Rat.cast_neg, Rat.cast_intCast,
-        abs_of_neg s0, zpow_neg, inv_inv, ← neg_mul, neg_neg]
-    · simp only [n0, ↓reduceIte, s0, Int.coe_natAbs_eq_self (not_lt.mp n0), Rat.cast_intCast,
-        abs_of_nonpos s0.le, zpow_neg, inv_inv]
+    · simp only [n0, ↓reduceIte, s0, Int.coe_natAbs_eq_neg n0.le, abs_of_neg s0, zpow_neg, inv_inv,
+      ← neg_mul, neg_neg]
+    · simp only [n0, ↓reduceIte, s0, Int.coe_natAbs_eq_self (not_lt.mp n0), abs_of_nonpos s0.le,
+      zpow_neg, inv_inv]
   · by_cases n0 : x.n < 0
-    · simp only [n0, ↓reduceIte, s0, Int.coe_natAbs_eq_neg n0.le, Rat.cast_neg, Rat.cast_intCast,
-        abs_of_nonneg (not_lt.mp s0), ← neg_mul, neg_neg]
-    · simp only [n0, ↓reduceIte, s0, Int.coe_natAbs_eq_self (not_lt.mp n0), Rat.cast_intCast,
-        abs_of_nonneg (not_lt.mp s0)]
+    · simp only [n0, ↓reduceIte, s0, Int.coe_natAbs_eq_neg n0.le, abs_of_nonneg (not_lt.mp s0), ←
+      neg_mul, neg_neg]
+    · simp only [n0, ↓reduceIte, s0, Int.coe_natAbs_eq_self (not_lt.mp n0),
+      abs_of_nonneg (not_lt.mp s0)]
 
 /-- `val` and `valq` are related -/
 lemma coe_valq (x : Decimal) : x.valq = x.val := by
@@ -163,7 +163,7 @@ lemma prec_le (x : Decimal) (p : ℕ) : (x.prec p false).val ≤ x.val := by
   simp only [prec, bif_eq_if, decide_eq_true_eq, val_eq]
   by_cases lp : Nat.log 10 x.n.toNat ≤ p
   · simp only [lp, ↓reduceIte, le_refl]
-  · simp only [lp, ↓reduceIte, Rat.cast_le]
+  · simp only [lp, ↓reduceIte]
     refine le_trans (mul_le_mul_of_nonneg_right Int.rdiv_le (by positivity)) ?_
     simp only [Nat.cast_pow, Nat.cast_ofNat, div_mul_eq_mul_div, mul_div_assoc, ← zpow_natCast]
     rw [← zpow_sub₀ (by norm_num)]
@@ -174,7 +174,7 @@ lemma le_prec (x : Decimal) (p : ℕ) : x.val ≤ (x.prec p true).val := by
   simp only [prec, bif_eq_if, decide_eq_true_eq, val_eq]
   by_cases lp : Nat.log 10 x.n.toNat ≤ p
   · simp only [lp, ↓reduceIte, le_refl]
-  · simp only [lp, ↓reduceIte, Rat.cast_le]
+  · simp only [lp, ↓reduceIte]
     refine le_trans ?_ (mul_le_mul_of_nonneg_right Int.le_rdiv (by positivity))
     simp only [Nat.cast_pow, Nat.cast_ofNat, div_mul_eq_mul_div, mul_div_assoc, ← zpow_natCast]
     rw [← zpow_sub₀ (by norm_num)]
@@ -185,7 +185,7 @@ lemma aprec_le (x : Decimal) (p : ℤ) : (x.aprec p false).val ≤ x.val := by
   simp only [aprec, bif_eq_if, decide_eq_true_eq, val_eq]
   by_cases ps : p ≤ x.s
   · simp only [ps, ↓reduceIte, le_refl]
-  · simp only [ps, ↓reduceIte, Rat.cast_le]
+  · simp only [ps, ↓reduceIte]
     refine le_trans (mul_le_mul_of_nonneg_right Int.rdiv_le (by positivity)) ?_
     simp only [Nat.cast_pow, Nat.cast_ofNat, div_mul_eq_mul_div, mul_div_assoc, ← zpow_natCast]
     rw [← zpow_sub₀ (by norm_num)]
@@ -196,7 +196,7 @@ lemma le_aprec (x : Decimal) (p : ℤ) : x.val ≤ (x.aprec p true).val := by
   simp only [aprec, bif_eq_if, decide_eq_true_eq, val_eq]
   by_cases ps : p ≤ x.s
   · simp only [ps, ↓reduceIte, le_refl]
-  · simp only [ps, ↓reduceIte, Rat.cast_le]
+  · simp only [ps, ↓reduceIte]
     refine le_trans ?_ (mul_le_mul_of_nonneg_right Int.le_rdiv (by positivity))
     simp only [Nat.cast_pow, Nat.cast_ofNat, div_mul_eq_mul_div, mul_div_assoc, ← zpow_natCast]
     rw [← zpow_sub₀ (by norm_num)]
@@ -253,9 +253,9 @@ lemma le_m_of_t (n : ℕ) (s : ℤ) (t : ℤ) :
     (n : ℝ) * 2^s / 10^t ≤ m_of_t n s t true := by
   have e0 : ∀ n : ℕ, (n : ℝ) = ((n : ℚ) : ℝ) := fun _ ↦ rfl
   have e1 : (n * 2^s / 10^t : ℝ) = (n * 2^s / 10^t : ℚ) := by simp
-  simp only [m_of_t, Bool.false_eq_true, ↓reduceIte, e0 ⌈(_:ℚ)⌉₊, e1, Rat.cast_le,
-    (by norm_num : (10 : ℚ) = 2 * 5), mul_zpow, div_mul_eq_div_div, mul_div_assoc,
-    ← zpow_sub₀ (by norm_num : (2:ℚ) ≠ 0), Nat.le_ceil]
+  simp only [m_of_t, ↓reduceIte, e0 ⌈(_ : ℚ)⌉₊, e1, Rat.cast_le, (by norm_num : (10 : ℚ) = 2 * 5),
+    mul_zpow, div_mul_eq_div_div, mul_div_assoc, ← zpow_sub₀ (by norm_num : (2 : ℚ) ≠ 0),
+    Nat.le_ceil]
 
 /-- `m_of_t n s t` is antitone in `t` -/
 lemma antitone_m_of_t (n : ℕ) (s : ℤ) (up : Bool) : Antitone (m_of_t n s · up) := by
@@ -366,7 +366,7 @@ lemma lt_iff (x y : Decimal) : x < y ↔ x.val < y.val := by
 instance : Preorder Decimal where
   le_refl x := by simp [le_def, ble]
   le_trans x y z := by simp [le_def, ble]; apply le_trans
-  lt_iff_le_not_le x y := by simp [lt_def, le_def, ble]; apply le_of_lt
+  lt_iff_le_not_ge x y := by simp [lt_def, le_def, ble]; apply le_of_lt
 
 instance (x y : Decimal) : Decidable (x ≤ y) := by
   simp only [le_def]
@@ -486,7 +486,7 @@ def Ball.prec (x : Ball) (p : ℕ) : Ball :=
 /-- `Ball.prec` is conservative -/
 lemma Ball.approx_prec (x : Ball) (p : ℕ) : approx x ⊆ approx (x.prec p) := by
   intro y
-  simp only [prec, approx, mem_Icc, val_max]
+  simp only [prec, approx, mem_Icc]
   set rp := x.r.prec p true
   set q := rp.s - ↑p + Nat.log 10 rp.n.natAbs
   set cq := x.c.aprec q false

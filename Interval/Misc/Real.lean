@@ -13,23 +13,25 @@ open Pointwise
 open Set
 open scoped Real
 
-variable {𝕜 : Type}
+variable {α 𝕜 𝕝 𝕤 : Type}
+variable [Field 𝕝]
+variable [Field 𝕜] [LinearOrder 𝕜] [IsStrictOrderedRing 𝕜]
+variable [Semifield 𝕤] [LinearOrder 𝕤] [IsStrictOrderedRing 𝕤]
+
 
 /-- Simplify to case assuming not `nan` -/
-lemma mem_if_univ_iff {x : 𝕜} {u : Set 𝕜} {p : Prop} {dp : Decidable p} :
+lemma mem_if_univ_iff {x : α} {u : Set α} {p : Prop} {dp : Decidable p} :
     x ∈ @ite _ p dp univ u ↔ ¬p → x ∈ u := by
   by_cases n : p
   repeat simp only [n, ite_true, ite_false, mem_univ, not_true_eq_false, IsEmpty.forall_iff,
     not_false_eq_true, forall_true_left]
 
 /-- Simplify to case assuming not `nan` -/
-lemma subset_if_univ_iff {t u : Set 𝕜} {p : Prop} {dp : Decidable p} :
+lemma subset_if_univ_iff {t u : Set α} {p : Prop} {dp : Decidable p} :
     t ⊆ @ite _ p dp univ u ↔ ¬p → t ⊆ u := by
   by_cases n : p
   repeat simp only [n, ite_true, ite_false, subset_univ, not_true_eq_false, IsEmpty.forall_iff,
     not_false_eq_true, forall_true_left]
-
-variable [LinearOrderedField 𝕜]
 
 /-- Reals are either `≤ 0` or `≥ 0` -/
 lemma nonpos_or_nonneg (x : 𝕜) : x ≤ 0 ∨ 0 ≤ x := by
@@ -38,13 +40,13 @@ lemma nonpos_or_nonneg (x : 𝕜) : x ≤ 0 ∨ 0 ≤ x := by
   · left; linarith
 
 /-- The range of nonzero multiplication is `univ` -/
-@[simp] lemma range_mul_right_eq_univ {a : 𝕜} (a0 : a ≠ 0) : range (fun x ↦ x * a) = univ := by
+@[simp] lemma range_mul_right_eq_univ {a : 𝕝} (a0 : a ≠ 0) : range (fun x ↦ x * a) = univ := by
   simp only [eq_univ_iff_forall, mem_range]
   intro x; use x / a
   simp only [div_mul_cancel₀ _ a0]
 
 /-- Multiplying by a nonzero preserves `univ` -/
-@[simp] lemma Set.univ_mul_singleton {a : 𝕜} (a0 : a ≠ 0) : univ * ({a} : Set 𝕜) = univ := by
+@[simp] lemma Set.univ_mul_singleton {a : 𝕝} (a0 : a ≠ 0) : univ * ({a} : Set 𝕝) = univ := by
   simp only [mul_singleton, image_univ, range_mul_right_eq_univ a0]
 
 /-- Multiplying an `Icc` by a positive number produces the expected `Icc` -/
@@ -72,19 +74,20 @@ theorem image_mul_right_Icc_of_neg {a b c : 𝕜} (c0 : c < 0) :
     · simp only [div_mul_cancel₀ _ c0.ne]
 
 /-- A simple lemma that we use a lot -/
-@[simp] lemma two_pow_pos {R : Type} [StrictOrderedSemiring R] {n : ℕ} : 0 < (2:R) ^ n :=
+@[simp] lemma two_pow_pos {R : Type} [Semiring R] [PartialOrder R] [IsStrictOrderedRing R] {n : ℕ} :
+    0 < (2:R) ^ n :=
   pow_pos (by norm_num) _
 
 /-- A simple lemma that we use a lot -/
-@[simp] lemma two_zpow_pos {𝕜 : Type} [LinearOrderedSemifield 𝕜] {n : ℤ} : 0 < (2:𝕜) ^ n :=
+@[simp] lemma two_zpow_pos {n : ℤ} : 0 < (2 : 𝕜) ^ n :=
   zpow_pos (by norm_num) _
 
 /-- Writing `not_lt.mpr two_zpow_pos` fails to infer inside `simp`, so we write this out -/
-@[simp] lemma two_zpow_not_nonpos {𝕜 : Type} [LinearOrderedSemifield 𝕜] {n : ℤ} : ¬(2:𝕜) ^ n ≤ 0 :=
+@[simp] lemma two_zpow_not_nonpos {n : ℤ} : ¬(2 : 𝕜) ^ n ≤ 0 :=
   not_le.mpr two_zpow_pos
 
 /-- Writing `not_lt.mpr two_zpow_pos.le` fails to infer inside `simp`, so we write this out -/
-@[simp] lemma two_zpow_not_neg {𝕜 : Type} [LinearOrderedSemifield 𝕜] {n : ℤ} : ¬(2:𝕜) ^ n < 0 :=
+@[simp] lemma two_zpow_not_neg {n : ℤ} : ¬(2 : 𝕜) ^ n < 0 :=
   not_lt.mpr two_zpow_pos.le
 
 /-- The range of two power multiplication is `univ` -/
@@ -107,28 +110,24 @@ lemma Set.inv_Icc₀ {a b : 𝕜} (a0 : 0 < a) (b0 : 0 < b) : (Icc a b)⁻¹ = I
     simp only [le_inv_comm₀ x0 a0, inv_le_comm₀ b0 x0]
 
 /-- `approx` friendly version of `Set.mem_inv` -/
-@[approx] lemma Set.mem_inv_of_mem {x : 𝕜} {s : Set 𝕜} (m : x ∈ s) : x⁻¹ ∈ s⁻¹ := by
+@[approx] lemma Set.mem_inv_of_mem {x : 𝕝} {s : Set 𝕝} (m : x ∈ s) : x⁻¹ ∈ s⁻¹ := by
   rw [Set.mem_inv, inv_inv]; exact m
 
 /-- `pow` and `zpow` multiply via addition -/
-lemma pow_mul_zpow {a : 𝕜} (a0 : a ≠ 0) (b : ℕ) (c : ℤ) : a^b * a^c = a^(b + c) := by
+lemma pow_mul_zpow {a : 𝕝} (a0 : a ≠ 0) (b : ℕ) (c : ℤ) : a^b * a^c = a^(b + c) := by
   simp only [zpow_add₀ a0, zpow_natCast]
 
 /-- `zpow` and `pow` divide via subtraction -/
-lemma zpow_mul_pow {a : 𝕜} (a0 : a ≠ 0) (b : ℤ) (c : ℕ) : a^b * a^c = a^(b + c) := by
+lemma zpow_mul_pow {a : 𝕝} (a0 : a ≠ 0) (b : ℤ) (c : ℕ) : a^b * a^c = a^(b + c) := by
   simp only [zpow_add₀ a0, zpow_natCast]
 
 /-- `pow` and `zpow` multiply via addition -/
-lemma zpow_div_pow {a : 𝕜} (a0 : a ≠ 0) (b : ℤ) (c : ℕ) : a^b / a^c = a^(b - c) := by
+lemma zpow_div_pow {a : 𝕝} (a0 : a ≠ 0) (b : ℤ) (c : ℕ) : a^b / a^c = a^(b - c) := by
   simp only [zpow_sub₀ a0, zpow_natCast]
 
 /-- `-` and `⁻¹` commute on `Set ℝ` -/
-@[simp] lemma Set.inv_neg {s : Set 𝕜} : (-s)⁻¹ = -s⁻¹ := by
+@[simp] lemma Set.inv_neg {s : Set 𝕝} : (-s)⁻¹ = -s⁻¹ := by
   ext x; simp only [_root_.inv_neg, mem_neg, mem_inv]
-
-/-- Make `x ^ (7 : ℝ)` simplify to `x ^ (7 : ℕ)` (when literals are involved) -/
-@[simp] lemma Real.rpow_ofNat {x : ℝ} {n : ℕ} [Nat.AtLeastTwo n] :
-    x ^ (no_index (OfNat.ofNat n) : ℝ) = x ^ (OfNat.ofNat n) := Real.rpow_natCast _ _
 
 /-- `x - y ≤ x + z ↔ -y ≤ z` -/
 @[simp] lemma sub_le_add_iff_left (x y z : 𝕜) : x - y ≤ x + z ↔ -y ≤ z := by
@@ -162,6 +161,7 @@ lemma Icc_mul_Icc_subset_Icc {a b c d x y : ℝ} (ab : a ≤ b) (cd : c ≤ d) :
     all_goals cases nonpos_or_nonneg v
     all_goals exact ⟨by nlinarith, by nlinarith⟩
 
+omit [IsStrictOrderedRing 𝕜] in
 /-- Rewrite `Icc^2 ⊆ Icc` in terms of inequalities -/
 lemma sqr_Icc_subset_Icc {a b x y : 𝕜} :
     (fun x ↦ x^2) '' Icc a b ⊆ Icc x y ↔ ∀ u, a ≤ u → u ≤ b → x ≤ u^2 ∧ u^2 ≤ y := by
