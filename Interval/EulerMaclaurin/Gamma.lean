@@ -74,18 +74,12 @@ lemma iteratedDeriv_log_add (xy : 0 < x + y) (s : ℕ) :
       filter_upwards [p]
       exact fun _ xz ↦ h xz
 
-lemma iteratedDerivWithin_eq_iteratedDeriv {𝕜 E : Type} [NontriviallyNormedField 𝕜]
-    [NormedAddCommGroup E] [NormedSpace 𝕜 E] (f : 𝕜 → E) (x : 𝕜) (t : Set 𝕜) (n : ℕ)
-    (fc : ContDiffAt 𝕜 n f x) (u : UniqueDiffOn 𝕜 t) (m : x ∈ t) :
-    iteratedDerivWithin n f t x = iteratedDeriv n f x := by
-  rw [iteratedDerivWithin, iteratedDeriv, iteratedFDerivWithin_eq_iteratedFDeriv u fc m]
-
 @[simp] lemma iteratedDerivWithin_log_add_succ (s : ℕ) (xy : 0 < x + y) :
     iteratedDerivWithin (s + 1) (fun y ↦ log (x + y)) (Ioi (-x)) y =
       (-1) ^ s * s.factorial * (x + y) ^ (-(s : ℤ) - 1) := by
   rw [iteratedDerivWithin_eq_iteratedDeriv, iteratedDeriv_log_add xy]
-  · exact (contDiffAt_log_add xy).of_le le_top
   · apply uniqueDiffOn_Ioi
+  · exact (contDiffAt_log_add xy).of_le le_top
   · simp only [mem_Ioi]; linarith
 
 @[simp] lemma iteratedDerivWithin_log_add_one (xy : 0 < x + y) :

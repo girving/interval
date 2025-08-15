@@ -202,8 +202,8 @@ lemma UInt128.toNat_succ {x : UInt128} (h : x.toNat ≠ 2^128-1) : x.succ.toNat 
     by_cases hh : x.hi = (2:UInt64)^64-1
     · simp only [toNat_def, hh, ll, ne_eq] at h; contrapose h; clear h; decide +kernel
     · simp only [UInt64.pow_eq_zero, UInt64.zero_sub] at hh
-      simp [toNat, Nat.shiftLeft_eq, UInt64.toNat_add_one' hh, add_mul, one_mul,
-        UInt64.toNat_zero, add_zero, ll, to_omega, bif_eq_if, UInt64.eq_iff_toNat_eq]
+      simp [toNat, Nat.shiftLeft_eq, UInt64.toNat_add_one' hh, add_mul, one_mul, UInt64.toNat_zero,
+        add_zero, ll, to_omega, bif_eq_if]
   · simp only [to_omega] at ll
     simp only [to_omega, UInt64.toNat_add_one ll, ↓reduceIte, toNat]
     have h0 := x.lo.toNat_lt
@@ -429,7 +429,7 @@ lemma toNat_mul128_mod (x y : UInt64) : (mul128 x y).toNat % 2^128 = x.toNat * y
   simp only [Nat.mod_mul_eq_mul_mod_128]
   apply congr_arg₂ _ _ rfl
   -- The rest is easy mod `2^64`
-  rw [←Nat.ModEq, ←UInt64.size_eq_pow, ←ZMod.eq_iff_modEq_nat]
+  rw [← Nat.ModEq, ← UInt64.size_eq_pow, ← ZMod.natCast_eq_natCast_iff]
   simp only [Nat.cast_mul, add_comm, UInt64.toZMod_toNat, UInt64.toZMod_add, UInt64.toZMod_cast,
     UInt64.toZMod_shiftLeft32, Nat.cast_add, Nat.cast_pow, Nat.cast_ofNat]
 

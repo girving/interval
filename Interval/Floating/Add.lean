@@ -386,8 +386,8 @@ lemma toNat_hi_sub_128 {x : UInt64} {y : UInt128} (yx : y.toNat ≤ x.toNat * 2^
     (hi_sub_128 x y).toNat = x.toNat * 2^64 - y.toNat := by
   rw [hi_sub_128]
   by_cases y0 : y = 0
-  · simp only [y0, UInt128.neg_zero, UInt128.zero_lo, UInt128.zero_hi, UInt64.add_zero,
-      UInt128.toNat_def, UInt64.toNat_zero, zero_mul, tsub_zero, add_zero]
+  · simp only [y0, UInt128.neg_zero, UInt128.zero_lo, UInt128.zero_hi, UInt128.toNat_def,
+    UInt64.toNat_zero, zero_mul, tsub_zero, add_zero]
   -- Replace -y with z
   have ze : y.toNat = 2^128 - (-y).toNat := by
     have h := UInt128.toNat_neg y
