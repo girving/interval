@@ -45,37 +45,36 @@ lemma mem_approx_sinc_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interv
     (xy : x ∈ approx y) : sinc_sqrt x ∈ approx ((sinc_sqrt_series n).eval y) := by
   have nn : (sinc_sqrt_series n).coeffs.size = n := by
     rw [sinc_sqrt_series, Array.size_map, Array.size_range]
-  by_cases n0 : n = 0
-  · have e : (sinc_sqrt_series 0).error = nan := by rw [sinc_sqrt_series]; simp
-    simp [n0, Series.eval, e]
-  · apply (sinc_sqrt_series n).approx_of_taylor'
-        (a := fun n ↦ (-1)^n * (Nat.factorial (2 * n + 1) : ℝ)⁻¹) (xy := xy)
-        (b := sincos_sqrt_series_radius ^ n * ((2 * n + 2) /
-          ((2 * n + 1).factorial * (2 * n + 1))))
-    · intro rn xr
-      rw [sinc_sqrt_series] at xr rn
-      simp only at xr
-      have xr' : |x| ≤ sincos_sqrt_series_radius := le_trans xr (Floating.ofRat_le rn)
-      have x1 : |√(|x|)| ≤ 1 := abs_sqrt_abs_le_one xr'
-      simp only [nn, sinc_sqrt]
-      have h := Real.sinc_series_bound x1 (Nat.pos_iff_ne_zero.mpr n0)
-      simp only [div_eq_inv_mul, ← mul_assoc, mul_comm _ ((-1 : ℝ) ^ _), pow_mul, Real.sq_sqrt x0,
-        sq_abs, abs_of_nonneg x0] at h ⊢
-      refine le_trans h ?_
-      simp only [mul_assoc]
-      apply mul_le_mul_of_nonneg_right
-      · simp only [abs_of_nonneg x0] at xr'
-        bound
-      · positivity
-    · intro k
-      have e : (Nat.factorial (2 * k + 1) : ℝ)⁻¹ = (Nat.factorial (2 * k + 1) : ℚ)⁻¹ := by
-        simp only [Rat.cast_inv, Rat.cast_natCast]
-      simp only [sinc_sqrt_series, Array.getElem_map, Array.range_getElem, e,
-        (by norm_num : (-1 : ℝ) = (-1 : ℚ)), ← Rat.cast_pow, ← Rat.cast_mul]
-      apply Interval.approx_ofRat
-    · intro en
-      rw [sinc_sqrt_series, bif_eq_if] at en ⊢
-      simp only [beq_iff_eq, ne_eq, n0, if_false] at en ⊢
+  apply (sinc_sqrt_series n).approx_of_taylor'
+      (a := fun n ↦ (-1)^n * (Nat.factorial (2 * n + 1) : ℝ)⁻¹) (xy := xy)
+      (b := sincos_sqrt_series_radius ^ n * ((2 * n + 2) /
+        ((2 * n + 1).factorial * (2 * n + 1))))
+  · intro rn xr
+    rw [sinc_sqrt_series] at xr rn
+    simp only at xr
+    have xr' : |x| ≤ sincos_sqrt_series_radius := le_trans xr (Floating.ofRat_le rn)
+    have x1 : |√(|x|)| ≤ 1 := abs_sqrt_abs_le_one xr'
+    simp only [nn, sinc_sqrt]
+    have h := Real.sinc_series_bound x1 n
+    simp only [div_eq_inv_mul, ← mul_assoc, mul_comm _ ((-1 : ℝ) ^ _), pow_mul, Real.sq_sqrt x0,
+      sq_abs, abs_of_nonneg x0] at h ⊢
+    refine le_trans h ?_
+    simp only [mul_assoc]
+    apply mul_le_mul_of_nonneg_right
+    · simp only [abs_of_nonneg x0] at xr'
+      bound
+    · positivity
+  · intro k
+    have e : (Nat.factorial (2 * k + 1) : ℝ)⁻¹ = (Nat.factorial (2 * k + 1) : ℚ)⁻¹ := by
+      simp only [Rat.cast_inv, Rat.cast_natCast]
+    simp only [sinc_sqrt_series, Array.getElem_map, Array.range_getElem, e,
+      (by norm_num : (-1 : ℝ) = (-1 : ℚ)), ← Rat.cast_pow, ← Rat.cast_mul]
+    apply Interval.approx_ofRat
+  · intro en
+    rw [sinc_sqrt_series, bif_eq_if] at en ⊢
+    by_cases n0 : n = 0
+    · simp [n0] at en
+    · simp only [beq_iff_eq, ne_eq, n0, if_false] at en ⊢
       refine le_trans (le_of_eq ?_) (Floating.le_ofRat en)
       simp only [div_eq_inv_mul, mul_inv, Rat.cast_mul, Rat.cast_pow, Rat.cast_inv,
         Rat.cast_natCast, Rat.cast_add, Rat.cast_one]
