@@ -79,7 +79,7 @@ lemma approx_log1p_div_series (n : ℕ) : log1p_div ∈ approx (log1p_div_series
     have e : (-1 : ℝ) ^ k / (k + 1) = ↑((-1) ^ k / (↑k + 1) : ℚ) := by
       simp only [Rat.cast_div, Rat.cast_pow, Rat.cast_neg, Rat.cast_one, Rat.cast_add,
         Rat.cast_natCast]
-    simp only [log1p_div_series, Array.getElem_map, Array.range_getElem, e]
+    simp only [log1p_div_series, Array.getElem_map, Array.getElem_range, e]
     apply Interval.approx_ofRat
   · intro en
     simp only [log1p_div_series] at en ⊢
