@@ -67,7 +67,7 @@ lemma mem_approx_sinc_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interv
   · intro k
     have e : (Nat.factorial (2 * k + 1) : ℝ)⁻¹ = (Nat.factorial (2 * k + 1) : ℚ)⁻¹ := by
       simp only [Rat.cast_inv, Rat.cast_natCast]
-    simp only [sinc_sqrt_series, Array.getElem_map, Array.range_getElem, e,
+    simp only [sinc_sqrt_series, Array.getElem_map, Array.getElem_range, e,
       (by norm_num : (-1 : ℝ) = (-1 : ℚ)), ← Rat.cast_pow, ← Rat.cast_mul]
     apply Interval.approx_ofRat
   · intro en
@@ -109,7 +109,7 @@ lemma mem_approx_cos_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interva
     · intro k
       have e : (Nat.factorial (2 * k) : ℝ)⁻¹ = (Nat.factorial (2 * k) : ℚ)⁻¹ := by
         simp only [Rat.cast_inv, Rat.cast_natCast]
-      simp only [cos_sqrt_series, Array.getElem_map, Array.range_getElem, e,
+      simp only [cos_sqrt_series, Array.getElem_map, Array.getElem_range, e,
         (by norm_num : (-1 : ℝ) = (-1 : ℚ)), ← Rat.cast_pow, ← Rat.cast_mul]
       apply Interval.approx_ofRat
     · intro en

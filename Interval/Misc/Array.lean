@@ -8,19 +8,6 @@ import Mathlib.Tactic.Linarith.Frontend
 
 variable {α β : Type}
 
-@[simp] lemma Array.range_getElem (n k : ℕ) (kn : k < (range n).size) :
-    ((Array.range n)[↑k]'kn) = k := by
-  have nn : ∀ n, (Nat.fold n (fun b _ a ↦ push a b) #[]).size = n := by
-    intro n; induction' n with n h
-    · simp only [Nat.fold, List.size_toArray, List.length_nil]
-    · simp only [Nat.fold, size_push, h]
-  induction' n with n h
-  · simp only [size, range, ofFn_zero, List.toList_toArray, List.length_nil, not_lt_zero'] at kn
-  · simp only [range] at kn h ⊢
-    by_cases lt : k < size (Nat.fold n (fun b _ a => a.push b) #[])
-    · simp only [size_ofFn, getElem_ofFn, implies_true, lt] at *
-    · simp only [size_ofFn, getElem_ofFn] at kn ⊢
-
 @[simp] lemma Array.getElem_map_fin (f : α → β) (x : Array α) {n : ℕ} (i : Fin n)
     (h : i < (x.map f).size) : (x.map f)[i]'h = f (x[i]'(by simpa using h)) := by
   simp only [Fin.getElem_fin, getElem_map]

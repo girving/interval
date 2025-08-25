@@ -48,7 +48,7 @@ lemma approx_exp_series (n : ℕ) : Real.exp ∈ approx (exp_series n) := by
     · intro k
       have e : (Nat.factorial k : ℝ)⁻¹ = (Nat.factorial k : ℚ)⁻¹ := by
         simp only [Rat.cast_inv, Rat.cast_natCast]
-      simp only [exp_series, Array.getElem_map, Array.range_getElem, e]
+      simp only [exp_series, Array.getElem_map, Array.getElem_range, e]
       apply Interval.approx_ofRat
     · intro en
       simp only [mul_inv_rev, Nat.cast_succ]
