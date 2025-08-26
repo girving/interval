@@ -241,8 +241,7 @@ lemma Int.emod_mul_eq_mul_emod' (a n m : ℤ) (n0 : 0 ≤ n) (m0 : 0 < m) :
     exact le_trans (by simp) (add_le_add_left (neg_le_abs a) _)
   rw [e, hx, Int.add_mul_emod_self_right, add_mul, mul_assoc, Int.add_mul_emod_self_right]
   simp only [←Nat.cast_mul, ← Int.natCast_emod, Nat.cast_inj]
-  apply Nat.mod_mul_eq_mul_mod'
-  omega
+  apply Nat.mul_mod_mul_right
 
 lemma Int.emod_mul_eq_mul_emod (a n : ℤ) (n0 : 0 < n) : a * n % n^2 = a % n * n := by
   rw [pow_two, Int.emod_mul_eq_mul_emod' _ _ _ n0.le n0]
