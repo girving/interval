@@ -197,12 +197,11 @@ instance : LinearOrder UInt64 where
     (x <<< s).toNat = x.toNat % 2^(64 - s.toNat % 64) * 2^(s.toNat % 64) := by
   refine Eq.trans BitVec.toNat_shiftLeft ?_
   simp only [toNat_toBitVec, Nat.shiftLeft_eq]
-  rw [← Nat.mod_mul_eq_mul_mod']
-  · refine congr_arg₂ _ (congr_arg₂ _ rfl (congr_arg₂ _ rfl rfl)) ?_
-    simp only [← Nat.pow_add]
-    refine congr_arg₂ _ rfl ?_
-    omega
-  · exact Nat.two_pow_ne_zero
+  rw [← Nat.mul_mod_mul_right]
+  refine congr_arg₂ _ (congr_arg₂ _ rfl (congr_arg₂ _ rfl rfl)) ?_
+  simp only [← Nat.pow_add]
+  refine congr_arg₂ _ rfl ?_
+  omega
 
 lemma UInt64.toNat_shiftLeft'' {x s : UInt64} (h : s < 64) :
     (x <<< s).toNat = x.toNat % 2^(64 - s.toNat) * 2^s.toNat := by
