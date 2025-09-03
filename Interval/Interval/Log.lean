@@ -192,3 +192,8 @@ set the final precision.
     simp only [approx, n0, ite_false, mem_Icc] at ax
     have l0 : x.lo.val ≤ 0 := by linarith
     simp only [Floating.log_nonpos l0, Interval.nan_union]
+
+/-- `Interval.log` propagates `nan` -/
+@[simp] lemma Interval.nan_log : (nan : Interval).log = nan := by
+  rw [Interval.log]
+  simp only [lo_nan, Floating.log_nan, hi_nan, union_self]

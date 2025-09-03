@@ -13,21 +13,21 @@ open scoped Real
 namespace Interval
 
 /-- `ℕ` converts to `Interval` -/
-@[irreducible] def ofNat (n : ℕ) : Interval :=
+@[coe, irreducible] def ofNat (n : ℕ) : Interval :=
   mix (.ofNat n false) (.ofNat n true) (fun _ ↦ Floating.ofNat_le_ofNat)
 
 instance instNatCastInterval : NatCast Interval where
   natCast := Interval.ofNat
 
 /-- `ℤ` converts to `Interval` -/
-@[irreducible] def ofInt (n : ℤ) : Interval :=
+@[coe, irreducible] def ofInt (n : ℤ) : Interval :=
   mix (.ofInt n false) (.ofInt n true) (fun _ ↦ Floating.ofInt_le_ofInt)
 
 instance instIntCastInterval : IntCast Interval where
   intCast := Interval.ofInt
 
 /-- `ℚ` converts to `Interval` -/
-@[irreducible] def ofRat (x : ℚ) : Interval :=
+@[coe, irreducible] def ofRat (x : ℚ) : Interval :=
   mix (.ofRat x false) (.ofRat x true) (fun _ ↦ Floating.ofRat_le_ofRat)
 
 instance instCoeRatInterval : Coe ℚ Interval where
