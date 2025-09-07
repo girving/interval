@@ -40,7 +40,7 @@ theorem lhopital_field {f g : 𝕜 → 𝕜} {a f' g' : 𝕜} (df : HasDerivAt f
     simp only [← hc]
     calc min (e / 2 / b) (2⁻¹ * ‖g'‖) * b
       _ ≤ (e / 2 / b) * b := by bound
-      _ = e / 2 := by field_simp [b0.ne']; ring
+      _ = e / 2 := by field_simp [b0.ne']
       _ < e := by bound
   have cg : c ≤ 2⁻¹ * ‖g'‖ := by bound
   clear hc

@@ -491,7 +491,7 @@ lemma Fixed.val_lt_val {x y : Fixed s} : x.val < y.val ↔ x.n < y.n := by
   simp only [Int.cast_lt, Int64.coe_lt_coe]
 
 lemma Fixed.val_le_val {x y : Fixed s} : x.val ≤ y.val ↔ x.n ≤ y.n := by
-  rw [val, val, mul_le_mul_right two_zpow_pos]
+  rw [val, val, mul_le_mul_iff_left₀ two_zpow_pos]
   simp only [Int.cast_le, Int64.coe_le_coe]
 
 @[simp] lemma Fixed.val_min {x y : Fixed s} : (min x y).val = min x.val y.val := by
@@ -985,9 +985,11 @@ lemma Fixed.approx_ofRat (x : ℚ) (up : Bool) :
       simp only [Rat.cast_div, Rat.cast_intCast, Rat.cast_natCast]
       induction up
       · simp only [Bool.not_false, mem_rounds_singleton, mul_inv_le_iff₀ (two_pow_pos (R := ℝ)),
-        ite_true]
+          ite_true]
         refine le_trans Int.rdiv_le ?_
+        simp only [Int.cast_mul, Int.cast_pow, Int.cast_ofNat]
         field_simp
+        rfl
       · simp only [rounds, ← div_eq_mul_inv, mem_singleton_iff, Bool.not_true, ite_false,
           exists_eq_left, le_div_iff₀ (G₀ := ℝ) two_pow_pos, mem_setOf_eq, Bool.false_eq_true]
         refine le_trans (le_of_eq ?_) Int.le_rdiv
@@ -1070,8 +1072,8 @@ lemma Fixed.val_mem_log2 {x : Fixed s} (h : x.log2 ≠ nan) :
     simp only [val, Int64.coe_zero, zpow_zero, mul_one, ←Int.cast_add, Int.cast_inj] at v
     simp only [v]; ring_nf
     simp only [not_le] at x0
-    rw [Int64.coe_log2, UInt64.toNat_log2, ←Nat.cast_one, ←Nat.cast_add, zpow_natCast, zpow_natCast,
-      Nat.add_comm, Int64.toReal_toInt x0.le, tp, tp, Nat.cast_le, Nat.cast_lt]
+    rw [Int64.coe_log2, UInt64.toNat_log2, ← Nat.cast_one (R := ℤ), ←Nat.cast_add, zpow_natCast,
+      zpow_natCast, Nat.add_comm, Int64.toReal_toInt x0.le, tp, tp, Nat.cast_le, Nat.cast_lt]
     refine ⟨Nat.log2_self_le ?_, Nat.lt_log2_self⟩
     simp only [←UInt64.ne_zero_iff_toNat_ne_zero, ←Int64.ne_zero_iff_n_ne_zero]
     exact x0.ne'

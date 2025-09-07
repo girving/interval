@@ -125,13 +125,17 @@ noncomputable def Complex.sinc (z : ℂ) : ℂ := if z = 0 then 1 else Complex.s
 lemma Real.sin_eq_sinc (x : ℝ) : sin x = x * sinc x := by
   by_cases x0 : x = 0
   · simp [x0]
-  · rw [sinc]; field_simp [x0]
+  · rw [sinc]
+    simp only [x0, ↓reduceIte]
+    field_simp [x0]
 
 /-- `sinc` suffices to compute `sin` -/
 lemma Complex.sin_eq_sinc (z : ℂ) : sin z = z * sinc z := by
   by_cases z0 : z = 0
   · simp [z0]
-  · rw [sinc]; field_simp [z0]
+  · rw [sinc]
+    simp only [z0, ↓reduceIte]
+    field_simp [z0]
 
 @[simp] lemma Complex.sinc_neg (x : ℝ) : sinc (-x) = sinc x := by simp [sinc]
 

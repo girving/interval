@@ -518,7 +518,7 @@ lemma add_to_128_shift_le {x y : Floating} (xy : x.add_bigger y) {up : Bool}
   · simp only [s0] at hs
     simp only [← Int64.uabs_eq_self' yn, UInt128.toNat_def, UInt64.toNat_zero, add_zero,
       Nat.cast_mul, Nat.cast_pow, Nat.cast_ofNat, ← hs, pow_zero, Int.rdiv_one, ←
-      Int64.uabs_eq_self' xn, zero_lt_two, pow_pos, mul_le_mul_right, Nat.cast_le,
+      Int64.uabs_eq_self' xn, zero_lt_two, pow_pos, mul_le_mul_iff_left₀, Nat.cast_le,
       UInt64.toNat_le_toNat, UInt64.sub_self]
     rw [add_bigger, s0] at xy
     simpa only [beq_self_eq_true, lt_self_iff_false, decide_false, cond_true,
@@ -618,7 +618,7 @@ lemma val_add_to_128 {x y : Floating} (up : Bool) (yn : y ≠ nan) (y0 : y ≠ 0
   have a := UInt128.approx_shiftRightRound ⟨0, u.toUInt64⟩ (x.s - y.s) (up != y.n.isNeg)
   simp only [UInt128.toReal, hz, ← hv', mul_comm _ ((2 : ℝ) ^ 64), he, Nat.cast_mul, Nat.cast_pow,
     Nat.cast_ofNat, UInt64.toNat_sub'' yxs, mul_div_assoc ((2 : ℝ) ^ 64), mem_rounds_singleton,
-    zero_lt_two, pow_pos, mul_le_mul_left] at a
+    zero_lt_two, pow_pos, mul_le_mul_iff_right₀] at a
   simp only [← Int64.toReal_toInt un, pow_sub₀ _ t0 yxs', ← div_eq_mul_inv, ← div_mul, ←
     mul_div_right_comm, div_le_iff₀ (G₀ := ℝ) two_pow_pos, le_div_iff₀ (G₀ := ℝ) two_pow_pos] at a
   by_cases yn : 0 ≤ y.n
@@ -633,7 +633,7 @@ lemma val_add_to_128 {x y : Floating} (up : Bool) (yn : y ≠ nan) (y0 : y ≠ 0
     simp only [add_mul, ← xe, add_le_add_iff_left]
     simp only [val, Bool.ite_eq_false, UInt64.toInt]
     simp only [zpow_sub₀ t0, zpow_natCast, div_eq_mul_inv, ← mul_assoc, inv_pos, two_zpow_pos,
-      mul_le_mul_right, hu]
+      mul_le_mul_iff_left₀, hu]
     induction up; repeat exact a
   · simp only [Bool.xor_true, ← UInt128.toNat_def, Bool.not_eq_true', Int64.isNeg, bif_eq_if,
     not_le.mp yn, if_true, decide_true] at hu a ⊢
@@ -648,7 +648,7 @@ lemma val_add_to_128 {x y : Floating} (up : Bool) (yn : y ≠ nan) (y0 : y ≠ 0
       add_le_sub_iff_left, ←hv', Int.cast_natCast]
     rw [val, hu, Int64.coe_neg' um, Int.cast_neg, neg_mul, mul_64_pow]
     simp only [zpow_sub₀ t0, zpow_natCast, div_eq_mul_inv, ← mul_assoc, neg_le_neg_iff, inv_pos,
-      two_zpow_pos, mul_le_mul_right]
+      two_zpow_pos, mul_le_mul_iff_left₀]
     exact a
 
 /-- `pos_add` rounds in the correct direction -/

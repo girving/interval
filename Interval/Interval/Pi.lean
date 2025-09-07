@@ -1,6 +1,6 @@
 import Interval.Interval.Conversion
 import Interval.Interval.Scale
-import Mathlib.Data.Real.Pi.Bounds
+import Mathlib.Analysis.Real.Pi.Bounds
 
 /-!
 ## Interval approximations of `π` and friends

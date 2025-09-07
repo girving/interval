@@ -1,6 +1,4 @@
-import Mathlib.Algebra.Order.Floor.Defs
-import Mathlib.Algebra.Order.Floor.Ring
-import Mathlib.Algebra.Order.Floor.Semiring
+import Mathlib.Algebra.Order.Floor.Semifield
 import Mathlib.Data.Nat.Bitwise
 import Mathlib.Data.Nat.ModEq
 import Mathlib.Data.Real.Basic
@@ -35,7 +33,7 @@ lemma Nat.bit_div2_eq (n : ℕ) : Nat.bit (Nat.bodd n) (Nat.div2 n) = n := by
 lemma Nat.bit_le_bit {a b : Bool} {m n : ℕ} (ab : a ≤ b) (mn : m ≤ n) : bit a m ≤ bit b n := by
   induction a
   · induction b
-    · simp only [bit_false, ofNat_pos, _root_.mul_le_mul_left, mn]
+    · simp only [bit_false, ofNat_pos, mul_le_mul_iff_right₀, mn]
     · simp only [bit_false, bit_true]; omega
   · induction b
     · simp only [← not_lt, Bool.false_lt_true, not_true_eq_false] at ab

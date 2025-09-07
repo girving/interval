@@ -386,7 +386,8 @@ lemma approx_ofRat_abs (x : ℚ) (up : Bool) : ↑|x| ∈ rounds (approx (ofRat_
     · simp only [Bool.false_eq_true, ↓reduceIte]
       refine le_trans (mul_le_mul_of_nonneg_right Nat.rdiv_le two_zpow_pos.le) ?_
       simp only [Nat.cast_mul, Nat.cast_pow, Nat.cast_ofNat, ← zpow_natCast,
-        Int.toNat_of_nonneg (sub_nonneg.mpr r62), ← div_div, ae, div_mul_cancel₀ _ (two_zpow_pos (𝕜 := ℝ)).ne', le_refl]
+        Int.toNat_of_nonneg (sub_nonneg.mpr r62), ← div_div, ae,
+        div_mul_cancel₀ _ (two_zpow_pos (𝕜 := ℝ)).ne', le_refl]
     · simp only [ite_true, ge_iff_le]
       refine le_trans ?_ (mul_le_mul_of_nonneg_right Nat.le_rdiv two_zpow_pos.le)
       simp only [Nat.cast_mul, Nat.cast_pow, Nat.cast_ofNat, ae, ← zpow_natCast,
@@ -444,6 +445,6 @@ lemma ofFloat_le_ofFloat {x : Float} (n0 : ofFloat x false ≠ nan) (n1 : ofFloa
   · simp only [le_refl]
   · simp only [ite_not] at n0 n1 ⊢
     split_ifs at n0 n1 ⊢ with e
-    · simp only [ne_eq, n0, not_false_eq_true, val_scaleB, n1, two_zpow_pos, mul_le_mul_right]
+    · simp only [ne_eq, n0, not_false_eq_true, val_scaleB, n1, two_zpow_pos, mul_le_mul_iff_left₀]
       exact le_trans (ofInt_le (ne_nan_of_scaleB n0)) (le_ofInt (ne_nan_of_scaleB n1))
     · simp only [le_refl]

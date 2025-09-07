@@ -177,6 +177,7 @@ lemma log_rising_em (x : ℝ) (n s : ℕ) (x0 : 0 < x) :
         intro m
         simp only [Nat.factorial_succ]
         field_simp
+        simp only [Nat.cast_mul, Nat.cast_add, Nat.cast_one]
         ring
       simp only [← neg_add', add_zero, mul_sub, ← mul_assoc, mul_comm _ ((-1 : ℝ) ^ _), ← mul_pow,
         mul_neg, mul_one, neg_neg, one_pow, one_mul, mul_div_assoc, zpow_neg, zpow_natCast,

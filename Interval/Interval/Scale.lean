@@ -16,7 +16,7 @@ namespace Interval
   mix (x.lo.scaleB t) (x.hi.scaleB t) (by
     intro n0 n1
     simp only [ne_eq, n0, not_false_eq_true, Floating.val_scaleB, n1, two_zpow_pos,
-      mul_le_mul_right, le])
+      mul_le_mul_iff_left₀, le])
 
 /-- Scale by changing the exponent -/
 @[irreducible] def scaleB' (x : Interval) (t : Fixed 0) : Interval :=
@@ -58,7 +58,7 @@ lemma ne_nan_of_scaleB' {x : Interval} {t : Fixed 0} (n : x.scaleB' t ≠ nan) :
   simp only [ne_eq, lo_eq_nan] at xn
   simp only [xn, not_false_eq_true, forall_true_left] at xm
   simpa only [ne_eq, n.1, not_false_eq_true, Floating.val_scaleB, gt_iff_lt, two_zpow_pos,
-    mul_le_mul_right, n.2]
+    mul_le_mul_iff_left₀, n.2]
 
 /-- `scaleB'` is conservative -/
 @[approx] lemma mem_approx_scaleB' {x : Interval} {t : Fixed 0} {x' t' : ℝ}
