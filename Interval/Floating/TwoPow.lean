@@ -31,15 +31,15 @@ lemma valid_two_pow {n : Fixed 0} :
     v := valid_two_pow }
 
 /-- `two_pow` is conservative -/
-@[approx] lemma mem_approx_two_pow (n : Fixed 0) : 2^n.val ∈ approx (two_pow n) := by
+@[approx] lemma mem_approx_two_pow (n : Fixed 0) : approx (two_pow n) (2 ^ n.val : ℝ) := by
   rw [two_pow]
   simp only [bif_eq_if, Bool.or_eq_true, beq_iff_eq, decide_eq_true_eq]
   by_cases b : n = nan ∨ n.n.toUInt64 + (2^63 : UInt64) < 62
   · rcases b with b | b; all_goals simp [b]
   simp only [not_or, not_lt] at b
   rcases b with ⟨nn, le⟩
-  simp only [approx, nn, not_lt.mpr le, or_self, ite_false, mem_ite_univ_left, mem_singleton_iff]
-  intro h; clear h
+  simp only [approx, nn, not_lt.mpr le, or_self, ite_false]
+  right
   rw [val, Fixed.val]
   have e62 : ((2^(62:ℕ) : Int64) : ℤ) = 2^62 := by decide +kernel
   have le' : 62 ≤ (n.n.toUInt64 + 2^63).toNat := by simpa only [UInt64.le_iff_toNat_le, u62] using le

@@ -15,6 +15,8 @@ open Set
 open scoped Real
 namespace Floating
 
+variable {x y : Floating} {x' y' : ℝ}
+
 /-!
 ### Normalization starting with 128 bits
 -/
@@ -334,7 +336,7 @@ lemma val_small_shift {n s : UInt64}
 
 /-- `add_shift_r` rounds in the correct direction -/
 lemma val_add_shift_r (r : UInt128) (s : UInt64) (up : Bool) :
-    (r : ℝ) * 2^((s.toNat : ℤ) - 64 - 2^63) ∈ rounds (approx (add_shift_r r s up)) !up := by
+    Rounds (add_shift_r r s up) ((r : ℝ) * 2^((s.toNat : ℤ) - 64 - 2^63)) up := by
   have t0 : (2 : ℝ) ≠ 0 := by norm_num
   generalize hn : add_n r s up = n
   generalize ht : add_adjust r.log2 s = t
@@ -345,8 +347,8 @@ lemma val_add_shift_r (r : UInt128) (s : UInt64) (up : Bool) :
       n.toUInt64 := by simp only [← hn', UInt64.toUInt64_toInt64]
   simp only [hn'']; clear hn'
   by_cases over : r.log2 = 127 ∧ s = UInt64.max
-  · simp only [over, UInt64.toNat_max, zero_lt_two, pow_pos, Nat.cast_pred, Nat.cast_pow,
-    Nat.cast_ofNat, and_self, ite_true, approx_nan, rounds_univ, mem_univ]
+  · simp only [over, and_self, ↓reduceIte, UInt64.toNat_max, Nat.reducePow, Nat.add_one_sub_one,
+      Nat.cast_ofNat, Int.reduceSub, Int.reducePow, rounds_nan]
   simp only [over, ite_false]
   simp only [not_and_or] at over
   refine rounds_of_ne_nan (fun sn ↦ ?_)
@@ -355,16 +357,15 @@ lemma val_add_shift_r (r : UInt128) (s : UInt64) (up : Bool) :
   simp only [hn, ht, ←Int.cast_inj (α := ℝ), Int.cast_natCast] at en
   simp only [en]
   induction up
-  · simp only [Bool.not_false, ite_true]
+  · simp only [Bool.false_eq_true, ↓reduceIte, UInt64.natCast_toNat]
     refine le_trans (mul_le_mul_of_nonneg_right Int.rdiv_le two_zpow_pos.le) ?_
     simp only [Int.cast_mul, Int.cast_ofNat, Int.cast_pow, Int.cast_ofNat, Nat.cast_pow,
-      Nat.cast_ofNat, UInt128.toReal, mul_div_assoc, mul_assoc, ←zpow_natCast, ←zpow_sub₀ t0,
-      ←zpow_add₀ t0]
+      Nat.cast_ofNat, UInt128.toReal, mul_div_assoc, mul_assoc, ← zpow_natCast, ← zpow_sub₀ t0,
+      ← zpow_add₀ t0, UInt64.toInt]
     refine mul_le_mul_of_nonneg_left (zpow_le_zpow_right₀ (by norm_num) ?_) (Nat.cast_nonneg _)
     rw [←ht, add_adjust_2_eq over]
     linarith
-  · simp only [Bool.not_true]
-    refine le_trans ?_ (mul_le_mul_of_nonneg_right Int.le_rdiv two_zpow_pos.le)
+  · refine le_trans ?_ (mul_le_mul_of_nonneg_right Int.le_rdiv two_zpow_pos.le)
     simp only [Int.cast_mul, Int.cast_ofNat, Int.cast_pow, Int.cast_ofNat, Nat.cast_pow,
       Nat.cast_ofNat, UInt128.toReal, mul_div_assoc, mul_assoc, ←zpow_natCast, ←zpow_sub₀ t0,
       ←zpow_add₀ t0]
@@ -573,10 +574,9 @@ lemma val_64 (x : Floating) : x.val = (x.n : ℝ) * 2^64 * 2 ^ ((x.s.toNat : ℤ
 /-- `add_to_128` rounds in the correct direction -/
 lemma val_add_to_128 {x y : Floating} (up : Bool) (yn : y ≠ nan) (y0 : y ≠ 0)
     (xy : x.add_bigger y) (x0' : 0 ≤ x.n) :
-    x.val + y.val ∈
-      rounds {((add_to_128 x y up) : ℝ) * 2^((x.s.toNat : ℤ) - 64 - 2^63)} !up := by
+    Rounds (((add_to_128 x y up) : ℝ) * 2^((x.s.toNat : ℤ) - 64 - 2^63)) (x.val + y.val) up := by
   rw [add_to_128]
-  simp only [mem_rounds_singleton, Bool.not_eq_true', UInt128.toReal, UInt128.toNat_def]
+  simp only [rounds_same, UInt128.toReal, UInt128.toNat_def]
   have t0 : (2:ℝ) ≠ 0 := by norm_num
   have pe : (2:ℝ)^((x.s.toNat : ℤ) - 64 - 2^63) = (2^64)⁻¹ * 2^((x.s.toNat : ℤ) - 2^63) := by
     simp only [zpow_sub₀ t0, zpow_natCast, div_eq_mul_inv, ← mul_assoc, mul_eq_mul_right_iff,
@@ -617,7 +617,7 @@ lemma val_add_to_128 {x y : Floating} (up : Bool) (yn : y ≠ nan) (y0 : y ≠ 0
       Nat.cast_ofNat]
   have a := UInt128.approx_shiftRightRound ⟨0, u.toUInt64⟩ (x.s - y.s) (up != y.n.isNeg)
   simp only [UInt128.toReal, hz, ← hv', mul_comm _ ((2 : ℝ) ^ 64), he, Nat.cast_mul, Nat.cast_pow,
-    Nat.cast_ofNat, UInt64.toNat_sub'' yxs, mul_div_assoc ((2 : ℝ) ^ 64), mem_rounds_singleton,
+    Nat.cast_ofNat, UInt64.toNat_sub'' yxs, mul_div_assoc ((2 : ℝ) ^ 64), rounds_same,
     zero_lt_two, pow_pos, mul_le_mul_iff_right₀] at a
   simp only [← Int64.toReal_toInt un, pow_sub₀ _ t0 yxs', ← div_eq_mul_inv, ← div_mul, ←
     mul_div_right_comm, div_le_iff₀ (G₀ := ℝ) two_pow_pos, le_div_iff₀ (G₀ := ℝ) two_pow_pos] at a
@@ -631,7 +631,7 @@ lemma val_add_to_128 {x y : Floating} (up : Bool) (yn : y ≠ nan) (y0 : y ≠ 0
     simp only [Nat.mod_eq_of_lt xz, Nat.cast_add, pe, ← mul_assoc, add_mul _ _ _⁻¹, ne_eq,
       pow_eq_zero_iff, OfNat.ofNat_ne_zero, not_false_eq_true, mul_inv_cancel_right₀, add_assoc, hv]
     simp only [add_mul, ← xe, add_le_add_iff_left]
-    simp only [val, Bool.ite_eq_false, UInt64.toInt]
+    simp only [val, UInt64.toInt]
     simp only [zpow_sub₀ t0, zpow_natCast, div_eq_mul_inv, ← mul_assoc, inv_pos, two_zpow_pos,
       mul_le_mul_iff_left₀, hu]
     induction up; repeat exact a
@@ -649,33 +649,34 @@ lemma val_add_to_128 {x y : Floating} (up : Bool) (yn : y ≠ nan) (y0 : y ≠ 0
     rw [val, hu, Int64.coe_neg' um, Int.cast_neg, neg_mul, mul_64_pow]
     simp only [zpow_sub₀ t0, zpow_natCast, div_eq_mul_inv, ← mul_assoc, neg_le_neg_iff, inv_pos,
       two_zpow_pos, mul_le_mul_iff_left₀]
-    exact a
+    induction up; repeat exact a
 
 /-- `pos_add` rounds in the correct direction -/
 lemma val_pos_add {x y : Floating} {up : Bool} (yn : y ≠ nan) (y0 : y ≠ 0) (xy : x.add_bigger y)
-    (x0' : 0 ≤ x.n) : x.val + y.val ∈ rounds (approx (x.pos_add y up)) !up := by
+    (x0' : 0 ≤ x.n) : Rounds (x.pos_add y up) (x.val + y.val) up := by
   rw [pos_add]
   have h0 := val_add_to_128 up yn y0 xy x0'
   generalize hz : add_to_128 x y up = z at h0
   have h1 := val_add_shift_r z x.s up
   generalize hw : add_shift_r z x.s up = w at h1
   by_cases wn : w = nan
-  · simp only [wn, approx_nan, rounds_univ, mem_univ]
-  · simp only [approx_eq_singleton wn, mem_rounds_singleton, Bool.not_eq_true'] at h1 h0 ⊢
+  · simp only [wn, rounds_nan]
+  · simp only [UInt64.natCast_toNat, Int.reducePow, rounds_iff, ne_eq, wn, not_false_eq_true,
+      forall_const, rounds_same] at h1 h0 ⊢
     induction up
-    · simp only [ite_true, ge_iff_le] at h0 h1 ⊢; linarith
-    · simp only [Bool.true_eq_false, ↓reduceIte, Int.reducePow] at h0 h1 ⊢; linarith
+    · simp only [Bool.false_eq_true, ↓reduceIte] at h0 h1 ⊢; linarith
+    · simp only [↓reduceIte] at h0 h1 ⊢; linarith
 
 /-- `add_core` rounds in the correct direction -/
 lemma val_add_core {x y : Floating} {up : Bool} (xn : x ≠ nan) (yn : y ≠ nan) (x0 : x ≠ 0)
     (y0 : y ≠ 0) (xy : x.add_bigger y) :
-    x.val + y.val ∈ rounds (approx (x.add_core y up)) !up := by
+    Rounds (x.add_core y up) (x.val + y.val) up := by
   rw [add_core]
   simp only [bif_eq_if, Int64.isNeg, decide_eq_true_eq]
   by_cases z : x.n < 0
-  · simp only [z, ite_true, Bool.xor_true, approx_neg, rounds_neg, Bool.not_not, mem_neg,
-      neg_add_rev, add_comm _ (-x).val, ←val_neg xn, ←val_neg yn]
-    nth_rw 2 [←Bool.not_not up]
+  · simp only [z, ite_true, Bool.xor_true]
+    apply rounds_neg
+    simp only [neg_add, ← val_neg xn, ← val_neg yn]
     apply val_pos_add
     all_goals simpa only [ne_eq, neg_eq_nan_iff, neg_eq_zero_iff, s_neg, n_neg, ← not_lt, not_not,
       Int64.isNeg_neg (x.n_ne_zero x0) (x.n_ne_min xn), Bool.not_eq_false', add_bigger_neg]
@@ -684,34 +685,28 @@ lemma val_add_core {x y : Floating} {up : Bool} (xn : x ≠ nan) (yn : y ≠ nan
     exact val_pos_add yn y0 xy (not_lt.mp z)
 
 /-- `add` rounds in the correct direction -/
-lemma approx_add (x y : Floating) (up : Bool) :
-    approx x + approx y ⊆ rounds (approx (x.add y up)) !up := by
+@[approx] lemma approx_add (x y : Floating) (up : Bool) {x' y' : ℝ} (ax : approx x x')
+    (ay : approx y y') : Rounds (x.add y up) (x' + y') up := by
   rw [add]
   generalize hs : (if x.add_bigger y then (x, y) else (y, x)) = s
   simp only [bif_eq_if, beq_iff_eq, Bool.or_eq_true]
+  by_cases xn : x = nan; · aesop
+  by_cases yn : y = nan; · aesop
+  simp only [approx, xn, false_or, yn, or_false] at ax ay ⊢
   by_cases x0 : x = 0
-  · simp only [x0, ne_eq, zero_ne_nan, not_false_eq_true, approx_eq_singleton, val_zero,
-      singleton_add, zero_add, image_id', true_or, or_false, ite_true]
-    apply subset_rounds
-  simp only [x0, false_or]
-  by_cases yn : y = nan
-  · simp only [yn, approx_nan, ite_true, rounds_univ, subset_univ]
-  simp only [yn, if_false]
+  · simp only [x0, ↓reduceIte, ← ax, val_zero, ← ay, zero_add, rounds_iff, ne_eq, le_refl,
+      ite_self, implies_true]
   by_cases y0 : y = 0
-  · simp only [y0, ne_eq, zero_ne_nan, not_false_eq_true, approx_eq_singleton, val_zero,
-      add_singleton, add_zero, image_id', true_or, ite_true]
-    apply subset_rounds
-  by_cases xn : x = nan
-  · simp only [xn, approx_nan, or_true, ite_true, rounds_univ, subset_univ]
-  simp only [ne_eq, xn, not_false_eq_true, approx_eq_singleton, yn, add_singleton, image_singleton,
-    singleton_subset_iff]
-  simp only [y0]
+  · simp only [x0, ↓reduceIte, y0, ← ax, ← ay, val_zero, add_zero, rounds_iff, ne_eq, le_refl,
+      ite_self, implies_true]
+  simp only [x0, ↓reduceIte, y0]
+  simp only [hs, ← ax, ← ay]
   by_cases xy : x.add_bigger y
   · simp only [xy, ite_true] at hs
-    simp only [or_self, xy, ite_true, ite_false]
+    simp only [← hs]
     exact val_add_core xn yn x0 y0 xy
-  · simp only [xy] at hs
-    simp only [add_comm _ y.val, or_self, xy, ite_false]
+  · simp only [xy, Bool.false_eq_true, ↓reduceIte] at hs
+    simp only [add_comm _ y.val, ← hs]
     exact val_add_core yn xn y0 x0 (not_add_bigger xy)
 
 /-- `add` propagates `nan` -/
@@ -733,22 +728,13 @@ lemma ne_nan_of_add {x y : Floating} {up : Bool} (n : x.add y up ≠ nan) : x �
   · simp only [n, or_true, nan_ne_zero, false_or, ite_true]
 
 /-- `add _ _ false` rounds down -/
-lemma add_le {x y : Floating} (n : x.add y false ≠ nan) :
-    (x.add y false).val ≤ x.val + y.val := by
-  have h := approx_add x y false
-  rcases ne_nan_of_add n with ⟨n0, n1⟩
-  simpa only [approx_eq_singleton n0, approx_eq_singleton n1, add_singleton,
-    image_singleton, approx_eq_singleton n, Bool.not_false, singleton_subset_iff,
-    mem_rounds_singleton, ite_true] using h
+lemma add_le (n : x.add y false ≠ nan) : (x.add y false).val ≤ x.val + y.val := by
+  simpa [rounds_iff, n] using approx_add x y false approx_val approx_val
 
 /-- `add _ _ true` rounds up -/
 lemma le_add {x y : Floating} (n : x.add y true ≠ nan) :
     x.val + y.val ≤ (x.add y true).val := by
-  have h := approx_add x y true
-  rcases ne_nan_of_add n with ⟨n0, n1⟩
-  simpa only [approx_eq_singleton n0, approx_eq_singleton n1, add_singleton,
-    image_singleton, approx_eq_singleton n, Bool.not_true, singleton_subset_iff,
-    mem_rounds_singleton, ite_false] using h
+  simpa [rounds_iff, n] using approx_add x y true approx_val approx_val
 
 /-!
 ### Subtraction
@@ -763,10 +749,10 @@ We use `x - y = x + -y`.
 lemma sub_eq_add_neg (x y : Floating) (up : Bool) : x.sub y up = x.add (-y) up := by rw [sub]
 
 /-- `sub` rounds in the correct direction -/
-lemma approx_sub (x y : Floating) (up : Bool) :
-    approx x - approx y ⊆ rounds (approx (x.sub y up)) !up := by
-  rw [sub_eq_add_neg, _root_.sub_eq_add_neg, ←approx_neg]
-  apply approx_add
+lemma approx_sub (x y : Floating) (up : Bool) (ax : approx x x') (ay : approx y y') :
+    Rounds (x.sub y up) (x' - y') up := by
+  rw [sub_eq_add_neg, _root_.sub_eq_add_neg]
+  approx
 
 /-- `sub` propagates `nan` -/
 @[simp] lemma sub_nan {x : Floating} {up : Bool} : x.sub nan up = nan := by

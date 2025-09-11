@@ -199,14 +199,13 @@ instance {s : Int64} : CoeHead (Fixed s) Floating where
 
 /-- To prove `a ∈ approx (x : Floating)`, we prove `a ∈ approx x` -/
 @[approx] lemma mem_approx_coe {s : Int64} {x : Fixed s} {a : ℝ}
-    (ax : a ∈ approx x) : a ∈ approx (x : Floating) := by
+    (ax : approx x a) : approx (x : Floating) a := by
   rw [Fixed.toFloating]
   by_cases n : x = nan
-  · simp only [n, Fixed.nan_n, of_ns_nan, approx_nan, mem_univ]
+  · simp only [n, Fixed.nan_n, of_ns_nan, approx_nan]
   · have nm : x.n ≠ .minValue := by simpa only [ne_eq, Fixed.ext_iff, Fixed.nan_n] using n
-    simp only [Fixed.approx_eq_singleton n, mem_singleton_iff,
-      approx_eq_singleton (of_ns_ne_nan_iff.mpr nm)] at ax ⊢
-    rw [ax, Fixed.val, val_of_ns nm]
+    simp only [Fixed.approx_eq_singleton n, approx_eq_singleton (of_ns_ne_nan_iff.mpr nm)] at ax ⊢
+    rw [← ax, Fixed.val, val_of_ns nm]
     simp only [Int64.toInt_eq_if, Int64.isNeg_eq_le, Nat.cast_ite, Nat.cast_pow, Int.cast_sub,
       Int.cast_ofNat, Int.cast_ite, Int.cast_pow, Int.cast_ofNat, UInt64.toInt, UInt64.toNat_add',
       UInt64.toNat_2_pow_63, mul_eq_mul_left_iff, UInt64.size_eq_pow, Nat.cast_pow, Nat.cast_two]

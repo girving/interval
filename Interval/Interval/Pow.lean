@@ -12,6 +12,8 @@ open Classical
 open Set
 open scoped Real
 
+variable {x y : Interval} {x' y' : ℝ} {n : ℕ}
+
 /-- `x^y = exp (x.log * y)` -/
 @[irreducible] def Interval.pow (x : Interval) (y : Interval) : Interval :=
   (x.log * y).exp
@@ -24,18 +26,18 @@ lemma Interval.pow_def {x y : Interval} : x ^ y = (x.log * y).exp := by
   · rw [Interval.pow]
 
 /-- `Interval.pow` is conservative -/
-@[approx] lemma Interval.mem_approx_pow {x : Interval} {y : Interval} {x' y' : ℝ}
-    (xm : x' ∈ approx x) (ym : y' ∈ approx y) : x' ^ y' ∈ approx (x ^ y) := by
+@[approx] lemma Interval.mem_approx_pow (xm : approx x x') (ym : approx y y') :
+    approx (x ^ y) (x' ^ y') := by
   rw [pow_def]
   by_cases x0 : 0 < x'
   · rw [Real.rpow_def_of_pos x0]; approx
   · simp only [not_lt] at x0
     rw [Interval.log_nonpos x0 xm, Interval.nan_mul, Interval.exp_nan]
-    simp only [approx_nan, mem_univ]
+    simp only [approx_nan]
 
 /-- `Interval.pow` is conservative for `ℕ` powers -/
-@[approx] lemma Interval.mem_approx_pow_nat {x : Interval} {n : ℕ} {x' : ℝ}
-    (xm : x' ∈ approx x) : x' ^ n ∈ approx (x ^ (n : Interval)) := by
+@[approx] lemma Interval.mem_approx_pow_nat (xm : approx x x') :
+    approx (x ^ (n : Interval)) (x' ^ n) := by
   simp only [← Real.rpow_natCast]
   approx
 
@@ -72,18 +74,18 @@ instance : Pow Interval ℕ := ⟨Interval.powNat⟩
 lemma Interval.powNat_def {x : Interval} {n : ℕ} : x ^ n = x.powNat n := rfl
 
 /-- `Floating.powNatSlow` is conservative -/
-@[approx] lemma Floating.mem_approx_powNatSlow {x : Floating} {x' : ℝ}
-    (xm : x' ∈ approx x) (n : ℕ) : x' ^ n ∈ approx (x.powNatSlow n) := by
+@[approx] lemma Floating.mem_approx_powNatSlow {x : Floating} (xm : approx x x') (n : ℕ) :
+    approx (x.powNatSlow n) (x' ^ n) := by
   rw [powNatSlow]
   simp only [to_if]
   by_cases n0 : n = 0
-  · simp only [n0, ↓reduceIte, Interval.approx_one, pow_zero, mem_singleton_iff]
+  · simp only [n0, ↓reduceIte, Interval.approx_one, pow_zero]
   simp only [n0, ↓reduceIte, val_lt_val, val_zero]
   by_cases xn : x = nan
   · simp [xn]
-  simp only [approx, xn, ↓reduceIte, mem_singleton_iff] at xm
-  simp only [xm]
-  have am : |x.val| ^ n ∈ approx ((x.abs : Interval) ^ Interval.ofNat n) := by
+  simp only [approx, xn, false_or] at xm
+  simp only [← xm]
+  have am : approx ((x.abs : Interval) ^ Interval.ofNat n) (|x.val| ^ n) := by
     apply Interval.mem_approx_pow_nat
     approx
   by_cases x0 : x.val < 0
@@ -100,11 +102,10 @@ lemma Interval.powNat_def {x : Interval} {n : ℕ} : x ^ n = x.powNat n := rfl
   simp [to_if, n0]
 
 /-- `Interval ^ ℕ` is conservative -/
-@[approx] lemma Interval.mem_approx_powNat {x : Interval} {n : ℕ} {x' : ℝ}
-    (xm : x' ∈ approx x) : x' ^ n ∈ approx (x ^ n) := by
+@[approx] lemma Interval.mem_approx_powNat (xm : approx x x') : approx (x ^ n) (x' ^ n) := by
   rw [powNat_def]
   unfold Interval.powNat
-  by_cases n0 : n = 0; · simp only [n0, approx_one, pow_zero, mem_singleton_iff]
+  by_cases n0 : n = 0; · simp only [n0, approx_one, pow_zero]
   by_cases n1 : n = 1; · simp only [n1, pow_one, xm]
   by_cases n2 : n = 2; · simp only [n2]; approx
   by_cases n3 : n = 3; · simp only [n3, pow_succ _ 2]; approx
@@ -113,9 +114,10 @@ lemma Interval.powNat_def {x : Interval} {n : ℕ} : x ^ n = x.powNat n := rfl
   by_cases xn : x = nan; · simp [xn, n0]
   by_cases ln : x.lo.powNatSlow n = nan; · simp [ln]
   by_cases hn : x.hi.powNatSlow n = nan; · simp [hn]
-  have alo := Floating.mem_approx_powNatSlow (Floating.val_mem_approx (x := x.lo)) n
-  have ahi := Floating.mem_approx_powNatSlow (Floating.val_mem_approx (x := x.hi)) n
-  simp only [approx, lo_eq_nan, xn, ↓reduceIte, mem_Icc, mem_ite_univ_left, ln, hn] at xm alo ahi ⊢
+  have alo := Floating.mem_approx_powNatSlow (Floating.approx_val (x := x.lo)) n
+  have ahi := Floating.mem_approx_powNatSlow (Floating.approx_val (x := x.hi)) n
+  simp only [approx, lo_eq_nan, xn, ln, hn, or_iff_not_imp_left, not_false_iff,
+    true_imp_iff] at xm alo ahi ⊢
   intro rn
   generalize x.lo.powNatSlow n = lp at alo ln rn
   generalize x.hi.powNatSlow n = hp at ahi hn rn
@@ -123,7 +125,7 @@ lemma Interval.powNat_def {x : Interval} {n : ℕ} : x ^ n = x.powNat n := rfl
   rcases Nat.even_or_odd n with ⟨k, e⟩ | e
   · simp only [← two_mul] at e
     simp only [e, pow_mul, Nat.mul_mod_right, and_true] at alo ahi ⊢
-    clear n n0 n1 n2 n3 n4 e rn
+    clear n0 n1 n2 n3 n4 e rn
     rcases x.sign_cases with ⟨xls,xhs⟩ | ⟨xls,xhs⟩ | ⟨xls,xhs⟩
     · simp only [Floating.val_lt_val, Floating.val_zero, Floating.val_le_val, not_le.mpr xhs,
         and_false, ↓reduceIte, lo_union, Floating.val_min, inf_le_iff, hi_union, vm, le_sup_iff]
@@ -165,16 +167,16 @@ instance : Pow Interval ℤ := ⟨Interval.powInt⟩
 lemma Interval.powInt_def {x : Interval} {n : ℤ} : x ^ n = x.powInt n := rfl
 
 /-- `Interval.powInt` is conservative -/
-@[approx] lemma Interval.mem_approx_powInt {x : Interval} {n : ℤ} {x' : ℝ}
-    (xm : x' ∈ approx x) : x' ^ n ∈ approx (x ^ n) := by
+@[approx] lemma Interval.mem_approx_powInt {n : ℤ} (xm : approx x x') :
+    approx (x ^ n) (x' ^ n) := by
   rw [powInt_def, Interval.powInt]
   simp only [bif_eq_if, decide_eq_true_eq]
-  have a : x' ^ n.natAbs ∈ approx (x ^ n.natAbs) := mem_approx_powNat xm
+  have a : approx (x ^ n.natAbs) (x' ^ n.natAbs) := mem_approx_powNat xm
   by_cases n0 : n < 0
   · simp only [n0, ↓reduceIte]
     nth_rw 2 [Int.eq_neg_natAbs_of_nonpos n0.le]
     simp only [zpow_neg, zpow_natCast]
-    exact mem_approx_inv a
+    exact approx_inv a
   · simp only [n0, ↓reduceIte]
     simp only [not_lt] at n0
     nth_rw 2 [Int.eq_natAbs_of_nonneg n0]

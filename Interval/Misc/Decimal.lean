@@ -439,8 +439,8 @@ structure Ball : Type where
   r : Decimal
   r0 : 0 ≤ r.val
 
-instance : Approx Interval ℝ where approx x := Icc x.lo x.hi
-instance : Approx Ball ℝ where approx x := Icc (x.c - x.r) (x.c + x.r)
+instance : Approx Interval ℝ where approx x a := x.lo ≤ a ∧ a ≤ x.hi
+instance : Approx Ball ℝ where approx x a := x.c - x.r ≤ a ∧ a ≤ x.c + x.r
 
 instance : Zero Interval where zero := ⟨0, 0, le_refl _⟩
 instance : Zero Ball where zero := ⟨0, 0, by simp only [val_zero, le_refl]⟩
@@ -463,10 +463,8 @@ def Interval.ball (x : Interval) : Ball :=
     linarith [x.le]⟩
 
 /-- `.ball` commutes with `approx` -/
-@[simp] lemma Interval.approx_ball (x : Interval) : approx x.ball = approx x := by
-  ext
-  simp only [approx, Interval.ball, val_div2, val_add, val_sub, sub_sub_cancel, mem_Icc,
-    and_congr_right_iff]
+@[simp] lemma Interval.approx_ball (x : Interval) (x' : ℝ) : approx x.ball x' ↔ approx x x' := by
+  simp only [approx, ball, val_div2, val_add, val_sub, sub_sub_cancel, and_congr_right_iff]
   intro _
   constructor
   all_goals intro _; linarith
@@ -484,13 +482,11 @@ def Ball.prec (x : Ball) (p : ℕ) : Ball :=
     linarith [x.r0]⟩
 
 /-- `Ball.prec` is conservative -/
-lemma Ball.approx_prec (x : Ball) (p : ℕ) : approx x ⊆ approx (x.prec p) := by
-  intro y
-  simp only [prec, approx, mem_Icc]
+lemma Ball.approx_prec (x : Ball) (p : ℕ) (y : ℝ) (m : approx x y) : approx (x.prec p) y := by
+  simp only [prec, approx] at m ⊢
   set rp := x.r.prec p true
   set q := rp.s - ↑p + Nat.log 10 rp.n.natAbs
   set cq := x.c.aprec q false
-  intro ⟨h0, h1⟩
   constructor
   · rw [sub_le_iff_le_add, ← sub_le_iff_le_add']
     refine le_trans ?_ (le_prec _ _)

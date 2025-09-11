@@ -15,9 +15,9 @@ def natFloor (x : Interval) : ℕ :=
 
 @[simp] lemma natFloor_nan : (nan : Interval).natFloor = 0 := by decide +kernel
 
-lemma natFloor_le {a : ℝ} {x : Interval} (ax : a ∈ approx x) : x.natFloor ≤ ⌊a⌋₊ := by
+lemma natFloor_le {a : ℝ} {x : Interval} (ax : approx x a) : x.natFloor ≤ ⌊a⌋₊ := by
   rw [natFloor]
   by_cases xn : x = nan
   · simp [xn]
-  simp only [approx, lo_eq_nan, xn, ↓reduceIte, mem_Icc] at ax
-  exact le_trans (Floating.natFloor_le Floating.val_mem_approx) (Nat.floor_le_floor ax.1)
+  simp only [approx, lo_eq_nan, xn, false_or] at ax
+  exact le_trans (Floating.natFloor_le Floating.approx_val) (Nat.floor_le_floor ax.1)

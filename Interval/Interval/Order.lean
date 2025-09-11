@@ -89,19 +89,19 @@ instance : IsAsymm Interval (· < ·) where
 -/
 
 /-- If we know `x < y` for intervals, we know it for approximated reals -/
-lemma approx_lt (x y : Interval) (a b : ℝ) (ax : a ∈ approx x) (ay : b ∈ approx y) (xy : x < y) :
+lemma approx_lt (x y : Interval) (a b : ℝ) (ax : approx x a) (ay : approx y b) (xy : x < y) :
     a < b := by
   simp only [lt_def, Floating.val_lt_val, ne_eq] at xy
   rcases xy with ⟨xn, lt⟩
   have yn : y.lo ≠ nan := Floating.ne_nan_of_le (x.hi_ne_nan xn) (by linarith)
-  simp only [approx, Interval.lo_eq_nan, xn, ↓reduceIte, Set.mem_Icc, yn] at ax ay
+  simp only [approx, lo_eq_nan, xn, false_or, yn] at ax ay
   linarith
 
 /-- If we know `x ≤ y` for intervals, we know it for approximated reals -/
-lemma approx_le (x y : Interval) (a b : ℝ) (ax : a ∈ approx x) (ay : b ∈ approx y) (xy : x ≤ y) :
+lemma approx_le (x y : Interval) (a b : ℝ) (ax : approx x a) (ay : approx y b) (xy : x ≤ y) :
     a ≤ b := by
   simp only [le_def, Floating.val_le_val, ne_eq] at xy
   rcases xy with ⟨xn, le⟩
   have yn : y.lo ≠ nan := Floating.ne_nan_of_le (x.hi_ne_nan xn) (by linarith)
-  simp only [approx, Interval.lo_eq_nan, xn, ↓reduceIte, Set.mem_Icc, yn] at ax ay
+  simp only [approx, lo_eq_nan, xn, false_or, yn] at ax ay
   linarith

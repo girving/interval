@@ -77,17 +77,16 @@ lemma valid_convert_tweak : 2 ^ 62 ∈ Ico (2 ^ 62) (2 ^ 63) := by decide
   else ⟨n, s, norm.1, norm.2.lt_of_ne e⟩
 
 /-- `Convert.finish` is correct -/
-lemma Convert.approx_finish (x : Convert) (up : Bool) :
-    x.val ∈ rounds (approx (x.finish up)) !up := by
+lemma Convert.approx_finish (x : Convert) (up : Bool) : Rounds (x.finish up) x.val up := by
   rw [finish, val]
   by_cases s0 : x.s < 0
   · simp only [s0, bif_eq_if, ite_true]
     induction up
-    · simp only [Bool.false_eq_true, ↓reduceIte, ne_eq, zero_ne_nan, not_false_eq_true,
-        approx_eq_singleton, val_zero, Bool.not_false, Int.reducePow, mem_rounds_singleton,
-        two_zpow_pos, mul_nonneg_iff_of_pos_right, Nat.cast_nonneg]
-    · simp only [ite_true, ne_eq, min_norm_ne_nan, not_false_eq_true, approx_eq_singleton,
-      val_min_norm, Bool.not_true, mem_rounds_singleton]
+    · simp only [Bool.false_eq_true, ↓reduceIte, Int.reducePow, rounds_iff, ne_eq, zero_ne_nan,
+        not_false_eq_true, val_zero, two_zpow_pos, mul_nonneg_iff_of_pos_right, Nat.cast_nonneg,
+        imp_self]
+    · simp only [↓reduceIte, rounds_iff, ne_eq, min_norm_ne_nan, not_false_eq_true,
+        val_min_norm, forall_const]
       refine le_trans (mul_le_mul_of_nonneg_right (Nat.cast_le.mpr x.norm.2.le) two_zpow_pos.le) ?_
       simp only [Nat.cast_pow, Nat.cast_ofNat, ne_eq, OfNat.ofNat_ne_zero, not_false_eq_true,
         pow_mul_zpow, Nat.one_lt_ofNat, zpow_le_zpow_iff_right₀]
@@ -95,7 +94,7 @@ lemma Convert.approx_finish (x : Convert) (up : Bool) :
       omega
   simp only [s0, ite_false]
   by_cases s1 : 2^64 ≤ x.s
-  · simp only [s1, ite_true, approx_nan, rounds_univ, mem_univ]
+  · simp only [s1, ite_true, rounds_nan]
   have n1' : x.n < 2^64 := lt_trans x.norm.2 (by norm_num)
   have n1 : (x.n : ℤ) < 2^64 := lt_trans (Nat.cast_lt.mpr x.norm.2) (by norm_num)
   have xne : UInt64.ofInt x.n ≠ 2^63 := by
@@ -107,14 +106,14 @@ lemma Convert.approx_finish (x : Convert) (up : Bool) :
     simp only [to_omega, Int.bmod]
     omega
   simp only [UInt64.toInt64_ofNat'] at n0
-  simp only [approx, s1, ite_false, ext_iff, n_nan, Int64.ext_iff, Int64.n_min, s_nan, xne,
-    false_and, Nat.toUInt64_toInt64]
+  simp only [s1, ite_false, ext_iff, n_nan, Int64.ext_iff, Int64.n_min, s_nan, xne, false_and,
+    Nat.toUInt64_toInt64, rounds_iff, ne_eq, not_false_iff, true_imp_iff]
   simp only [not_le, not_lt] at s1 s0
   rw [Floating.val]
   simp only [Nat.toInt64, Int64.coe_of_nonneg n0, UInt64.toNat_cast, Int.natCast_emod, UInt64.toInt,
-    UInt64.toInt_intCast, Int.emod_eq_of_lt s0 s1, mem_rounds_singleton, Bool.not_eq_true',
-    UInt64.size_eq_pow, Nat.cast_pow, Nat.cast_two, Int.emod_eq_of_lt (Nat.cast_nonneg _) n1,
-    Int.cast_natCast, le_refl, ite_self, Int64.toUInt64_ofNat']
+    UInt64.toInt_intCast, Int.emod_eq_of_lt s0 s1, UInt64.size_eq_pow, Nat.cast_pow, Nat.cast_two,
+    Int.emod_eq_of_lt (Nat.cast_nonneg _) n1, Int.cast_natCast, le_refl, ite_self,
+    Int64.toUInt64_ofNat']
 
 /-- `convert_tweak` is correct -/
 lemma val_convert_tweak (n : ℕ) (s : ℤ) (norm : n ∈ Icc (2^62) (2^63)) :
@@ -129,12 +128,12 @@ lemma val_convert_tweak (n : ℕ) (s : ℤ) (norm : n ∈ Icc (2^62) (2^63)) :
 /-- Prove a `(convert_tweak _ _ _).finish _` call is correct, in context. -/
 lemma approx_convert {a : ℝ} {n : ℕ} {s : ℤ} {norm : n ∈ Icc (2^62) (2^63)} {up : Bool}
     (an : if up then a ≤ ↑n * 2^(s - 2^63) else ↑n * 2^(s - 2^63) ≤ a) :
-    a ∈ rounds (approx ((convert_tweak n s norm).finish up)) !up := by
+    Rounds ((convert_tweak n s norm).finish up) a up := by
   by_cases cn : (convert_tweak n s norm).finish up = nan
-  · simp only [cn, approx_nan, rounds_univ, mem_univ]
+  · simp only [cn, rounds_nan]
   have h := Convert.approx_finish (convert_tweak n s norm) up
-  simp only [val_convert_tweak, approx, cn, ite_false, mem_rounds_singleton,
-    Bool.not_eq_true'] at h ⊢
+  simp only [val_convert_tweak, Int.reducePow, rounds_iff, ne_eq, cn, not_false_eq_true,
+    forall_const] at h ⊢
   induction up
   · exact le_trans h an
   · exact le_trans an h
@@ -204,12 +203,12 @@ lemma ofNat_ne_nan {n : ℕ} (lt : n < 2^63) (up : Bool) : ofNat n up ≠ nan :=
   exact lt_of_lt_of_le val_nan_lt_zero (Nat.cast_nonneg _)
 
 /-- `ofNat` rounds the desired way -/
-lemma approx_ofNat (n : ℕ) (up : Bool) : ↑n ∈ rounds (approx (.ofNat n up : Floating)) !up := by
+lemma approx_ofNat (n : ℕ) (up : Bool) : Rounds (.ofNat n up : Floating) (n : ℝ) up := by
   by_cases n62 : n.log2 ≤ 62
   · have lt : n < 2^63 :=
       lt_of_lt_of_le Nat.lt_log2_self (pow_le_pow_right₀ (by norm_num) (by omega))
-    simp only [approx, ofNat_ne_nan lt, ↓reduceIte, val_ofNat' lt, mem_rounds_singleton,
-      Bool.not_eq_true', le_refl, ite_self]
+    simp only [rounds_iff, ne_eq, ofNat_ne_nan lt, not_false_eq_true, val_ofNat' lt, le_refl,
+      ite_self, imp_self]
   · rw [ofNat]
     simp only [n62, dite_false, Nat.fast_log2_eq]
     apply approx_convert
@@ -229,12 +228,11 @@ lemma approx_ofNat (n : ℕ) (up : Bool) : ↑n ∈ rounds (approx (.ofNat n up 
 
 /-- `approx_ofNat`, down version -/
 lemma ofNat_le {n : ℕ} (h : ofNat n false ≠ nan) : (ofNat n false).val ≤ n := by
-  simpa only [approx, h, ite_false, Bool.not_false, mem_rounds_singleton, ite_true] using
-    approx_ofNat n false
+  simpa [rounds_iff, h] using approx_ofNat n false
 
 /-- `approx_ofNat`, up version -/
 lemma le_ofNat {n : ℕ} (h : ofNat n true ≠ nan) : n ≤ (ofNat n true).val := by
-  simpa only [approx, h, ite_false, Bool.not_true, mem_rounds_singleton] using approx_ofNat n true
+  simpa [rounds_iff, h] using approx_ofNat n true
 
 /-- Combined version, for use in `Interval` construction -/
 lemma ofNat_le_ofNat {n : ℕ} (h : ofNat n true ≠ nan) :
@@ -252,7 +250,7 @@ lemma ofNat_le_ofNat {n : ℕ} (h : ofNat n true ≠ nan) :
   bif n < 0 then -ofNat (-n).toNat !up else .ofNat n.toNat up
 
 /-- `ofInt` rounds the desired way -/
-lemma approx_ofInt (n : ℤ) (up : Bool) : ↑n ∈ rounds (approx (ofInt n up)) !up := by
+lemma approx_ofInt (n : ℤ) (up : Bool) : Rounds (ofInt n up) (n : ℝ) up := by
   rw [ofInt]
   by_cases n0 : n < 0
   · have e : (n : ℝ) = -↑(-n).toNat := by
@@ -260,8 +258,10 @@ lemma approx_ofInt (n : ℤ) (up : Bool) : ↑n ∈ rounds (approx (ofInt n up))
       have le : 0 ≤ -n := by omega
       rw [e, ←Int.toNat_of_nonneg le, neg_inj, Int.cast_natCast]
       rw [Int.toNat_of_nonneg le]
-    simpa only [e, n0, decide_true, cond_true, approx_neg, rounds_neg, Bool.not_not, mem_neg,
-      neg_neg] using approx_ofNat (-n).toNat (!up)
+    simp only [e, n0, decide_true, cond_true]
+    apply rounds_neg
+    simp only [neg_neg]
+    exact approx_ofNat (-n).toNat (!up)
   · have e : (n : ℝ) = ↑n.toNat := by
       rw [←Int.toNat_of_nonneg (not_lt.mp n0), Int.cast_natCast]
       simp only [Int.toNat_of_nonneg (not_lt.mp n0)]
@@ -269,13 +269,11 @@ lemma approx_ofInt (n : ℤ) (up : Bool) : ↑n ∈ rounds (approx (ofInt n up))
 
 /-- `approx_ofInt`, down version -/
 lemma ofInt_le {n : ℤ} (h : (ofInt n false) ≠ nan) : (ofInt n false).val ≤ n := by
-  simpa only [approx, h, ite_false, Bool.not_false, mem_rounds_singleton, ite_true] using
-    approx_ofInt n false
+  simpa [rounds_iff, h] using approx_ofInt n false
 
 /-- `approx_ofInt`, up version -/
 lemma le_ofInt {n : ℤ} (h : (ofInt n true) ≠ nan) : n ≤ (ofInt n true).val := by
-  simpa only [approx, h, ite_false, Bool.not_true, mem_rounds_singleton] using
-    approx_ofInt n true
+  simpa [rounds_iff, h] using approx_ofInt n true
 
 /-- Combined version, for use in `Interval` construction -/
 lemma ofInt_le_ofInt {n : ℤ} (h : ofInt n true ≠ nan) :
@@ -353,13 +351,12 @@ lemma ofRat_norm {x : ℚ} {up : Bool} (x0 : ¬x = 0)
   bif neg then -z else z
 
 /-- `ofRat_abs` rounds the desired way -/
-lemma approx_ofRat_abs (x : ℚ) (up : Bool) : ↑|x| ∈ rounds (approx (ofRat_abs x up)) !up := by
+lemma approx_ofRat_abs (x : ℚ) (up : Bool) : Rounds (ofRat_abs x up) (↑|x| : ℝ) up := by
   rw [ofRat_abs]
   simp only
   by_cases x0 : x = 0
-  · simp only [x0, abs_zero, Rat.cast_zero, Rat.zero_num, Int.natAbs_zero, Nat.zero_shiftLeft,
-      Rat.zero_den, dite_true, ne_eq, zero_ne_nan, not_false_eq_true, approx_eq_singleton, val_zero,
-      mem_rounds_singleton, Bool.not_eq_true', le_refl, ite_self]
+  · simp only [x0, ↓reduceDIte, abs_zero, Rat.cast_zero, rounds_iff, ne_eq, zero_ne_nan,
+      not_false_eq_true, val_zero, le_refl, ite_self, imp_self]
   simp only [Rat.cast_abs, x0, dite_false]
   apply approx_convert
   generalize x.log2 = r
@@ -395,25 +392,24 @@ lemma approx_ofRat_abs (x : ℚ) (up : Bool) : ↑|x| ∈ rounds (approx (ofRat_
         div_mul_cancel₀ _ (two_zpow_pos (𝕜 := ℝ)).ne', le_refl]
 
 /-- `ofRat` rounds the desired way -/
-lemma approx_ofRat (x : ℚ) (up : Bool) : ↑x ∈ rounds (approx (ofRat x up)) !up := by
+lemma approx_ofRat (x : ℚ) (up : Bool) : Rounds (ofRat x up) (x : ℝ) up := by
   rw [ofRat]
   by_cases x0 : x < 0
-  · simp only [x0, decide_true, Bool.xor_true, cond_true, approx_neg, rounds_neg, Bool.not_not,
-    mem_neg, ← Rat.cast_neg, ← abs_of_neg x0]
+  · simp only [x0, decide_true, Bool.xor_true, cond_true]
+    apply rounds_neg
     convert approx_ofRat_abs x _
-    simp only [Bool.not_not]
+    simp only [abs_of_neg x0, Rat.cast_neg]
   · simp only [x0, decide_false, Bool.xor_false]
     convert approx_ofRat_abs x _
     rw [abs_of_nonneg (by linarith)]
 
 /-- `approx_ofRat`, down version -/
 lemma ofRat_le {x : ℚ} (h : ofRat x false ≠ nan) : (ofRat x false).val ≤ x := by
-  simpa only [approx, h, ite_false, Bool.not_false, mem_rounds_singleton, ite_true] using
-    approx_ofRat x false
+  simpa [rounds_iff, h] using approx_ofRat x false
 
 /-- `approx_ofRat`, up version -/
 lemma le_ofRat {x : ℚ} (h : ofRat x true ≠ nan) : x ≤ (ofRat x true).val := by
-  simpa only [approx, h, ite_false, Bool.not_true, mem_rounds_singleton] using approx_ofRat x true
+  simpa [rounds_iff, h] using approx_ofRat x true
 
 /-- Combined version, for use in `Interval` construction -/
 lemma ofRat_le_ofRat {x : ℚ} (h : ofRat x true ≠ nan) :

@@ -35,6 +35,8 @@ open Set
 open scoped Real
 namespace Interval
 
+variable {x' : ℝ}
+
 /-!
 ## Exact precision preliminaries
 -/
@@ -136,12 +138,12 @@ lemma valid_inv_region {x : Floating}
 
 /-- `inv_region` is conservative -/
 @[approx] lemma approx_inv_region {x : Floating} (x0 : 0 < x.val) :
-    x.val⁻¹ ∈ approx (inv_region x) := by
+    approx (inv_region x) x.val⁻¹ := by
   rw [inv_region]
   simp only [UInt64.pow_eq_zero, UInt64.zero_sub, bif_eq_if, beq_iff_eq]
   split_ifs with s0 ts
-  · simp only [approx_nan, mem_univ]
-  · simp only [approx_nan, mem_univ]
+  · simp only [approx_nan]
+  · simp only [approx_nan]
   · simp only [not_lt] at ts
     have o : (-62 - 63 - x.s).toNat ≠ 2 ^ 64 - 1 := by
       simp only [UInt64.toNat_sub'' ts]
@@ -152,8 +154,8 @@ lemma valid_inv_region {x : Floating}
       apply Floating.le_coe_coe_n s0
       simp only [x0.le, Floating.n_nonneg_iff]
     have n_lt : ((x.n : ℤ) : ℝ) < 2^63 := Floating.coe_coe_n_lt
-    simp only [approx, Floating.two_pow_special_ne_nan, Floating.val_two_pow_special, ite_false,
-      mem_Icc, UInt64.toNat_add_one o, UInt64.toNat_sub'' ts, e]
+    simp only [approx, Floating.two_pow_special_ne_nan, Floating.val_two_pow_special,
+      UInt64.toNat_add_one o, UInt64.toNat_sub'' ts, e, false_or]
     simp only [UInt64.le_iff_toNat_le, e] at ts
     simp only [Nat.cast_sub ts]
     rw [Floating.val, mul_inv, ←zpow_neg, UInt64.toInt, Nat.cast_add_one, Nat.cast_sub ts]
@@ -177,20 +179,22 @@ lemma valid_inv_region {x : Floating}
 
 /-- `inv_step'` is conservative -/
 @[approx] lemma approx_inv_step' {x : Floating} {r : Interval} (c : Floating) (x0 : 0 < x.val)
-    (xr : x.val⁻¹ ∈ approx r) : x.val⁻¹ ∈ approx (inv_step' x r c) := by
+    (xr : approx r x.val⁻¹) : approx (inv_step' x r c) x.val⁻¹ := by
   rw [inv_step']
-  simp only [approx, mem_ite_univ_left, mem_Icc]
+  simp only [approx, or_iff_not_imp_left]
   intro n
   simp only [lo_eq_nan] at n
   rcases ne_nan_of_add n with ⟨cn,ran⟩
   rcases ne_nan_of_mul ran with ⟨rn,_⟩
   have xn := x.ne_nan_of_nonneg x0.le
-  simp only [approx, if_false, r.lo_ne_nan rn, mem_Icc] at xr
+  simp only [approx, r.lo_ne_nan rn, false_or] at xr
   simp only [ne_eq, coe_eq_nan] at cn
   apply approx_inv_step_reason' c.val x0 xr
-  simp only [←approx_eq_Icc n, ←approx_eq_Icc rn, image_subset_iff]
+  simp only [image_subset_iff]
   intro z m
   simp only [mem_preimage]
+  rw [← approx_eq_Icc n]
+  rw [← approx_eq_Icc rn] at m
   approx
 
 /-- One step of Newton's method for the reciprocal.
@@ -228,38 +232,44 @@ instance : Inv Interval where inv := inv
 lemma inv_def (x : Interval) : x⁻¹ = inv x := rfl
 
 /-- `Interval.inv_pos` is conservative -/
-@[approx] lemma approx_inv_pos {x : Interval} (l0 : 0 < x.lo.val) :
-    (approx x)⁻¹ ⊆ approx (x.inv_pos l0) := by
+@[approx] lemma approx_inv_pos {x : Interval} (l0 : 0 < x.lo.val) (ax : approx x x'):
+    approx (x.inv_pos l0) x'⁻¹ := by
   rw [inv_pos]
   have xn : x ≠ nan := by
     contrapose l0; simp only [ne_eq, not_not] at l0
     simp only [l0, lo_nan, not_lt, Floating.val_nan_lt_zero.le]
+  simp only [approx, lo_eq_nan, xn, false_or] at ax
+  have x0 := lt_of_lt_of_le l0 ax.1
   have h0 := lt_of_lt_of_le l0 x.le
-  have ie : (approx x)⁻¹ = Icc x.hi.val⁻¹ x.lo.val⁻¹ := by
-    simp only [approx, lo_eq_nan, xn, ite_false, inv_Icc₀ l0 h0]
-  simp only [ie]
-  apply Icc_subset_approx
+  apply approx_of_mem_Icc (a := x.hi.val⁻¹) (c := x.lo.val⁻¹)
   · exact Interval.approx_union_left (Around.mem _)
   · exact Interval.approx_union_right (Around.mem _)
+  · simp only [mem_Icc, inv_le_inv₀ h0 x0, ax, inv_le_inv₀ x0 l0, and_self]
 
 /-- `Interval.inv` is conservative -/
 noncomputable instance : ApproxInv Interval ℝ where
-  approx_inv x := by
+  approx_inv {x x'} m := by
     rw [inv_def, inv]
+    by_cases n : x = nan
+    · simp only [n, zero_mem_eq, approx_nan, decide_true, ↓reduceDIte]
     split_ifs with z
-    · simp only [approx_nan, subset_univ]
-    simp only [zero_mem_eq, decide_eq_true_eq] at z
+    · simp only [approx_nan]
     simp only [Int64.isNeg, Floating.isNeg_iff, Bool.cond_decide]
+    have m' := m
+    simp only [approx, lo_eq_nan, n, false_or] at m'
     split_ifs with l0
     · have e : x = -x.abs := by
         rw [abs_of_nonpos, neg_neg]
+        simp only [zero_mem_eq, decide_eq_true_eq] at z
         rw [lo_lt_zero_iff_hi_lt_zero z] at l0
         exact l0.le
-      nth_rw 1 [e]
-      simp only [approx_neg, Set.inv_neg, neg_subset_neg]
-      apply approx_inv_pos
-    · nth_rw 1 [←abs_of_nonneg (not_lt.mp l0)]
-      apply approx_inv_pos
+      simp only [zero_mem_eq, decide_eq_true_eq, approx, x.lo_ne_nan n, false_or, not_and',
+        not_lt.mpr l0.le, imp_false, not_le] at z
+      rw [approx_neg, neg_inv, ← abs_of_neg (by linarith)]
+      approx
+    · have x0 : 0 ≤ x' := by linarith
+      rw [← _root_.abs_of_nonneg x0]
+      approx
 
 /-!
 ## `Interval` division

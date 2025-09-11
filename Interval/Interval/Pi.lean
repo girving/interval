@@ -23,12 +23,11 @@ lemma pi_lt_314159265358979323847 : π < 3.14159265358979323847 := by
   ⟨⟨7244019458077122842, 9223372036854775747, by decide +kernel⟩,
    ⟨7244019458077122843, 9223372036854775747, by decide +kernel⟩, by decide +kernel⟩
 
-@[approx] lemma approx_pi : π ∈ approx pi := by
+@[approx] lemma approx_pi : approx pi π := by
   have n : pi.lo ≠ nan := by decide +kernel
   have lo : pi.lo.valq = 3622009729038561421/1152921504606846976 := by decide +kernel
   have hi : pi.hi.valq = 7244019458077122843/2305843009213693952 := by decide +kernel
-  simp only [approx, n, if_false, mem_Icc, ← Floating.coe_valq, lo, hi, Rat.cast_div,
-    Rat.cast_ofNat]
+  simp only [approx, n, ← Floating.coe_valq, lo, hi, Rat.cast_div, Rat.cast_ofNat, false_or]
   exact ⟨le_trans (by norm_num) pi_gt_314159265358979323846.le,
          le_trans pi_lt_314159265358979323847.le (by norm_num)⟩
 
@@ -37,12 +36,11 @@ lemma pi_lt_314159265358979323847 : π < 3.14159265358979323847 := by
   ⟨⟨5871781006564002452, 9223372036854775744, by decide +kernel⟩,
    ⟨5871781006564002453, 9223372036854775744, by decide +kernel⟩, by decide +kernel⟩
 
-@[approx] lemma approx_inv_pi : π⁻¹ ∈ approx inv_pi := by
+@[approx] lemma approx_inv_pi : approx inv_pi π⁻¹ := by
   have n : inv_pi.lo ≠ nan := by decide +kernel
   have lo : inv_pi.lo.valq = 1467945251641000613/4611686018427387904 := by decide +kernel
   have hi : inv_pi.hi.valq = 5871781006564002453/18446744073709551616 := by decide +kernel
-  simp only [approx, n, if_false, mem_Icc, ← Floating.coe_valq, lo, hi, Rat.cast_div,
-    Rat.cast_ofNat]
+  simp only [approx, n, ← Floating.coe_valq, lo, hi, Rat.cast_div, Rat.cast_ofNat, false_or]
   rw [le_inv_comm₀ (by norm_num) Real.pi_pos, inv_le_comm₀ Real.pi_pos (by norm_num)]
   exact ⟨le_trans pi_lt_314159265358979323847.le (by norm_num),
          le_trans (by norm_num) pi_gt_314159265358979323846.le⟩
@@ -53,13 +51,13 @@ lemma pi_lt_314159265358979323847 : π < 3.14159265358979323847 := by
 @[irreducible] def two_div_pi : Interval := inv_pi.scaleB 1
 @[irreducible] def four_div_pi : Interval := inv_pi.scaleB 2
 
-@[approx] lemma approx_pi_div_2 : π / 2 ∈ approx pi_div_2 := by
+@[approx] lemma approx_pi_div_2 : approx pi_div_2 (π / 2) := by
   rw [pi_div_2]; approx
-@[approx] lemma approx_pi_div_4 : π / 4 ∈ approx pi_div_4 := by
+@[approx] lemma approx_pi_div_4 : approx pi_div_4 (π / 4) := by
   rw [pi_div_4, (by norm_num : (4 : ℝ) = 2 * 2), ← div_div]; approx
-@[approx] lemma approx_two_div_pi : 2 / π ∈ approx two_div_pi := by
+@[approx] lemma approx_two_div_pi : approx two_div_pi (2 / π) := by
   rw [two_div_pi, div_eq_inv_mul, (by norm_num : (2 : ℝ) = 2^1)]
   apply mem_approx_scaleB; approx
-@[approx] lemma approx_four_div_pi : 4 / π ∈ approx four_div_pi := by
+@[approx] lemma approx_four_div_pi : approx four_div_pi (4 / π) := by
   rw [four_div_pi, div_eq_inv_mul, (by norm_num : (4 : ℝ) = 2^2)]
   apply mem_approx_scaleB; approx

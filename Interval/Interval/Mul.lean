@@ -13,6 +13,8 @@ open Set
 open scoped Real
 namespace Interval
 
+variable {x y : Interval} {x' y' : ℝ}
+
 /-!
 ### Definition, without correctness proof
 -/
@@ -61,13 +63,13 @@ namespace Interval
   all_goals simp only [ls, hs, decide_true, decide_false, Floating.mul_nan, not_true, ite_self, ←
     Preinterval.nan_def, false_and, true_iff, not_false_iff, true_and, Floating.max_nan]
 
-set_option maxHeartbeats 10000000 in
 /-- `mul` respects `approx` -/
-lemma approx_premul (x : Interval) (y : Interval) : approx x * approx y ⊆ approx (x.premul y) := by
+@[approx] lemma approx_premul (ax : approx x x') (ay : approx y y') :
+    approx (x.premul y) (x' * y') := by
   -- Discard nans
   by_cases n : x = nan ∨ y = nan
   · rcases n with n | n
-    all_goals simp only [n, nan_premul, premul_nan, Preinterval.approx_nan, subset_univ]
+    all_goals simp only [n, nan_premul, premul_nan, approx_nan]
   rcases not_or.mp n with ⟨xn,yn⟩; clear n
   rw [premul]
   simp only [bif_eq_if, Floating.isNeg_iff, Bool.and_eq_true, bne_iff_ne, ne_eq, decide_eq_decide,
@@ -102,55 +104,36 @@ lemma approx_premul (x : Interval) (y : Interval) : approx x * approx y ⊆ appr
     decide_false, true_iff, not_false_iff, true_and, if_true, mll0, mlh0, mhl0, mhh0, mll1,
     mlh1, mhl1, mhh1]
   all_goals clear mll0 mlh0 mhl0 mhh0 mll1 mlh1 mhl1 mhh1
-  all_goals simp only [approx, x.lo_ne_nan xn, y.lo_ne_nan yn, if_false, subset_if_univ_iff, not_or,
-    and_imp, Icc_mul_Icc_subset_Icc xle yle, Floating.min_eq_nan, Floating.max_eq_nan,
-    Floating.val_min, min_le_iff]
+  all_goals simp only [approx, x.lo_ne_nan xn, y.lo_ne_nan yn, and_imp, Floating.min_eq_nan,
+    Floating.max_eq_nan, mem_Icc, Floating.val_min, min_le_iff, or_iff_not_imp_left, not_false_iff,
+    true_imp_iff, not_imp_iff_and_not] at ax ay ⊢
   -- Dispatch everything with nlinarith
   · intro m0 m1; specialize ihh0 m0; specialize ill1 m1
-    exact ⟨by nlinarith, by nlinarith, by nlinarith, by nlinarith,
-           by nlinarith, by nlinarith, by nlinarith, by nlinarith⟩
+    exact ⟨by nlinarith, by nlinarith⟩
   · intro m0 m1; specialize ilh0 m0; specialize ihl1 m1
-    exact ⟨by nlinarith, by nlinarith, by nlinarith, by nlinarith,
-           by nlinarith, by nlinarith, by nlinarith, by nlinarith⟩
+    exact ⟨by nlinarith, by nlinarith⟩
   · intro m0 m1; specialize ilh0 m0; specialize ill1 m1
-    exact ⟨by nlinarith, by nlinarith, by nlinarith, by nlinarith,
-           by nlinarith, by nlinarith, by nlinarith, by nlinarith⟩
+    exact ⟨by nlinarith, by nlinarith⟩
   · intro m0 m1; specialize ihl0 m0; specialize ilh1 m1
-    exact ⟨by nlinarith, by nlinarith, by nlinarith, by nlinarith,
-           by nlinarith, by nlinarith, by nlinarith, by nlinarith⟩
+    exact ⟨by nlinarith, by nlinarith⟩
   · intro m0 m1; specialize ill0 m0; specialize ihh1 m1
-    exact ⟨by nlinarith, by nlinarith, by nlinarith, by nlinarith,
-           by nlinarith, by nlinarith, by nlinarith, by nlinarith⟩
+    exact ⟨by nlinarith, by nlinarith⟩
   · intro m0 m1; specialize ihl0 m0; specialize ihh1 m1
-    exact ⟨by nlinarith, by nlinarith, by nlinarith, by nlinarith,
-           by nlinarith, by nlinarith, by nlinarith, by nlinarith⟩
+    exact ⟨by nlinarith, by nlinarith⟩
   · intro m0 m1 m2 m3
     specialize ilh0 m0; specialize ihl0 m1; specialize ill1 m2; specialize ihh1 m3
-    simp only [Floating.val_max m2 m3, le_max_iff]
-    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-    · left; nlinarith
-    · left; nlinarith
-    · right; nlinarith
-    · right; nlinarith
-    · left; nlinarith
-    · left; nlinarith
-    · left; nlinarith
-    · left; nlinarith
+    simp only [Floating.val_max m2 m3, le_max_iff, ← or_iff_not_imp_right]
+    constructor
+    all_goals left; nlinarith
   · intro m0 m1; specialize ilh0 m0; specialize ihh1 m1
-    exact ⟨by nlinarith, by nlinarith, by nlinarith, by nlinarith,
-            by nlinarith, by nlinarith, by nlinarith, by nlinarith⟩
+    exact ⟨by nlinarith, by nlinarith⟩
   · intro m0 m1 m2 m3
     specialize ilh0 m0; specialize ihl0 m1; specialize ill1 m2; specialize ihh1 m3
-    simp only [Floating.val_max m2 m3, le_max_iff]
-    refine ⟨?_, ?_, ?_, ?_, ?_, ?_, ?_, ?_⟩
-    · left; nlinarith
-    · left; nlinarith
-    · right; nlinarith
-    · right; nlinarith
-    · left; nlinarith
-    · left; nlinarith
-    · left; nlinarith
-    · right; nlinarith
+    simp only [Floating.val_max m2 m3, le_max_iff, ← or_iff_not_imp_right]
+    constructor
+    all_goals rcases nonpos_or_nonneg x' with x0' | x0'
+    all_goals try left; nlinarith
+    all_goals right; nlinarith
 
 /-!
 ### Final definition
@@ -158,7 +141,7 @@ lemma approx_premul (x : Interval) (y : Interval) : approx x * approx y ⊆ appr
 
 /-- Multiply two intervals -/
 @[irreducible] def mul (x : Interval) (y : Interval) : Interval :=
-  (x.premul y).mix' (approx_premul x y (mul_mem_mul x.lo_mem y.lo_mem))
+  (x.premul y).mix' (approx_premul x.lo_mem y.lo_mem)
 
 /-- `* = mul` -/
 instance : Mul Interval where
@@ -171,21 +154,10 @@ lemma mul_def {x y : Interval} : x * y = x.mul y := rfl
 instance : ApproxMul Interval ℝ where
   approx_mul x y := by
     rw [mul_def, mul, Preinterval.approx_mix']
-    apply approx_premul
+    approx
 
 /-- `Interval` approximates `ℝ` as a ring -/
 instance : ApproxRing Interval ℝ where
-
-/-- `approx_mul` in `approx` form, `⊆` version -/
-@[approx] lemma subset_approx_mul {a b : Set ℝ} {x : Interval} {y : Interval}
-    (as : a ⊆ approx x) (bs : b ⊆ approx y) : a * b ⊆ approx (x * y) :=
-  subset_trans (mul_subset_mul as bs) (approx_mul x y)
-
-/-- `approx_mul` in `approx` form, `∈` version -/
-@[approx] lemma mem_approx_mul {a b : ℝ} {x : Interval} {y : Interval}
-    (am : a ∈ approx x) (bm : b ∈ approx y) : a * b ∈ approx (x * y) :=
-  subset_approx_mul (singleton_subset_iff.mpr am) (singleton_subset_iff.mpr bm)
-    (mul_mem_mul rfl rfl)
 
 /-- `mul` propagates `x = nan` -/
 @[simp] lemma nan_mul {y : Interval} : nan * y = nan := by
@@ -212,33 +184,18 @@ lemma ne_nan_of_mul {x : Interval} {y : Interval} (n : x * y ≠ nan) : x ≠ na
     (fun n0 n1 ↦ le_trans (Floating.mul_le n0) (Floating.le_mul n1))
 
 /-- `float_mul_float` respects `approx` -/
-lemma approx_float_mul_float (x : Floating) (y : Floating) :
-    approx x * approx y ⊆ approx (float_mul_float x y) := by
-  intro a m
-  simp only [mem_mul] at m
-  rcases m with ⟨b,bm,c,cm,bc⟩
+@[approx] lemma approx_float_mul_float {x y : Floating} (ax : approx x x') (ay : approx y y') :
+    approx (float_mul_float x y) (x' * y') := by
   rw [float_mul_float]
-  simp only [approx, mem_ite_univ_left, mem_singleton_iff, mem_Icc] at bm cm ⊢
+  simp only [approx, lo_eq_nan, mix_eq_nan] at ax ay ⊢
   by_cases n : x = nan ∨ y = nan ∨ Floating.mul x y false = nan ∨ Floating.mul x y true = nan
   · rcases n with n | n | n | n; repeat simp [n]
   simp only [not_or] at n
   rcases n with ⟨n0,n1,n2,n3⟩
-  intro nm
-  simp only [n0, not_false_eq_true, forall_true_left, n1, lo_eq_nan] at bm cm nm
-  simp only [← bc, bm, cm, lo_mix nm, hi_mix nm]
+  simp only [n0, false_or, n1, n2, n3, or_self, ne_eq, mix_eq_nan, not_false_eq_true, lo_mix,
+    hi_mix] at ax ay ⊢
+  simp only [← ax, ← ay]
   exact ⟨Floating.mul_le n2, Floating.le_mul n3⟩
-
-/-- `approx_float_mul_float` in `approx` form, `⊆` version -/
-@[approx] lemma subset_approx_float_mul_float {a b : Set ℝ} {x : Floating} {y : Floating}
-    (as : a ⊆ approx x) (bs : b ⊆ approx y) :
-    a * b ⊆ approx (float_mul_float x y) :=
-  subset_trans (mul_subset_mul as bs) (approx_float_mul_float x y)
-
-/-- `approx_float_mul_float` in `approx` form, `∈` version -/
-@[approx] lemma mem_approx_float_mul_float {a b : ℝ} {x : Floating} {y : Floating}
-    (am : a ∈ approx x) (bm : b ∈ approx y) : a * b ∈ approx (float_mul_float x y) :=
-  subset_approx_float_mul_float (singleton_subset_iff.mpr am) (singleton_subset_iff.mpr bm)
-    (mul_mem_mul rfl rfl)
 
 /-- `float_mul_float _ nan _ = nan` -/
 @[simp] lemma float_mul_float_nan_right {x : Floating} :
@@ -274,8 +231,8 @@ lemma ne_nan_of_float_mul_float {x : Floating} {y : Floating}
     · simp only [y0, ite_false]; exact mul_le_mul_of_nonneg_right x.le (not_lt.mp y0))
 
 /-- `mul_float` respects `approx` -/
-lemma approx_mul_float (x : Interval) (y : Floating) :
-    approx x * approx y ⊆ approx (x.mul_float y) := by
+@[approx] lemma approx_mul_float {y : Floating} (ax : approx x x') (ay : approx y y') :
+    approx (x.mul_float y) (x' * y') := by
   -- Handle special cases
   rw [mul_float]
   simp only [Floating.isNeg_iff, bif_eq_if, decide_eq_true_eq, Int64.isNeg]
@@ -283,6 +240,7 @@ lemma approx_mul_float (x : Interval) (y : Floating) :
   · rcases n with n | n; repeat simp [n]
   simp only [not_or] at n
   rcases n with ⟨n0,n1⟩
+  simp only [approx, lo_eq_nan, n0, false_or, n1] at ax ay
   have xle : x.lo.val ≤ x.hi.val := x.le
   -- Record Floating.mul bounds
   generalize ml0 : x.lo.mul y false = l0
@@ -295,30 +253,18 @@ lemma approx_mul_float (x : Interval) (y : Floating) :
   have ih1 : h1 ≠ nan → x.hi.val * y.val ≤ h1.val := by rw [←mh1]; exact Floating.le_mul
   -- Split on signs
   by_cases ys : y.val < 0
-  all_goals simp only [ys, n1, ite_true, ite_false, approx, subset_if_univ_iff, ml0, mh0, ml1, mh1,
-    mul_singleton, x.lo_ne_nan n0]
+  all_goals simp only [ys, ite_true, ite_false, approx, ml0, mh0, ml1, mh1, or_iff_not_imp_left,
+    ← ay]
   all_goals intro m
   all_goals simp only [lo_eq_nan] at m
   all_goals simp only [lo_mix m, hi_mix m]
   all_goals simp only [mix_eq_nan, not_or] at m
   -- Handle each case
-  · have le : x.hi.val * y.val ≤ x.lo.val * y.val := by nlinarith
-    simp only [image_mul_right_Icc_of_neg ys, Icc_subset_Icc_iff le]
-    exact ⟨ih0 m.1, il1 m.2⟩
+  · specialize ih0 m.1; specialize il1 m.2
+    exact ⟨by nlinarith, by nlinarith⟩
   · have le : x.lo.val * y.val ≤ x.hi.val * y.val := by nlinarith
-    simp only [image_mul_right_Icc xle (not_lt.mp ys), Icc_subset_Icc_iff le]
-    exact ⟨il0 m.1, ih1 m.2⟩
-
-/-- `approx_mul_float` in `approx` form, `⊆` version -/
-@[approx] lemma subset_approx_mul_float {a b : Set ℝ} {x : Interval} {y : Floating}
-    (as : a ⊆ approx x) (bs : b ⊆ approx y) : a * b ⊆ approx (mul_float x y) :=
-  subset_trans (mul_subset_mul as bs) (approx_mul_float x y)
-
-/-- `approx_mul_float` in `approx` form, `∈` version -/
-@[approx] lemma mem_approx_mul_float {a b : ℝ} {x : Interval} {y : Floating}
-    (am : a ∈ approx x) (bm : b ∈ approx y) : a * b ∈ approx (mul_float x y) :=
-  subset_approx_mul_float (singleton_subset_iff.mpr am) (singleton_subset_iff.mpr bm)
-    (mul_mem_mul rfl rfl)
+    specialize il0 m.1; specialize ih1 m.2
+    exact ⟨by nlinarith, by nlinarith⟩
 
 @[simp] lemma mul_float_nan {x : Interval} : x.mul_float nan = nan := by
   rw [mul_float]; simp
@@ -357,7 +303,7 @@ lemma approx_mul_float (x : Interval) (y : Floating) :
       exact le_trans (Floating.mul_le n0) (le_trans (by nlinarith) (Floating.le_mul n1)))
 
 /-- `sqr` respects `approx` -/
-@[approx] lemma approx_sqr (x : Interval) : (fun x ↦ x^2) '' approx x ⊆ approx x.sqr := by
+@[approx] lemma approx_sqr (ax : approx x x') : approx x.sqr (x' ^ 2) := by
   -- Record Floating.mul bounds
   generalize mll0 : x.lo.mul x.lo false = ll0
   generalize mll1 : x.lo.mul x.lo true = ll1
@@ -372,35 +318,29 @@ lemma approx_mul_float (x : Interval) (y : Floating) :
     dite_not, Int64.isNeg]
   by_cases n : x = nan
   · simp only [n, approx_nan, lo_nan, Floating.val_nan_lt_zero, hi_nan, Floating.mul_nan, mix_self,
-    coe_nan, dite_eq_ite, ite_self, Floating.max_nan, mix_nan, subset_univ]
+    coe_nan, dite_eq_ite, ite_self, Floating.max_nan, mix_nan]
+  simp only [approx, lo_eq_nan, n, false_or] at ax
   -- Split on signs
   rcases x.sign_cases with ⟨xls,xhs⟩ | ⟨xls,xhs⟩ | ⟨xls,xhs⟩
   all_goals try simp only [not_lt.mpr xls]
   all_goals try simp only [not_lt.mpr xhs]
-  all_goals simp only [xls, xhs, if_false, dite_false, dite_true, approx, subset_if_univ_iff, mll0,
-    mhh0, mll1, mhh1, sqr_Icc_subset_Icc, x.lo_ne_nan n, lo_eq_nan, true_iff]
+  all_goals simp only [xls, xhs, dite_false, dite_true, approx, mll0, mhh0, mll1, mhh1, lo_eq_nan,
+    true_iff, or_iff_not_imp_left]
   all_goals intro m
   all_goals simp only [lo_mix m, hi_mix m]
   all_goals simp only [mix_eq_nan, not_or, Floating.max_eq_nan] at m
   -- Dispatch everything with nlinarith
-  · intro u lu uh
-    specialize ihh0 m.1; specialize ill1 m.2
+  · specialize ihh0 m.1; specialize ill1 m.2
     exact ⟨by nlinarith, by nlinarith⟩
-  · intro u lu uh
-    specialize ill0 m.1; specialize ihh1 m.2
+  · specialize ill0 m.1; specialize ihh1 m.2
     exact ⟨by nlinarith, by nlinarith⟩
-  · intro u lu uh
-    specialize ill1 m.2.1; specialize ihh1 m.2.2
+  · specialize ill1 m.2.1; specialize ihh1 m.2.2
     simp only [Floating.val_zero, Floating.val_max m.2.1 m.2.2, le_max_iff]
     constructor
     · nlinarith
-    · by_cases us : u < 0
+    · by_cases x' < 0
       · left; nlinarith
       · right; nlinarith
-
-/-- `sqr` respects `approx`, `∈` version -/
-@[approx] lemma mem_approx_sqr (a : ℝ) (x : Interval) (ax : a ∈ approx x) : a^2 ∈ approx x.sqr := by
-  apply approx_sqr; use a
 
 @[simp] lemma sqr_nan : (nan : Interval).sqr = nan := by
   rw [sqr]; simp

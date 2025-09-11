@@ -17,6 +17,7 @@ open scoped Real
 
 variable {α : Type}
 variable {s t : Int64}
+variable {a : ℝ}
 
 /-!
 ### `Fixed` definitions and basics
@@ -229,90 +230,86 @@ lemma Fixed.val_add_ne {x y : Fixed s} (h : x.n.isNeg ≠ y.n.isNeg) :
 
 /-- `Fixed` approximates `ℝ` -/
 instance : Approx (Fixed s) ℝ where
-  approx x := if x = nan then univ else {x.val}
+  approx x a := x = nan ∨ x.val = a
 
-@[simp] lemma Fixed.approx_nan : approx (nan : Fixed s) = univ := by
-  simp only [approx, nan, ite_true]
+instance : ApproxNan (Fixed s) ℝ where
+  approx_nan a := by simp only [approx, true_or]
 
-@[approx] lemma Fixed.val_mem_approx (x : Fixed s) : x.val ∈ approx x := by
-  simp only [approx]; split_ifs; repeat simp
+@[simp] lemma Fixed.approx_nan : approx (nan : Fixed s) a := by
+  simp only [approx, nan, true_or]
 
-@[simp] lemma Fixed.approx_zero : approx (0 : Fixed s) = {0} := by
+@[approx] lemma Fixed.approx_val (x : Fixed s) : approx x x.val := by
+  simp only [approx, or_true]
+
+@[simp] lemma Fixed.approx_zero : approx (0 : Fixed s) a ↔ a = 0 := by
   simp only [approx, nan, ext_iff, zero_n, Int64.zero_def, Int64.ext_iff, Int64.n_min, val_zero,
-    ite_eq_right_iff]
+    eq_comm (a := a)]
+  simp only [UInt64.toInt64_ofNat, Int64.n_zero, or_iff_right_iff_imp]
   intro h; contrapose h; clear h; decide +kernel
 
 /-- If we're not `nan`, `approx` is a singleton -/
-@[simp] lemma Fixed.approx_eq_singleton {x : Fixed s} (n : x ≠ nan) : approx x = {x.val} := by
-  simp only [approx, n, ite_false]
+@[simp] lemma Fixed.approx_eq_singleton {x : Fixed s} (n : x ≠ nan) : approx x a ↔ x.val = a := by
+  simp only [approx, n, false_or]
 
 /-- `Fixed` negation respects `approx` -/
 instance : ApproxNeg (Fixed s) ℝ where
-  approx_neg x := by
-    simp only [approx, Fixed.neg_eq_nan, Fixed.neg_eq_nan]
+  approx_neg {x a} m := by
+    simp only [approx, Fixed.neg_eq_nan, Fixed.neg_eq_nan] at m ⊢
     by_cases h : x = nan
-    · simp only [h, ite_true, neg_univ, Fixed.neg_nan, subset_univ]
-    · simp only [h, ite_false, neg_singleton, Fixed.val_neg h, subset_refl]
+    · simp only [h, Fixed.neg_nan, true_or]
+    · simpa only [h, Fixed.val_neg h, neg_inj, false_or] using m
 
 /-- For `Fixed`, `-` and `approx` commute -/
-@[simp] lemma Fixed.approx_neg (x : Fixed s) : approx (-x) = -approx x := by
+@[simp] lemma Fixed.approx_neg (x : Fixed s) : approx (-x) (-a) ↔ approx x a := by
   by_cases n : x = nan
-  · simp only [n, neg_nan, approx_nan, neg_univ]
-  · simp only [approx_eq_singleton (neg_ne_nan.mpr n), val_neg n, approx_eq_singleton n,
-    neg_singleton]
+  · simp only [n, neg_nan, approx_nan]
+  · simp only [approx_eq_singleton (neg_ne_nan.mpr n), val_neg n, neg_inj, approx_eq_singleton n]
 
 /-- `Fixed` addition respects `approx` -/
 instance : ApproxAdd (Fixed s) ℝ where
-  approx_add x y := by
-    simp only [Fixed.add_as_eq, approx]
+  approx_add {x y} {a b} xa yb := by
+    simp only [Fixed.add_as_eq, approx] at xa yb ⊢
     by_cases xn : x = nan
-    · simp only [xn, ite_true, ne_eq, true_or, subset_univ]
+    · simp only [xn, true_or, Fixed.nan_n, ne_eq, ↓reduceIte]
     · by_cases yn : y = nan
-      · simp only [yn, ite_true, ne_eq, true_or, or_true, subset_univ]
-      · simp only [xn, ite_false, yn, ne_eq, false_or, ite_eq_left_iff, not_and, not_not]
+      · simp only [yn, true_or, Fixed.nan_n, ne_eq, or_true, ↓reduceIte]
+      · simp only [xn, yn, ne_eq, false_or, ite_eq_left_iff, not_and, not_not] at xa yb ⊢
         by_cases x0 : x.n.isNeg
         · by_cases z0 : (x.n + y.n).isNeg
-          · simp only [add_singleton, image_singleton, x0, z0, forall_true_left, not_true,
-              and_false, ite_false, Fixed.val_add_eq (z0.trans x0.symm), singleton_subset_iff,
-              mem_ite_univ_left, mem_singleton_iff, implies_true]
+          · simp only [x0, Bool.true_eq, z0, implies_true, forall_const, not_true_eq_false,
+              and_false, ↓reduceIte, Fixed.val_add_eq (z0.trans x0.symm), xa, yb, or_true]
           · by_cases y0 : y.n.isNeg
-            · simp only [add_singleton, image_singleton, x0, y0, z0, forall_true_left,
-                IsEmpty.forall_iff, not_false_eq_true, and_self, ite_true, subset_univ,
-                Bool.true_eq_false]
-            · simp only [add_singleton, image_singleton, x0, y0, IsEmpty.forall_iff,
-                forall_true_left, false_and, ite_false, Fixed.val_add_ne (x0.trans_ne (Ne.symm y0)),
-                singleton_subset_iff, mem_ite_univ_left, mem_singleton_iff, implies_true,
-                Bool.true_eq_false]
+            · simp only [x0, y0, z0, Bool.true_eq_false, imp_false, not_true_eq_false,
+                IsEmpty.forall_iff, not_false_eq_true, and_self, ↓reduceIte, true_or]
+            · simp only [x0, y0, Bool.true_eq, Bool.false_eq_true, IsEmpty.forall_iff,
+                forall_const, Bool.not_eq_true, false_and, ↓reduceIte,
+                Fixed.val_add_ne (x0.trans_ne (Ne.symm y0)), xa, yb, or_true]
         · by_cases y0 : y.n.isNeg
-          · simp only [add_singleton, image_singleton, x0, y0, IsEmpty.forall_iff,
-              forall_true_left, false_and, ite_false, Fixed.val_add_ne (Ne.trans_eq x0 y0.symm),
-              singleton_subset_iff, mem_ite_univ_left, mem_singleton_iff, implies_true,
-              Bool.false_eq_true]
+          · simp [x0, y0, IsEmpty.forall_iff, false_and, Fixed.val_add_ne (Ne.trans_eq x0 y0.symm),
+              Bool.false_eq_true, xa, yb]
           · by_cases z0 : (x.n + y.n).isNeg
-            · simp only [add_singleton, image_singleton, x0, y0, z0, forall_true_left,
-                IsEmpty.forall_iff, not_false_eq_true, and_self, ite_true, subset_univ,
-                Bool.false_eq_true]
+            · simp only [x0, y0, z0, Bool.false_eq_true, imp_false, not_true_eq_false,
+                IsEmpty.forall_iff, not_false_eq_true, and_self, ↓reduceIte, true_or]
             · simp only [Bool.not_eq_true] at x0 z0
-              simp only [add_singleton, image_singleton, x0, y0, z0, forall_true_left, not_true,
-                and_false, ite_false, Fixed.val_add_eq (z0.trans x0.symm), singleton_subset_iff,
-                mem_ite_univ_left, mem_singleton_iff, implies_true]
+              simp only [x0, y0, z0, imp_self, forall_const, not_true_eq_false, and_false,
+                ↓reduceIte, Fixed.val_add_eq (z0.trans x0.symm), xa, yb, or_true]
 
 /-- `Fixed.val` commutes with add if the result isn't `nan` -/
 lemma Fixed.val_add {x y : Fixed s} (n : x + y ≠ nan) : (x + y).val = x.val + y.val := by
-  have h := image2_subset_iff.mp (approx_add x y) x.val (val_mem_approx _) y.val (val_mem_approx _)
-  simp only [approx, n, ite_false, mem_singleton_iff] at h
+  have h := approx_add (approx_val x) (approx_val y)
+  simp only [approx, n, false_or] at h
   rw [h]
 
 /-- `Fixed` subtraction respects `approx` -/
 instance : ApproxSub (Fixed s) ℝ where
-  approx_sub x y := by
+  approx_sub {x y} {a b} xa yb := by
     simp only [Fixed.sub_eq_add_neg, sub_eq_add_neg]
-    exact subset_trans (add_subset_add_left (approx_neg _)) (approx_add x (-y))
+    exact approx_add xa (approx_neg yb)
 
 /-- `Fixed.val` commutes with sub if the result isn't `nan` -/
 lemma Fixed.val_sub {x y : Fixed s} (n : x - y ≠ nan) : (x - y).val = x.val - y.val := by
-  have h := image2_subset_iff.mp (approx_sub x y) x.val (val_mem_approx _) y.val (val_mem_approx _)
-  simp only [approx, n, ite_false, mem_singleton_iff] at h
+  have h := approx_sub (approx_val x) (approx_val y)
+  simp only [approx, n, false_or] at h
   rw [h]
 
 /-- `neg_add` for `Fixed s` -/
@@ -359,6 +356,17 @@ lemma Fixed.neg_sub {x y : Fixed s} : -(x - y) = y - x := by
 
 /-- `Fixed` approximates `ℝ` as an additive group -/
 instance : ApproxAddGroup (Fixed s) ℝ where
+
+lemma Fixed.rounds_iff {x : Fixed s} {up : Bool} :
+    Rounds x a up ↔ (x ≠ nan → if up then a ≤ x.val else x.val ≤ a) := by
+  simp only [Rounds, approx]
+  constructor
+  · aesop
+  · intro h
+    by_cases n : x = nan
+    · use a
+      simp only [n, true_or, le_refl, ite_self, and_self]
+    · aesop
 
 /-!
 ### Order operations on `Fixed`: min, max, abs
@@ -459,14 +467,16 @@ lemma Fixed.val_abs {x : Fixed s} (n : x ≠ nan) : (abs x).val = |x.val| := by
   simp only [nan, ne_eq, ext_iff] at n
   simp only [abs_def, ← Int.cast_abs, Int64.coe_uabs' n]
 
-lemma Fixed.approx_abs_eq {x : Fixed s} (n : x ≠ nan) : approx (abs x) = {|x.val|} := by
-  simp only [approx, abs_eq_nan, n, Fixed.val_abs n, ite_false]
+lemma Fixed.approx_abs_eq {x : Fixed s} (n : x ≠ nan) : approx (abs x) a ↔ |x.val| = a := by
+  simp only [approx, ne_eq, neg_neg, abs_eq_nan, n, not_false_eq_true, ne_nan_of_neg,
+    Fixed.val_abs n, false_or]
 
-lemma Fixed.approx_abs (x : Fixed s) : image (fun x ↦ |x|) (approx x) ⊆ approx (abs x) := by
+lemma Fixed.approx_abs {x : Fixed s} (m : approx x a) : approx (abs x) (|a|) := by
   by_cases n : x = nan
-  · simp only [approx, n, ite_true, image_univ, abs_nan, subset_univ]
-  · simp only [approx, n, ite_false, image_singleton, abs_eq_nan, subset_singleton_iff,
-      mem_singleton_iff, forall_eq, val_abs n]
+  · simp only [approx, n, abs_nan, true_or]
+  · simp only [approx, n, false_or] at m
+    simp only [approx, ne_eq, neg_neg, abs_eq_nan, n, not_false_eq_true, ne_nan_of_neg, val_abs n,
+      m, or_true]
 
 @[simp] lemma Fixed.min_eq_nan {x y : Fixed s} : min x y = nan ↔ x = nan ∨ y = nan := by
   simp only [min, nan, ext_iff, Int64.eq_min_iff_min_lt]
@@ -622,9 +632,13 @@ lemma extract_exists_cond {c : Prop} {y : α} {e : α → Prop} :
   all_goals simp [h]
 
 /-- `Fixed.mul_of_pos` respects `approx` -/
-lemma Fixed.approx_mul_of_pos (x : Fixed s) (y : Fixed t) (u : Int64) (up : Bool)
-    (xn : x ≠ nan) (yn : y ≠ nan) (xp : ¬x.n < 0) (yp : ¬y.n < 0) :
-    approx x * approx y ⊆ rounds (approx (mul_of_pos x y u up)) !up := by
+lemma Fixed.approx_mul_of_pos {x : Fixed s} {y : Fixed t} {u : Int64} {up : Bool}
+    (xn : x ≠ nan) (yn : y ≠ nan) (xp : ¬x.n < 0) (yp : ¬y.n < 0)
+    {x' y' : ℝ} (ax : approx x x') (ay : approx y y') :
+    Rounds (mul_of_pos x y u up) (x' * y') up := by
+  simp only [approx, xn, false_or, yn] at ax ay
+  simp only [← ax, ← ay]
+  clear x' y' ax ay
   have two0 : (2 : ℝ) ≠ 0 := by norm_num
   have twop : ∀ {x : ℤ}, (2:ℝ)^x ≠ 0 := fun {_} ↦ zpow_ne_zero _ (by norm_num)
   rw [mul_of_pos]
@@ -634,7 +648,7 @@ lemma Fixed.approx_mul_of_pos (x : Fixed s) (y : Fixed t) (u : Int64) (up : Bool
   have wa : (mul128 x.n.toUInt64 y.n.toUInt64 : ℝ) = w := by
     simp only [UInt128.toReal, toNat_mul128, Nat.cast_mul, hw]
   by_cases dn : d = nan
-  · simp only [approx, dn, ite_true, rounds_univ, subset_univ]
+  · simp only [dn, ↓reduceIte, rounds_nan]
   · simp only [dn, ite_false]
     have de : (d.n : ℤ) = ↑s + ↑t - ↑u := by
       have e : d.val = s + t - u := by
@@ -663,23 +677,20 @@ lemma Fixed.approx_mul_of_pos (x : Fixed s) (y : Fixed t) (u : Int64) (up : Bool
         (mul128 x.n.toUInt64 y.n.toUInt64) (-d.n).toUInt64 up
       simp only [hz, wa, dn] at za
       clear hz
-      simp only [approx, xn, ite_false, yn, mul_singleton, image_singleton, ds, ite_true,
-        apply_ite (f := fun x ↦ rounds x !up), rounds_univ, singleton_subset_iff, mem_ite_univ_left,
-        mem_rounds_singleton]
+      simp only [ds, ite_true, rounds_iff]
       intro zn
       simp only [Fixed.of_raw_uint128_val zn]
-      simp only [Fixed.val, ←mul_assoc, mul_comm _ ((2:ℝ)^(t : ℤ))]
+      simp only [Fixed.val, ← mul_assoc, mul_comm _ ((2:ℝ)^(t : ℤ))]
       simp only [←mul_assoc, mul_comm _ ((2:ℝ)^(s : ℤ)), Int64.toReal_toInt (not_lt.mp xp),
         Int64.toReal_toInt (not_lt.mp yp)]
       simp only [mul_assoc, hw]
       induction up
-      · simp only [rounds, mem_singleton_iff, ite_false, exists_eq_left, mem_setOf_eq, ite_true,
-          Bool.not_false, Bool.false_eq_true] at za ⊢
+      · simp only [ite_false, Bool.false_eq_true, rounds_same] at za ⊢
         refine le_trans (mul_le_mul_of_nonneg_right za (zpow_nonneg (by norm_num) _)) (le_of_eq ?_)
         simp only [zpow_sub₀ two0, div_eq_mul_inv, mul_assoc, mul_inv_rev, inv_inv,
           inv_mul_cancel₀ twop, mul_one]
         ring
-      · simp only [rounds, mem_singleton_iff, ite_true, exists_eq_left, mem_setOf_eq] at za ⊢
+      · simp only [rounds_same, ↓reduceIte] at za ⊢
         refine le_trans (le_of_eq ?_) (mul_le_mul_of_nonneg_right za (zpow_nonneg (by norm_num) _))
         simp only [zpow_sub₀ two0, div_eq_mul_inv, mul_assoc, mul_inv_rev, inv_inv,
           inv_mul_cancel₀ twop, mul_one]
@@ -687,9 +698,7 @@ lemma Fixed.approx_mul_of_pos (x : Fixed s) (y : Fixed t) (u : Int64) (up : Bool
     · have dn : (2:ℝ) ^ d.n.toUInt64.toNat = (2:ℝ) ^ ((s:ℤ) + ↑t - ↑u) := by
         suffices h : ↑d.n.toUInt64.toNat = (d.n : ℤ) by rw [←zpow_natCast, h, de]
         simp only [Int64.toInt_eq_if, ds, Nat.reducePow, CharP.cast_eq_zero, sub_zero, if_false]
-      simp only [approx, xn, ite_false, yn, mul_singleton, image_singleton, ds,
-        apply_ite (f := fun x ↦ rounds x !up), rounds_univ, singleton_subset_iff, mem_ite_univ_left,
-        mem_rounds_singleton, Bool.not_eq_true']
+      simp only [ite_false, ds, rounds_iff]
       intro zn
       simp only [UInt128.toReal] at wa
       simp only [Fixed.of_raw_uint128_val zn, UInt128.toReal, Nat.cast_mul,
@@ -700,90 +709,52 @@ lemma Fixed.approx_mul_of_pos (x : Fixed s) (y : Fixed t) (u : Int64) (up : Bool
       simp only [mul_assoc, hw, dn, zpow_add₀ two0, zpow_sub₀ two0, div_mul_cancel₀ _ twop]
       simp only [←mul_assoc, mul_comm _ w, le_refl, ite_self]
 
-/-- `Fixed.mul_of_pos` respects `approx` -/
-lemma Fixed.approx_mul_abs {x : Fixed s} {y : Fixed t} {u : Int64} {up nup : Bool}
-    (xn : x ≠ nan) (yn : y ≠ nan) (hup : nup = !up) :
-    approx (abs x) * approx (abs y) ⊆ rounds (approx (mul_of_pos (abs x) (abs y) u up)) nup := by
-  simp only [hup]
-  apply approx_mul_of_pos
-  · rw [Ne, abs_eq_nan]; exact xn
-  · rw [Ne, abs_eq_nan]; exact yn
-  · simp only [isNeg_abs, xn, not_false_eq_true]
-  · simp only [isNeg_abs, yn, not_false_eq_true]
-
- /-- If signs are equal, `*` is `abs * abs`-/
-lemma mul_of_isNeg_eq {x : Fixed s} {y : Fixed t} (xn : x ≠ nan) (yn : y ≠ nan)
-    (p : x.n < 0 ↔ y.n < 0) : approx x * approx y = approx x.abs * approx y.abs := by
-  simp only [approx, xn, ite_false, yn, mul_singleton, image_singleton, Fixed.abs_eq_nan,
-    Fixed.val_abs xn, Fixed.val_abs yn, singleton_eq_singleton_iff]
-  have y0 := p.symm
-  by_cases x0 : x.n < 0
-  · simp only [x0, iff_true] at y0
-    simp only [abs_of_neg (Fixed.val_lt_zero.mpr x0), abs_of_neg (Fixed.val_lt_zero.mpr y0),
-      mul_neg, neg_mul, neg_neg]
-  · simp only [x0, iff_false] at y0
-    simp only [abs_of_nonneg (Fixed.val_nonneg.mpr x0), abs_of_nonneg (Fixed.val_nonneg.mpr y0)]
-
- /-- If signs are different, `*` is `-(abs * abs)`-/
-lemma mul_of_isNeg_ne {x : Fixed s} {y : Fixed t} (xn : x ≠ nan) (yn : y ≠ nan)
-    (p : ¬x.n < 0 ↔ y.n < 0) : approx x * approx y = -(approx x.abs * approx y.abs) := by
-  simp only [approx, xn, ite_false, yn, mul_singleton, image_singleton, Fixed.abs_eq_nan,
-    Fixed.val_abs xn, Fixed.val_abs yn, neg_singleton, singleton_eq_singleton_iff]
-  have y0 := p.symm
-  by_cases x0 : x.n < 0
-  · simp only [x0, not_true, iff_false] at y0
-    simp only [abs_of_neg (Fixed.val_lt_zero.mpr x0), abs_of_nonneg (Fixed.val_nonneg.mpr y0),
-      neg_mul, neg_neg]
-  · simp only at x0
-    simp only [x0, not_false_iff, iff_true] at y0
-    simp only [abs_of_nonneg (Fixed.val_nonneg.mpr x0), abs_of_neg (Fixed.val_lt_zero.mpr y0),
-      mul_neg, neg_neg]
-
 /-- `Fixed.mul` respects `approx` -/
-lemma Fixed.approx_mul (x : Fixed s) (y : Fixed t) (u : Int64) (up : Bool) :
-    approx x * approx y ⊆ rounds (approx (x.mul y u up)) !up := by
+lemma Fixed.approx_mul (x : Fixed s) (y : Fixed t) (u : Int64) (up : Bool) {x' y' : ℝ}
+    (ax : approx x x') (ay : approx y y') : Rounds (x.mul y u up) (x' * y') up := by
   rw [mul]
   simp only [bif_eq_if, Bool.or_eq_true, beq_iff_eq, bne_iff_ne, ne_eq, ite_not, Int64.isNeg,
     decide_eq_decide]
   by_cases n : x = nan ∨ y = nan
-  · simp only [approx, mul_ite, ite_mul, univ_mul_univ, singleton_mul, image_univ, mul_singleton,
-      image_singleton, n, ite_true, rounds_univ, subset_univ]
+  · simp only [n, ite_true, rounds_nan]
   · simp only [n, ite_false]
     simp only [not_or] at n
     by_cases p : x.n < 0 ↔ y.n < 0
-    · simp only [mul_of_isNeg_eq n.1 n.2 p, p, bne_self_eq_false, Bool.xor_false, ite_true]
-      exact approx_mul_abs n.1 n.2 rfl
+    · have e : x' * y' = |x'| * |y'| := by
+        simp only [approx, n, false_or] at ax ay
+        simp only [← val_lt_zero, ax, ay] at p
+        by_cases n : x' < 0
+        · simp only [abs_of_neg n, abs_of_neg (p.mp n), mul_neg, neg_mul, neg_neg]
+        · simp only [abs_of_nonneg (not_lt.mp n), abs_of_nonneg (not_lt.mp (p.not.mp n))]
+      simp only [p, bne_self_eq_false, Bool.xor_false, ite_true, e]
+      refine approx_mul_of_pos ?_ ?_ ?_ ?_ (approx_abs ax) (approx_abs ay)
+      all_goals simp [n]
     · have p' : ¬x.n < 0 ↔ y.n < 0 := by simpa only [not_iff] using p
-      simp only [p, mul_of_isNeg_ne n.1 n.2, p', ite_false]
-      refine subset_trans ?_ (rounds_mono (ApproxNeg.approx_neg _))
-      simp only [rounds_neg, neg_subset_neg]
-      apply approx_mul_abs n.1 n.2
-      by_cases xn : x.n < 0
-      · simp only [xn, not_true_eq_false, false_iff] at p'
-        simp only [Bool.not_not, xn, decide_true, p', decide_false, Bool.bne_false, Bool.bne_true]
-      · simp only [xn, not_false_iff, true_iff] at p'
-        simp only [Bool.not_not, xn, decide_false, p', decide_true, Bool.bne_true, Bool.not_false]
+      simp only [p, ite_false]
+      apply rounds_neg
+      have e : -(x' * y') = |x'| * |y'| := by
+        simp only [approx, n, false_or] at ax ay
+        simp only [← val_lt_zero, ax, ay, not_iff, not_iff_comm (a := x' < 0),
+          not_lt (a := y')] at p
+        by_cases n : x' < 0
+        · simp only [← neg_mul, abs_of_neg n, abs_of_nonneg (p.mpr n)]
+        · simp only [← mul_neg, abs_of_nonneg (not_lt.mp n), abs_of_neg (not_le.mp (p.not.mpr n))]
+      have eu : (decide (x.n < 0) != decide (y.n < 0)) = true := by aesop
+      simp only [eu, Bool.bne_true, e]
+      refine approx_mul_of_pos ?_ ?_ ?_ ?_ (approx_abs ax) (approx_abs ay)
+      all_goals simp [n]
 
 /-- `Fixed.approx_mul` in plainer form (down version) -/
 lemma Fixed.mul_le {x : Fixed s} {y : Fixed t} {u : Int64} (n : Fixed.mul x y u false ≠ nan) :
     (Fixed.mul x y u false).val ≤ x.val * y.val := by
-  have h := approx_mul x y u false
-  by_cases m : x = nan ∨ y = nan
-  · rcases m with m | m; repeat simp only [m, nan_mul, mul_nan, ne_eq, not_true_eq_false] at n
-  simp only [not_or] at m
-  simpa only [approx, m.1, ite_false, m.2, mul_singleton, image_singleton, rounds, n,
-    mem_singleton_iff, Bool.not_false, ite_true, exists_eq_left, singleton_subset_iff,
-    mem_setOf_eq] using h
+  simpa only [rounds_iff, ne_eq, n, not_false_eq_true, Bool.false_eq_true, ↓reduceIte,
+    forall_const] using approx_mul x y u false (approx_val x) (approx_val y)
 
 /-- `Fixed.approx_mul` in plainer form (up version) -/
 lemma Fixed.le_mul {x : Fixed s} {y : Fixed t} {u : Int64} (n : Fixed.mul x y u true ≠ nan) :
     x.val * y.val ≤ (Fixed.mul x y u true).val := by
-  have h := approx_mul x y u true
-  by_cases m : x = nan ∨ y = nan
-  · rcases m with m | m; repeat simp only [m, nan_mul, mul_nan, ne_eq, not_true_eq_false] at n
-  simp only [not_or] at m
-  simpa only [approx, m.1, ite_false, m.2, mul_singleton, image_singleton, rounds, n,
-    mem_singleton_iff, Bool.not_true, exists_eq_left, singleton_subset_iff, mem_setOf_eq] using h
+  simpa only [rounds_iff, ne_eq, n, not_false_eq_true, Bool.false_eq_true, ↓reduceIte,
+    forall_const] using approx_mul x y u true (approx_val x) (approx_val y)
 
 /-!
 ## Conversion from `ℕ`, `ℤ`, `ℚ`, `Float`
@@ -835,11 +806,10 @@ instance {n : ℕ} [n.AtLeastTwo] : OfNat (Fixed s) n := ⟨.ofNat n false⟩
   ⟨bif x < 0 then -y else y⟩
 
 /-- `Fixed.ofNat` rounds the desired way -/
-lemma Fixed.approx_ofNat (n : ℕ) (up : Bool) :
-    ↑n ∈ rounds (approx (.ofNat n up : Fixed s)) !up := by
+lemma Fixed.approx_ofNat (n : ℕ) (up : Bool) : Rounds (.ofNat n up : Fixed s) (n : ℝ) up := by
   have t0 : (2:ℝ) ≠ 0 := by norm_num
   by_cases nn : (.ofNat n up : Fixed s) = nan
-  · simp only [nn, approx_nan, rounds_univ, mem_univ]
+  · simp only [nn, rounds_nan]
   rw [ofNat] at nn ⊢
   simp only [bif_eq_if, decide_eq_true_eq, Bool.and_eq_true, bne_iff_ne, ne_eq,
     Bool.or_eq_true] at nn ⊢
@@ -847,11 +817,13 @@ lemma Fixed.approx_ofNat (n : ℕ) (up : Bool) :
   by_cases tn : t < 0
   · simp only [tn, ite_true, ite_eq_left_iff, not_and, not_forall, exists_prop] at nn
     by_cases n0 : n = 0
-    · simp [n0, Fixed.val, tn, rounds, approx]
+    · simp only [Rounds, tn, ↓reduceIte, n0, not_true_eq_false, Nat.log2_zero, nonpos_iff_eq_zero,
+        false_and, Nat.zero_shiftLeft, Nat.cast_zero, CharP.cast_eq_zero]
       use 0
-      simp only [implies_true, le_refl, ite_self, and_self]
-    simp only [rounds, approx, tn, n0, not_false_eq_true, nn, and_false, ite_false, ite_true,
-      mem_singleton_iff, Bool.not_eq_true', exists_eq_left, mem_setOf_eq, Fixed.val, ht]
+      simp only [approx, val, Int64.coe_zero, Int.cast_zero, zero_mul, or_true, le_refl, ite_self,
+        and_self]
+    simp only [rounds_iff, tn, n0, not_false_eq_true, nn, and_false, ite_false, ite_true, Fixed.val,
+      ht, ne_eq, true_imp_iff]
     replace nn := nn.1
     simp only [n0, not_false_eq_true, not_or, not_le, forall_true_left] at nn
     simp only [Nat.shiftLeft_eq]
@@ -872,29 +844,23 @@ lemma Fixed.approx_ofNat (n : ℕ) (up : Bool) :
     simp only [tn, tsub_le_iff_right, ite_false, ite_eq_right_iff, not_forall, exists_prop] at nn
     induction up
     · simp only [Bool.false_eq_true, ↓reduceIte] at nn
-      simp only [rounds, approx, tn, tsub_le_iff_right, ite_false, ite_true, val, Bool.not_false,
-        mem_setOf_eq]
+      simp only [tn, ↓reduceIte, Bool.false_eq_true, nn, rounds_iff, ne_eq, not_false_eq_true, val,
+        forall_const]
       replace nn := nn.1
       simp only [Nat.shiftRight_eq_div_pow, ht] at nn ⊢
       by_cases n0 : n / 2^t.toNat = 0
-      · use 0
-        simp only [Bool.false_eq_true, ↓reduceIte, n0, Nat.log2_zero, Nat.ofNat_pos, Nat.cast_zero,
-          Int64.coe_zero, Int.cast_zero, zero_mul, mem_ite_univ_left, mem_singleton_iff,
-          implies_true, Nat.cast_nonneg, and_self]
+      · simp only [n0, Nat.cast_zero, Int64.coe_zero, Int.cast_zero, zero_mul, Nat.cast_nonneg]
       simp only [Nat.log2_lt n0] at nn
-      simp only [Int64.toInt_ofNat'' nn, tz, ← Nat.cast_mul, Int.cast_natCast, Bool.false_eq_true,
-        if_false, Nat.log2_lt n0, nn, if_true, ← Nat.cast_mul, mem_ite_univ_left, mem_singleton_iff]
-      refine ⟨_, fun _ ↦ rfl, ?_⟩
+      simp only [Int64.toInt_ofNat'' nn, tz, ← Nat.cast_mul, Int.cast_natCast, ← Nat.cast_mul]
       simp only [Nat.cast_le]
       apply Nat.div_mul_le_self
     · simp only [ite_true] at nn
-      simp only [rounds, approx, tn, tsub_le_iff_right, ite_true, nn, ite_false, mem_singleton_iff,
-        Bool.not_true, exists_eq_left, mem_setOf_eq, ge_iff_le, Fixed.val, ht, tz,
-        Bool.false_eq_true]
+      simp only [rounds_iff, tn, tsub_le_iff_right, ite_true, ite_false, Fixed.val, ht, tz, nn,
+        ne_eq, not_false_iff, true_imp_iff]
       simp only [Nat.shiftLeft_eq, one_mul, Nat.shiftRight_eq_div_pow] at nn ⊢
       by_cases np : n = 0
       · simp only [np, zero_add, Nat.two_pow_sub_one_div_two_pow, le_refl, tsub_eq_zero_of_le,
-        pow_zero, Nat.cast_zero, Int64.coe_zero, Int.cast_zero, zero_mul]
+          pow_zero, Nat.cast_zero, Int64.coe_zero, Int.cast_zero, zero_mul]
       rw [←Ne, ←Nat.pos_iff_ne_zero] at np
       have n0'' : 0 < n + 2 ^ Int.toNat t - 1 := by
         have le : 1 ≤ 2 ^ Int.toNat t := Nat.one_le_two_pow
@@ -915,61 +881,56 @@ lemma Real.cast_natCast (n : ℤ) (n0 : 0 ≤ n) : (n : ℝ) = (n.toNat : ℝ) :
   rw [Int.cast_natCast]
 
 /-- `Fixed.ofNat0` is conservative -/
-@[approx] lemma Fixed.approx_ofNat0 (n : ℕ) : ↑n ∈ approx (ofNat0 n) := by
+@[approx] lemma Fixed.approx_ofNat0 (n : ℕ) : approx (ofNat0 n) (n : ℝ) := by
   by_cases nn : (ofNat0 n) = nan
-  · simp only [nn, approx_nan, mem_univ]
+  · simp only [nn, approx_nan]
   rw [ofNat0] at nn ⊢
   simp only [bif_eq_if, decide_eq_true_eq, ite_eq_right_iff, not_forall, exists_prop] at nn ⊢
-  simp only [approx, nn, ite_true, val, Int64.coe_zero, zpow_zero, mul_one, ite_false,
-    mem_singleton_iff]
+  simp only [approx, nn, ite_true, val, Int64.coe_zero, zpow_zero, mul_one]
   replace nn := nn.1
   by_cases n0 : n = 0
-  · simp only [n0, CharP.cast_eq_zero, Nat.cast_zero, Int64.coe_zero, Int.cast_zero]
+  · simp only [n0, Nat.cast_zero, Int64.coe_zero, Int.cast_zero, CharP.cast_eq_zero, or_true]
   simp only [Nat.log2_lt n0] at nn
-  simp only [Int64.toInt_ofNat'' nn, Int.cast_natCast]
+  simp only [Int64.toInt_ofNat'' nn, Int.cast_natCast, or_true]
 
 /-- `Fixed.approx_ofNat`, down version -/
 lemma Fixed.ofNat_le {n : ℕ} (h : (.ofNat n false : Fixed s) ≠ nan) :
     (.ofNat n false : Fixed s).val ≤ n := by
-  simpa only [approx, h, ite_false, Bool.not_false, mem_rounds_singleton, ite_true] using
-    Fixed.approx_ofNat n false (s := s)
+  simpa [rounds_iff, h] using Fixed.approx_ofNat n false (s := s)
 
 /-- `Fixed.approx_ofNat`, up version -/
 lemma Fixed.le_ofNat {n : ℕ} (h : (.ofNat n true : Fixed s) ≠ nan) :
     n ≤ (.ofNat n true : Fixed s).val := by
-  simpa only [approx, h, ite_false, Bool.not_true, mem_rounds_singleton] using
-    Fixed.approx_ofNat n true (s := s)
+  simpa [rounds_iff, h] using Fixed.approx_ofNat n true (s := s)
 
 /-- `Fixed.ofInt` rounds the desired way -/
-lemma Fixed.approx_ofInt (n : ℤ) (up : Bool) :
-    ↑n ∈ rounds (approx (.ofInt n up : Fixed s)) !up := by
+lemma Fixed.approx_ofInt (n : ℤ) (up : Bool) : Rounds (.ofInt n up : Fixed s) (n : ℝ) up := by
   rw [Fixed.ofInt]
   by_cases n0 : n < 0
   · have e : (n : ℝ) = -↑(-n).toNat := by
       rw [←Real.cast_natCast (-n) (by omega)]
       simp only [Int.cast_neg, neg_neg]
     simpa only [e, n0, decide_true, cond_true, approx_neg, rounds_neg, Bool.not_not, mem_neg,
-      neg_neg] using approx_ofNat (-n).toNat (!up) (s := s)
+      neg_neg] using (approx_ofNat (-n).toNat (!up) (s := s)).neg
   · simp only [Real.cast_natCast n (by omega), n0, decide_false, cond_false, approx_ofNat]
 
 /-- `Fixed.approx_ofInt`, down version -/
 lemma Fixed.ofInt_le {n : ℤ} (h : (.ofInt n false : Fixed s) ≠ nan) :
     (.ofInt n false : Fixed s).val ≤ n := by
-  simpa only [approx, h, ite_false, Bool.not_false, mem_rounds_singleton, ite_true] using
-    Fixed.approx_ofInt n false (s := s)
+  simpa [rounds_iff, h] using Fixed.approx_ofInt n false (s := s)
 
 /-- `Fixed.approx_ofInt`, up version -/
 lemma Fixed.le_ofInt {n : ℤ} (h : (.ofInt n true : Fixed s) ≠ nan) :
     n ≤ (.ofInt n true : Fixed s).val := by
-  simpa only [approx, h, ite_false, Bool.not_true, mem_rounds_singleton] using
-    Fixed.approx_ofInt n true (s := s)
+  simpa [rounds_iff, h] using Fixed.approx_ofInt n true (s := s)
 
 /-- `Fixed.ofRat` rounds the desired way -/
 lemma Fixed.approx_ofRat (x : ℚ) (up : Bool) :
-    ↑x ∈ rounds (approx (.ofRat x up : Fixed s)) !up := by
+    Rounds (.ofRat x up : Fixed s) (x : ℝ) up := by
   by_cases n : (ofRat x up : Fixed s) = nan
-  · simp only [n, approx_nan, rounds_univ, mem_univ]
-  rw [Fixed.approx_eq_singleton n, ofRat]
+  · simp only [n, rounds_nan]
+  simp only [rounds_iff, ne_eq, n, not_false_eq_true, forall_const]
+  rw [ofRat]
   by_cases sn : s < 0
   · simp only [Bool.cond_decide, sn, Int64.isNeg, if_true]
     by_cases dn : |Int.rdiv (x.num >>> ↑s) ↑x.den up| < 2 ^ 63
@@ -982,27 +943,23 @@ lemma Fixed.approx_ofRat (x : ℚ) (up : Bool) :
       simp only [Int.shiftRight_neg, Int.shiftLeft_eq_mul_pow, zpow_neg, Nat.cast_pow,
         Nat.cast_ofNat, zpow_natCast] at dn ⊢
       nth_rw 3 [← Rat.num_div_den x]
-      simp only [Rat.cast_div, Rat.cast_intCast, Rat.cast_natCast]
+      --simp only [Rat.cast_div, Rat.cast_intCast, Rat.cast_natCast]
       induction up
-      · simp only [Bool.not_false, mem_rounds_singleton, mul_inv_le_iff₀ (two_pow_pos (R := ℝ)),
-          ite_true]
+      · simp only [Bool.false_eq_true, ↓reduceIte, mul_inv_le_iff₀ (two_pow_pos (R := ℝ))]
         refine le_trans Int.rdiv_le ?_
-        simp only [Int.cast_mul, Int.cast_pow, Int.cast_ofNat]
-        field_simp
-        rfl
-      · simp only [rounds, ← div_eq_mul_inv, mem_singleton_iff, Bool.not_true, ite_false,
-          exists_eq_left, le_div_iff₀ (G₀ := ℝ) two_pow_pos, mem_setOf_eq, Bool.false_eq_true]
+        simp only [Int.cast_mul, Int.cast_pow, Int.cast_ofNat, mul_div_right_comm,
+          Field.ratCast_def, le_refl]
+      · simp only [↓reduceIte, ← div_eq_mul_inv, le_div_iff₀ (G₀ := ℝ) two_pow_pos]
         refine le_trans (le_of_eq ?_) Int.le_rdiv
-        simp only [div_eq_mul_inv, Int.cast_mul, Int.cast_pow]
-        ring_nf
+        simp only [Int.cast_mul, Int.cast_pow, Int.cast_ofNat, ← Field.ratCast_def, Rat.cast_eq_id,
+          id_eq, mul_div_right_comm]
     · rw [ofRat, Int64.isNeg, bif_eq_if] at n
       simp only [bif_eq_if, decide_eq_true_eq, sn, if_true] at n
       simp only [dn, ite_false, not_true_eq_false] at n
-  · simp only [Bool.cond_decide, sn, val, mem_rounds_singleton, Bool.not_eq_true', Int64.isNeg,
-    if_false]
+  · simp only [Bool.cond_decide, sn, val, Int64.isNeg, if_false]
     simp only at sn
     by_cases dn : |Int.rdiv x.num (x.den <<< s.toUInt64.toNat) up| < 2 ^ 63
-    · simp only [dn, Int64.coe_of_nonneg (not_lt.mp sn), ↓reduceIte, Bool.ite_eq_false]
+    · simp only [dn, Int64.coe_of_nonneg (not_lt.mp sn), ↓reduceIte]
       rw [Int64.toInt_ofInt' dn, Nat.shiftLeft_eq]
       generalize s.toUInt64.toNat = s; clear dn
       induction up
@@ -1024,14 +981,12 @@ lemma Fixed.approx_ofRat (x : ℚ) (up : Bool) :
 /-- `Fixed.approx_ofRat`, down version -/
 lemma Fixed.ofRat_le {x : ℚ} (h : (.ofRat x false : Fixed s) ≠ nan) :
     (.ofRat x false : Fixed s).val ≤ x := by
-  simpa only [approx, h, ite_false, Bool.not_false, mem_rounds_singleton, ite_true] using
-    Fixed.approx_ofRat x false (s := s)
+  simpa [rounds_iff, h] using Fixed.approx_ofRat x false (s := s)
 
 /-- `Fixed.approx_ofRat`, up version -/
 lemma Fixed.le_ofRat {x : ℚ} (h : (.ofRat x true : Fixed s) ≠ nan) :
     x ≤ (.ofRat x true : Fixed s).val := by
-  simpa only [approx, h, ite_false, Bool.not_true, mem_rounds_singleton] using
-    Fixed.approx_ofRat x true (s := s)
+  simpa [rounds_iff, h] using Fixed.approx_ofRat x true (s := s)
 
 @[simp] lemma Fixed.val_one_of_s0 : (1 : Fixed 0).val = 1 := by
   rw [val]
@@ -1080,31 +1035,26 @@ lemma Fixed.val_mem_log2 {x : Fixed s} (h : x.log2 ≠ nan) :
 
 /-- `Fixed.two_pow` is correctly rounded -/
 lemma Fixed.approx_two_pow (n : Fixed 0) (up : Bool) :
-    2 ^ (n.n : ℤ) ∈ rounds (approx (.two_pow n up : Fixed s)) !up := by
+    Rounds (.two_pow n up : Fixed s) (2 ^ (n.n : ℤ) : ℝ) up := by
   generalize hk : n - ⟨s⟩ = k
   rw [two_pow]
-  simp only [rounds, approx, bif_eq_if, hk, Bool.or_eq_true, beq_iff_eq, decide_eq_true_eq,
-    ite_eq_left_iff, mem_ite_univ_left, not_forall, exists_prop, mem_singleton_iff, and_imp,
-    Bool.not_eq_true', mem_setOf_eq]
+  simp only [rounds_iff, bif_eq_if, hk, Bool.or_eq_true, beq_iff_eq, decide_eq_true_eq]
   by_cases h : k = nan ∨ 63 ≤ k.n
-  · use 2 ^ (n.n : ℤ)
-    simp only [h, not_true_eq_false, ite_true, IsEmpty.forall_iff, le_refl, ite_self, and_self]
-  · simp only [h, not_false_eq_true, ite_false, forall_true_left]
+  · simp only [h, ↓reduceIte, ne_eq, not_true_eq_false, IsEmpty.forall_iff]
+  · simp only [h, ite_false]
     simp only [not_or] at h
     by_cases kn : k.n < 0
-    · simp only [Int64.isNeg, kn]
-      use (if up = true then ⟨1⟩ else 0 : Fixed s).val
-      refine ⟨fun _ ↦ rfl, ?_⟩
+    · simp only [Int64.isNeg, kn, decide_true, ↓reduceIte, ne_eq]
       induction up
-      · simp only [ite_false, val_zero, two_zpow_pos.le, ite_true, Bool.false_eq_true]
-      · simp only [ite_true, val, Int64.coe_one, Int.cast_one, one_mul]
-        apply zpow_le_zpow_right₀ (by norm_num)
+      · simp only [Bool.false_eq_true, ↓reduceIte, ne_eq, neg_neg, zero_ne_nan, not_false_eq_true,
+          ne_nan_of_neg, val_zero, two_zpow_pos.le, imp_self]
+      · simp only [↓reduceIte, val, Int64.coe_one, Int.cast_one, one_mul, Nat.one_lt_ofNat,
+          zpow_le_zpow_iff_right₀, Int64.coe_le_coe]
         simp only [← hk, not_le, isNeg_eq] at h kn
         simp only [Fixed.val_sub h.1, sub_neg] at kn
         simp only [val, Int64.coe_zero, zpow_zero, mul_one, Int.cast_lt, Int64.coe_lt_coe] at kn
-        simp only [Int64.coe_le_coe, kn.le]
-    · use (⟨(1 <<< k.n.toUInt64).toInt64⟩ : Fixed s).val
-      simp only at kn
+        simp only [kn.le, implies_true]
+    · simp only at kn
       simp only [val]
       have k63 : k.n.toUInt64.toNat < 63 := by
         have e : ((63 : Int64) : ℤ) = ((63 : ℕ) : ℤ) := rfl
@@ -1129,7 +1079,7 @@ lemma Fixed.approx_two_pow (n : Fixed 0) (up : Bool) :
         linarith
       simp only [Int64.toInt_eq_toNat_of_lt lt, UInt64.toNat_shiftLeft''' k64, UInt64.toNat_one, e1,
         one_mul, Nat.cast_pow, Nat.cast_ofNat, Int.cast_pow, e, le_refl, ite_self, Int.cast_ofNat,
-        Int64.isNeg, kn, decide_false, Bool.false_eq_true, ↓reduceIte, and_true, implies_true,
+        Int64.isNeg, kn, decide_false, Bool.false_eq_true, ↓reduceIte, implies_true,
         UInt64.toUInt64_toInt64]
 
 /-- `Fixed.log2 = nan` if we're nonpos -/
@@ -1159,14 +1109,12 @@ lemma Fixed.approx_two_pow (n : Fixed 0) (up : Bool) :
 /-- `Fixed.approx_two_pow`, down version -/
 lemma Fixed.two_pow_le {n : Fixed 0} (h : (.two_pow n false : Fixed s) ≠ nan) :
     (.two_pow n false : Fixed s).val ≤ 2 ^ (n.n : ℤ) := by
-  simpa only [approx, h, ite_false, Bool.not_false, mem_rounds_singleton, ite_true] using
-    Fixed.approx_two_pow n false (s := s)
+  simpa [rounds_iff, h] using Fixed.approx_two_pow n false (s := s)
 
 /-- `Fixed.approx_ofNat`, up version -/
 lemma Fixed.le_two_pow {n : Fixed 0} (h : (.two_pow n true : Fixed s) ≠ nan) :
     2 ^ (n.n : ℤ) ≤ (.two_pow n true : Fixed s).val := by
-  simpa only [approx, h, ite_false, Bool.not_true, mem_rounds_singleton] using
-    Fixed.approx_two_pow n true (s := s)
+  simpa [rounds_iff, h] using Fixed.approx_two_pow n true (s := s)
 
 /-!
 ### Exponent changes: `Fixed s → Fixed t`
@@ -1202,29 +1150,27 @@ lemma two_pow_coe_sub {s t : Int64} {k : Fixed 0} (st : s ≤ t) (e : ⟨t⟩ - 
   · rwa [←Int64.coe_le_coe, Int64.coe_zero, h, sub_nonneg, Int64.coe_le_coe]
 
 /-- `Fixed.repoint` is conservative -/
-lemma Fixed.approx_repoint (x : Fixed s) (t : Int64) (up : Bool) :
-    approx x ⊆ rounds (approx (x.repoint t up)) !up := by
+lemma Fixed.approx_repoint (x : Fixed s) (t : Int64) (up : Bool) {x' : ℝ} (ax : approx x x') :
+    Rounds (x.repoint t up) x' up := by
   by_cases xn : x = nan
-  · simp only [xn, approx_nan, repoint_nan, rounds_univ, subset_univ]
+  · simp only [xn, repoint_nan, rounds_nan]
   rw [Fixed.repoint]
   by_cases kn : (⟨s⟩ - ⟨t⟩ : Fixed 0) = nan
-  · simp only [kn, beq_self_eq_true, Bool.true_or, nan_n, Int64.n_min, Bool.cond_decide, cond_true,
-    approx_nan, rounds_univ, subset_univ]
+  · simp only [kn, BEq.rfl, Bool.true_or, nan_n, Int64.toUInt64_neg, sub_neg_eq_add, neg_nan,
+      Bool.cond_decide, cond_true, rounds_nan]
   simp only [ne_eq, xn, not_false_eq_true, approx_eq_singleton, bif_eq_if, Bool.and_eq_true,
-    bne_iff_ne, ite_not, beq_iff_eq, ite_false, singleton_subset_iff, Bool.or_eq_true, kn, false_or]
+    bne_iff_ne, ite_not, beq_iff_eq, ite_false, Bool.or_eq_true, kn, false_or] at ax ⊢
   generalize hk : (⟨s⟩ - ⟨t⟩ : Fixed 0) = k at kn
   by_cases ts : t ≤ s
   · simp only [ts, ite_true, decide_true]
     by_cases k63 : 63 ≤ k.n.toUInt64
     · by_cases x0 : x.n = 0
-      · simp only [approx, k63, x0, not_true_eq_false, and_false, Int64.uabs_zero,
-          UInt64.zero_shiftRight, ite_true, ite_false]
+      · simp only [rounds_iff, k63, x0, not_true_eq_false, and_false, Int64.uabs_zero,
+          UInt64.zero_shiftRight, ite_true, ite_false, ← ax]
         split_ifs
-        · simp only [rounds_univ, mem_univ]
-        · simp only [val, Int64.zero_shiftLeft', Int64.coe_zero, Int.cast_zero, zero_mul, x0,
-            mem_rounds_singleton, Bool.not_eq_eq_eq_not, Bool.not_true, le_refl, ite_self]
-      · simp only [k63, decide_true, x0, not_false_eq_true, and_self, ↓reduceIte, approx_nan,
-          rounds_univ, mem_univ]
+        · simp [val, x0]
+        · simp [val, Int64.zero_shiftLeft', Int64.coe_zero, Int.cast_zero, zero_mul, x0, le_refl]
+      · simp only [k63, decide_true, x0, not_false_eq_true, and_self, ↓reduceIte, rounds_nan]
     · simp only [k63, decide_false]
       simp only [not_le] at k63
       have e62 : (62 : UInt64).toNat = 62 := rfl
@@ -1239,32 +1185,34 @@ lemma Fixed.approx_repoint (x : Fixed s) (t : Int64) (up : Bool) :
         Nat.mod_eq_of_lt lt, UInt64.toNat_zero, Nat.div_eq_zero_iff]
       by_cases lt : x.n.uabs.toNat < 2 ^ (63 - k.n.toUInt64.toNat)
       · by_cases xn : (⟨x.n <<< k.n.toUInt64⟩ : Fixed t) = nan
-        · simp only [approx, lt, xn, ite_self, ite_true, rounds_univ, mem_univ]
+        · simp only [Bool.false_eq_true, false_and, ↓reduceIte, Nat.pow_eq_zero,
+            OfNat.ofNat_ne_zero, ne_eq, lt, or_true, xn, rounds_nan]
         · have pst : (2:ℝ) ^ (s:ℤ) / 2 ^ (t:ℤ) = (2^k.n.toUInt64.toNat : ℤ) :=
             two_pow_coe_sub ts hk kn
           have r : ((x.n <<< k.n.toUInt64 : Int64) : ℤ) = ↑x.n * 2^k.n.toUInt64.toNat :=
             Int64.coe_shiftLeft (by omega) lt
-          simp only [val, approx, lt, ite_true, xn, ite_false, mem_rounds_singleton,
-            Bool.not_eq_true', ← le_div_iff₀ (G₀ := ℝ) (two_zpow_pos (n := t)), mul_div_assoc,
-            ite_self, ← div_le_iff₀ (G₀ := ℝ) (two_zpow_pos (n := t)), pst, ← Int.cast_mul, r,
-            le_refl, Bool.false_eq_true, false_and, or_true]
-      · simp only [Bool.false_eq_true, false_and, ↓reduceIte, pow_eq_zero_iff',
-          OfNat.ofNat_ne_zero, ne_eq, lt, or_self, approx_nan, rounds_univ, mem_univ]
+          simp only [Bool.false_eq_true, false_and, ↓reduceIte, Nat.pow_eq_zero,
+            OfNat.ofNat_ne_zero, ne_eq, lt, or_true, ← ax, val, rounds_iff, xn, not_false_eq_true,
+            r, Int.cast_mul, Int.cast_pow, Int.cast_ofNat,
+            ← div_le_iff₀ (G₀ := ℝ) (two_zpow_pos (n := t)), mul_div_assoc, pst, le_refl,
+            ← le_div_iff₀ (G₀ := ℝ) (two_zpow_pos (n := t)), ite_self, imp_self]
+      · simp only [Bool.false_eq_true, false_and, ↓reduceIte, Nat.pow_eq_zero, OfNat.ofNat_ne_zero,
+          ne_eq, lt, or_self, rounds_nan]
   · simp only [ts, decide_false]
     simp only [not_le] at ts
     by_cases sn : (⟨Int64.shiftRightRound x.n (-k).n.toUInt64 up⟩ : Fixed t) = nan
-    · simp only [Bool.false_eq_true, ↓reduceIte, sn, approx_nan, rounds_univ, mem_univ]
+    · simp only [Bool.false_eq_true, ↓reduceIte, sn, rounds_nan]
     · have pts : (2:ℝ) ^ (t:ℤ) / 2 ^ (s:ℤ) = (2^(-k.n).toUInt64.toNat : ℤ) := by
         apply two_pow_coe_sub ts.le
         · rw [←Fixed.neg, ←Fixed.neg_def, ←hk, Fixed.neg_sub]
         · rw [←Fixed.neg_eq_nan, Fixed.neg_def, Fixed.neg] at kn
           exact kn
-      simp only [val, approx_eq_singleton sn, mem_rounds_singleton, Bool.not_eq_true', ←
-        div_le_iff₀ (G₀ := ℝ) (two_zpow_pos (n := s)), mul_div_assoc, pts, ←
-        le_div_iff₀ (G₀ := ℝ) (two_zpow_pos (n := s)), Bool.false_eq_true, if_false]
+      simp only [val, rounds_iff, ← div_le_iff₀ (G₀ := ℝ) (two_zpow_pos (n := s)), mul_div_assoc,
+        pts, ← le_div_iff₀ (G₀ := ℝ) (two_zpow_pos (n := s)), Bool.false_eq_true, if_false, ne_eq,
+        sn, not_false_iff, true_imp_iff, ← ax]
       simp only [← Int.cast_mul, Int.cast_le, Int64.coe_shiftRightRound]
       induction up
-      · simp only [Int.rdiv, Nat.cast_pow, Nat.cast_ofNat, cond_false, ite_true, ge_iff_le]
+      · simp only [Int.rdiv, Nat.cast_pow, Nat.cast_ofNat, cond_false]
         exact Int.ediv_mul_le _ (by positivity)
       · simp only [Int.rdiv, Nat.cast_pow, Nat.cast_ofNat, cond_true, neg_mul, le_neg]
         exact Int.ediv_mul_le _ (by positivity)
@@ -1272,22 +1220,12 @@ lemma Fixed.approx_repoint (x : Fixed s) (t : Int64) (up : Bool) :
 /-- `Fixed.repoint _ _ false` rounds down -/
 lemma Fixed.repoint_le {x : Fixed s} {t : Int64} (n : x.repoint t false ≠ nan) :
     (x.repoint t false).val ≤ x.val := by
-  by_cases xn : x = nan
-  · simp only [xn, repoint_nan, ne_eq, not_true_eq_false] at n
-  have h := Fixed.approx_repoint (x := x) (s := s) (t := t) (up := false)
-  simpa only [ge_iff_le, ne_eq, neg_eq_nan, xn, not_false_eq_true, ne_nan_of_neg,
-    approx_eq_singleton, n, Bool.not_false, singleton_subset_iff, mem_rounds_singleton,
-    ite_true] using h
+  simpa [rounds_iff, n] using Fixed.approx_repoint x t false (approx_val x)
 
 /-- `Fixed.repoint _ _ true` rounds up -/
 lemma Fixed.le_repoint {x : Fixed s} {t : Int64} (n : x.repoint t true ≠ nan) :
     x.val ≤ (x.repoint t true).val := by
-  by_cases xn : x = nan
-  · simp only [xn, repoint_nan, ne_eq, not_true_eq_false] at n
-  have h := Fixed.approx_repoint (x := x) (s := s) (t := t) (up := true)
-  simpa only [ge_iff_le, ne_eq, neg_eq_nan, xn, not_false_eq_true, ne_nan_of_neg,
-    approx_eq_singleton, n, Bool.not_false, singleton_subset_iff, mem_rounds_singleton,
-    ite_true] using h
+  simpa [rounds_iff, n] using Fixed.approx_repoint x t true (approx_val x)
 
 /-!
 ### Ordering on `Fixed s`

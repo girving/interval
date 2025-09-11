@@ -784,11 +784,11 @@ lemma UInt128.toInt_shiftRightRound (x : UInt128) (s : UInt64) (up : Bool) :
 
 /-- `shiftRightRound` rounds as desired -/
 lemma UInt128.approx_shiftRightRound (x : UInt128) (s : UInt64) (up : Bool) :
-    (x.shiftRightRound s up : ℝ) ∈ rounds {(x : ℝ) / (2:ℝ)^s.toNat} up := by
+    Rounds (x.shiftRightRound s up : ℝ) ((x : ℝ) / (2:ℝ)^s.toNat) up := by
   have a := toInt_shiftRightRound x s up
   simp only [←Int.cast_inj (α := ℝ), Int.cast_natCast] at a
   have e : (2:ℝ)^s.toNat = (2^s.toNat : ℕ) := by simp only [Nat.cast_pow, Nat.cast_ofNat]
-  simp only [toReal, mem_rounds_singleton, a, e]
+  simp only [toReal, rounds_same, a, e]
   induction up
   · exact Int.rdiv_le
   · exact Int.le_rdiv

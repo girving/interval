@@ -17,11 +17,11 @@ def approxConfig : Aesop.Options := {
   enableSimp := false
 }
 
-/-- `approx` tactic for proving simple `a ∈ approx x` goals.
+/-- `approx` tactic for proving simple `approx x a` goals.
 
-`a ∈ approx x` says that `x` is a conservative approximation of `a` as defined by the `Approx`
-typeclass. For example, `approx_add` says that `a + b ∈ approx (x + y)` if `a ∈ approx x` and
-`b ∈ approx y`. `approx_add` is registered as an `@[approx]` lemma so that the `approx` tactic
+`approx x a` says that `x` is a conservative approximation of `a` as defined by the `Approx`
+typeclass. For example, `approx_add` says that `approx (x + y) (a + b)` if `approx x a` and
+`approx y b`. `approx_add` is registered as an `@[approx]` lemma so that the `approx` tactic
 can apply it. -/
 syntax "approx" : tactic
 

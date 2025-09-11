@@ -75,9 +75,8 @@ lemma valid_abs {x : Floating} : Valid x.n.uabs.toInt64 x.s where
     Int64.toInt64_toUInt64]
 
 /-- `abs` is conservative -/
-@[approx] lemma mem_approx_abs {a : ℝ} {x : Floating} (ax : a ∈ approx x) : |a| ∈ approx x.abs := by
+@[approx] lemma mem_approx_abs {a : ℝ} {x : Floating} (ax : approx x a) : approx x.abs |a| := by
   by_cases n : x = nan
-  · simp only [n, abs_nan, approx_nan, mem_univ]
-  · simp only [ne_eq, n, not_false_eq_true, approx_eq_singleton, mem_singleton_iff, abs_eq_nan,
-      val_abs] at ax ⊢
+  · simp only [n, abs_nan, approx_nan]
+  · simp only [ne_eq, n, not_false_eq_true, approx_eq_singleton, abs_eq_nan, val_abs] at ax ⊢
     rw [ax]

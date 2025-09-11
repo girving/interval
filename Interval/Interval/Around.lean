@@ -17,7 +17,7 @@ open scoped Real
   /-- The interval -/
   i : Interval
   /-- We contain `c` -/
-  mem : c ∈ approx i
+  mem : approx i c
 
 namespace Around
 
@@ -30,4 +30,4 @@ attribute [approx] Around.mem
 instance : Inter (Around c) where
   inter x y := {
     i := x.i.inter y.i ⟨c, x.mem, y.mem⟩
-    mem := by approx }
+    mem := Interval.mem_approx_inter x.mem y.mem }

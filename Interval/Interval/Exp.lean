@@ -10,6 +10,8 @@ import Interval.Interval.Series
 open Set
 open scoped Real
 
+variable {x : Interval} {x' : ℝ}
+
 /-!
 ### `exp x` for small `x` via series
 -/
@@ -25,7 +27,7 @@ def exp_series_radius : ℚ := 0.346574
            else .ofRat (exp_series_radius ^ n * ((n + 1) / (Nat.factorial n * n))) true
 
 /-- Our power series for `exp` is correct -/
-lemma approx_exp_series (n : ℕ) : Real.exp ∈ approx (exp_series n) := by
+lemma approx_exp_series (n : ℕ) : approx (exp_series n) Real.exp := by
   have nn : (exp_series n).coeffs.size = n := by rw [exp_series, Array.size_map, Array.size_range]
   by_cases n0 : n = 0
   · intro a x _
@@ -34,7 +36,7 @@ lemma approx_exp_series (n : ℕ) : Real.exp ∈ approx (exp_series n) := by
       simp only [beq_self_eq_true, pow_zero, CharP.cast_eq_zero, zero_add, Nat.factorial_zero,
         Nat.cast_one, mul_zero, div_zero, cond_true]
     simp only [n0, Series.eval, Floating.val_lt_val, e, Interval.grow_nan, taylor_sum_nan,
-      Bool.cond_self, Interval.approx_nan, mem_univ]
+      Bool.cond_self, approx_nan]
   · apply (exp_series n).approx_of_taylor
     · intro rn x xr
       rw [exp_series] at xr rn; simp only at xr
@@ -59,9 +61,9 @@ lemma approx_exp_series (n : ℕ) : Real.exp ∈ approx (exp_series n) := by
         Rat.cast_inv, Rat.cast_natCast, Rat.cast_add, Rat.cast_one]
 
 /-- `approx` friendly version of `approx_exp_series` -/
-@[approx] lemma mem_approx_exp_series {a : ℝ} {x : Interval} (ax : a ∈ approx x) {n : ℕ} :
-    Real.exp a ∈ approx ((exp_series n).eval x) :=
-  approx_exp_series n a x ax
+@[approx] lemma mem_approx_exp_series (ax : approx x x') {n : ℕ} :
+    approx ((exp_series n).eval x) (Real.exp x') :=
+  approx_exp_series n x' x ax
 
 /-- 16 terms are about enough for 64 bits of precision -/
 @[irreducible] def exp_series_16 := exp_series 16
@@ -90,14 +92,13 @@ via Taylor series, and form `exp x = exp (y + n log 2) = exp y * 2^n` via shifti
   x.lo.exp ∪ x.hi.exp
 
 /-- `Floating.exp` is conservative -/
-@[approx] lemma Floating.mem_approx_exp {x : Floating} {x' : ℝ} (xm : x' ∈ approx x) :
-    Real.exp x' ∈ approx x.exp := by
+@[approx] lemma Floating.mem_approx_exp {x : Floating} (xm : approx x x') :
+    approx x.exp (Real.exp x') := by
   rw [Floating.exp]
   generalize hn : floor ((mul x Floating.inv_log_two false).add (ofRat (1 / 2) false) false) = n
   simp only [bif_eq_if, beq_iff_eq]
   by_cases xn : x = nan
-  · simp only [xn, Interval.coe_nan, Interval.nan_sub, Series.eval_nan, ite_true,
-      Interval.approx_nan, mem_univ]
+  · simp only [xn, ↓reduceIte, approx_nan]
   simp only [xn, ite_false]
   have e : Real.exp x' = Real.exp (x' - Real.log 2 * n.val) * 2 ^ n.val := by
     rw [Real.exp_sub, Real.exp_mul, Real.exp_log (by norm_num),
@@ -111,20 +112,14 @@ via Taylor series, and form `exp x = exp (y + n log 2) = exp y * 2^n` via shifti
   simp only [beq_self_eq_true, nan_mul, cond_true]
 
 /-- `Interval.exp` is conservative (`⊆` version) -/
-@[approx] lemma Interval.approx_exp {x : Interval} : Real.exp '' approx x ⊆ approx x.exp := by
+@[approx] lemma Interval.approx_exp (ax : approx x x') : approx x.exp (Real.exp x') := by
   rw [Interval.exp]
   by_cases xn : x = nan
-  · simp only [xn, approx_nan, image_univ, Real.range_exp, lo_nan, Floating.exp_nan, hi_nan,
-      union_nan, subset_univ]
-  rw [approx_eq_Icc xn]
-  refine subset_trans Real.exp_monotone.image_Icc_subset (Icc_subset_approx ?_ ?_)
+  · simp only [xn, approx_nan, lo_nan, Floating.exp_nan, hi_nan, union_nan]
+  apply approx_of_mem_Icc (a := x.lo.val.exp) (c := x.hi.val.exp)
   · apply Interval.approx_union_left; approx
   · apply Interval.approx_union_right; approx
-
-/-- `Interval.exp` is conservative (`∈` version) -/
-@[approx] lemma Interval.mem_approx_exp {x : Interval} {a : ℝ} (ax : a ∈ approx x) :
-    Real.exp a ∈ approx x.exp :=
-  Interval.approx_exp (mem_image_of_mem _ ax)
+  · simpa [mem_Icc, Real.exp_le_exp, approx, xn] using ax
 
 /-- `Interval.exp` propagates `nan` -/
 @[simp] lemma Interval.exp_nan : (nan : Interval).exp = nan := by

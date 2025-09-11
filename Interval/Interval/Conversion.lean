@@ -46,8 +46,9 @@ instance : OfScientific Interval where
 instance {n : ℕ} [n.AtLeastTwo] : OfNat Interval n := ⟨.ofNat n⟩
 
 /-- `.ofNat` is conservative -/
-@[approx] lemma approx_ofNat (n : ℕ) : ↑n ∈ approx (Interval.ofNat n) := by
-  rw [ofNat]; simp only [approx, mem_ite_univ_left, mem_Icc]
+@[approx] lemma approx_ofNat (n : ℕ) : approx (Interval.ofNat n) (n : ℝ) := by
+  rw [ofNat]
+  simp only [approx, or_iff_not_imp_left]
   intro m; simp only [lo_eq_nan] at m
   simp only [lo_mix m, hi_mix m]
   simp only [mix_eq_nan, not_or] at m
@@ -56,24 +57,27 @@ instance {n : ℕ} [n.AtLeastTwo] : OfNat Interval n := ⟨.ofNat n⟩
 /-- `approx_ofNat` for integer literals.
 `no_index` is required because of https://github.com/leanprover/lean4/issues/2867. -/
 @[approx] lemma ofNat_mem_approx_ofNat {n : ℕ} [n.AtLeastTwo] :
-    no_index (OfNat.ofNat n) ∈ approx (Interval.ofNat (no_index (OfNat.ofNat n))) := approx_ofNat _
+    approx (Interval.ofNat (no_index (OfNat.ofNat n))) (no_index (OfNat.ofNat n) : ℝ) :=
+  approx_ofNat _
 
 /-- `approx_ofNat` for integer literals.
 `no_index` is required because of https://github.com/leanprover/lean4/issues/2867. -/
 @[approx] lemma ofNat_mem_approx_ofNat' {n : ℕ} [n.AtLeastTwo] :
-    no_index (OfNat.ofNat n) ∈ approx (no_index (OfNat.ofNat n : Interval)) := approx_ofNat _
+    approx (no_index (OfNat.ofNat n : Interval)) (no_index (OfNat.ofNat n) : ℝ) := approx_ofNat _
 
 /-- `.ofInt` is conservative -/
-@[approx] lemma approx_ofInt (n : ℤ) : ↑n ∈ approx (Interval.ofInt n) := by
-  rw [ofInt]; simp only [approx, mem_ite_univ_left, mem_Icc]
+@[approx] lemma approx_ofInt (n : ℤ) : approx (Interval.ofInt n) (n : ℝ) := by
+  rw [ofInt]
+  simp only [approx, or_iff_not_imp_left]
   intro m; simp only [lo_eq_nan] at m
   simp only [lo_mix m, hi_mix m]
   simp only [mix_eq_nan, not_or] at m
   exact ⟨Floating.ofInt_le m.1, Floating.le_ofInt m.2⟩
 
 /-- `.ofRat` is conservative -/
-@[approx] lemma approx_ofRat (x : ℚ) : ↑x ∈ approx (Interval.ofRat x) := by
-  rw [ofRat]; simp only [approx, mem_ite_univ_left, mem_Icc]
+@[approx] lemma approx_ofRat (x : ℚ) : approx (Interval.ofRat x) (x : ℝ) := by
+  rw [ofRat]
+  simp only [approx, or_iff_not_imp_left]
   intro m; simp only [lo_eq_nan] at m
   simp only [lo_mix m, hi_mix m]
   simp only [mix_eq_nan, not_or] at m
@@ -82,26 +86,25 @@ instance {n : ℕ} [n.AtLeastTwo] : OfNat Interval n := ⟨.ofNat n⟩
 /-- `approx_ofRat` for rational literals `a / b`.
 `no_index` is required because of https://github.com/leanprover/lean4/issues/2867. -/
 @[approx] lemma ofNat_div_mem_approx_ofRat {a b : ℕ} [a.AtLeastTwo] [b.AtLeastTwo] :
-    no_index (OfNat.ofNat a) / no_index (OfNat.ofNat b) ∈
-      approx (Interval.ofRat (no_index (OfNat.ofNat a) / no_index (OfNat.ofNat b))) := by
+    approx (Interval.ofRat (no_index (OfNat.ofNat a) / no_index (OfNat.ofNat b)))
+      (no_index (OfNat.ofNat a) / no_index (OfNat.ofNat b) : ℝ) := by
   convert approx_ofRat _; simp only [Rat.cast_div, Rat.cast_ofNat]
 
 /-- `approx_ofRat` for rational literals `1 / b`.
 `no_index` is required because of https://github.com/leanprover/lean4/issues/2867. -/
 @[approx] lemma one_div_ofNat_mem_approx_ofRat {b : ℕ} [b.AtLeastTwo] :
-    1 / no_index (OfNat.ofNat b) ∈ approx (Interval.ofRat (1 / no_index (OfNat.ofNat b))) := by
+    approx (Interval.ofRat (1 / no_index (OfNat.ofNat b))) (1 / no_index (OfNat.ofNat b) : ℝ) := by
   convert approx_ofRat _; simp only [one_div, Rat.cast_inv, Rat.cast_ofNat]
 
 /-- `ofRat` conversion is conservative -/
 @[approx] lemma approx_ofScientific (x : ℕ) (u : Bool) (t : ℕ) :
-    OfScientific.ofScientific x u t ∈
-      approx (OfScientific.ofScientific x u t : Interval) := by
+    approx (OfScientific.ofScientific x u t : Interval) (OfScientific.ofScientific x u t : ℝ) := by
   simp only [OfScientific.ofScientific]
   apply approx_ofRat
 
-@[approx] lemma mem_approx_natCast (n : ℕ) : (n : ℝ) ∈ approx (n : Interval) := approx_ofNat _
+@[approx] lemma mem_approx_natCast (n : ℕ) : approx (n : Interval) (n : ℝ) := approx_ofNat _
 
-@[approx] lemma mem_approx_intCast (n : ℤ) : (n : ℝ) ∈ approx (n : Interval) := approx_ofInt _
+@[approx] lemma mem_approx_intCast (n : ℤ) : approx (n : Interval) (n : ℝ) := approx_ofInt _
 
 /-- `n.lo ≤ n` -/
 lemma ofNat_le (n : ℕ) : (ofNat n).lo.val ≤ n := by
@@ -109,11 +112,11 @@ lemma ofNat_le (n : ℕ) : (ofNat n).lo.val ≤ n := by
   · simp only [m, lo_nan]
     exact le_trans Floating.val_nan_lt_zero.le (Nat.cast_nonneg _)
   · have h := approx_ofNat n
-    simp only [approx, lo_eq_nan, m, ite_false, mem_Icc] at h
+    simp only [approx, lo_eq_nan, m, false_or] at h
     exact h.1
 
 /-- `n ≤ n.hi` unless we're `nan` -/
 lemma le_ofNat (n : ℕ) (m : ofNat n ≠ nan) : n ≤ (ofNat n).hi.val := by
   have h := approx_ofNat n
-  simp only [approx, lo_eq_nan, m, ite_false, mem_Icc] at h
+  simp only [approx, lo_eq_nan, m, false_or] at h
   exact h.2

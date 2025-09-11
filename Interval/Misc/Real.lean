@@ -109,10 +109,6 @@ lemma Set.inv_Icc₀ {a b : 𝕜} (a0 : 0 < a) (b0 : 0 < b) : (Icc a b)⁻¹ = I
   · simp only [not_le] at x0
     simp only [le_inv_comm₀ x0 a0, inv_le_comm₀ b0 x0]
 
-/-- `approx` friendly version of `Set.mem_inv` -/
-@[approx] lemma Set.mem_inv_of_mem {x : 𝕝} {s : Set 𝕝} (m : x ∈ s) : x⁻¹ ∈ s⁻¹ := by
-  rw [Set.mem_inv, inv_inv]; exact m
-
 /-- `pow` and `zpow` multiply via addition -/
 lemma pow_mul_zpow {a : 𝕝} (a0 : a ≠ 0) (b : ℕ) (c : ℤ) : a^b * a^c = a^(b + c) := by
   simp only [zpow_add₀ a0, zpow_natCast]

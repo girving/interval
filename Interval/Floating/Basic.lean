@@ -44,6 +44,8 @@ structure Floating.Valid (n : Int64) (s : UInt64) : Prop where
 
 namespace Floating
 
+variable {a : ℝ}
+
 -- Direct access to the fields of `Floating.Valid`
 lemma zero_same (x : Floating) : x.n = 0 → x.s = 0 := x.v.zero_same
 lemma nan_same (x : Floating) : x.n = .minValue → x.s = .max := x.v.nan_same
@@ -108,7 +110,7 @@ def valq (x : Floating) : ℚ :=
 
 /-- `Floating` approximates `ℝ` -/
 instance : Approx Floating ℝ where
-  approx x := if x = nan then univ else {x.val}
+  approx x a := x = nan ∨ x.val = a
 
 /-- `0 : Floating` -/
 instance : Zero Floating where
@@ -127,7 +129,8 @@ instance : One Floating where
 @[simp] lemma s_nan : (nan : Floating).s = .max := rfl
 
 /-- `nan` could be anything -/
-@[simp] lemma approx_nan : approx (nan : Floating) = univ := rfl
+instance : ApproxNan Floating ℝ where
+  approx_nan a := by simp only [approx, true_or]
 
 /-- `0 = 0` -/
 @[simp] lemma val_zero : (0 : Floating).val = 0 := by
@@ -146,8 +149,8 @@ instance : One Floating where
 @[simp] lemma nan_ne_one : (nan : Floating) ≠ 1 := by decide +kernel
 
 /-- `0` is just zero -/
-@[simp] lemma approx_zero : approx (0 : Floating) = {0} := by
-  simp only [approx, zero_ne_nan, val_zero, ite_false]
+@[simp] lemma approx_zero : approx (0 : Floating) a ↔ a = 0 := by
+  simp only [approx, eq_comm, nan_ne_zero, val_zero, false_or]
 
 /-- `1 = 1` -/
 @[simp] lemma val_one : (1 : Floating).val = 1 := by
@@ -164,13 +167,13 @@ lemma val_nan : (nan : Floating).val = -(2 ^ 63) * 2 ^ (2 ^ 63 - 1) := by
   rfl
 
 /-- If we're not `nan`, `approx` is a singleton -/
-@[simp] lemma approx_eq_singleton {x : Floating} (n : x ≠ nan) : approx x = {x.val} := by
-  simp only [approx, n, ite_false]
+@[simp] lemma approx_eq_singleton {x : Floating} (n : x ≠ nan) : approx x a ↔ x.val = a := by
+  simp only [approx, n, false_or]
 
-@[simp, approx] lemma val_mem_approx {x : Floating} : x.val ∈ approx x := by
+@[simp, approx] lemma approx_val {x : Floating} : approx x x.val := by
   by_cases n : x = nan
-  · simp only [n, approx_nan, mem_univ]
-  · simp only [ne_eq, n, not_false_eq_true, approx_eq_singleton, mem_singleton_iff]
+  · simp only [n, approx_nan]
+  · simp only [ne_eq, n, not_false_eq_true, approx_eq_singleton]
 
 /-- If we're not nan, `x.n ≠ .min` -/
 lemma n_ne_min {x : Floating} (n : x ≠ nan) : x.n ≠ .minValue := by
@@ -234,12 +237,21 @@ This should really be cleaned up
 @[simp] lemma up63 : (2^63 : UInt64).toNat = 2^63 := by decide +kernel
 @[simp] lemma ua2 : (2 : ℤ).natAbs = 2 := rfl
 
+lemma rounds_iff {x : Floating} {up : Bool} :
+    Rounds x a up ↔ (x ≠ nan → if up then a ≤ x.val else x.val ≤ a) := by
+  simp only [Rounds, approx]
+  constructor
+  · aesop
+  · intro h
+    by_cases n : x = nan
+    · use a
+      simp only [n, true_or, le_refl, ite_self, and_self]
+    · aesop
+
 /-- Remove a `nan` possibility from a rounding statement -/
 lemma rounds_of_ne_nan {a : ℝ} {x : Floating} {up : Bool}
-    (h : x ≠ nan → if up = true then x.val ≤ a else a ≤ x.val) : a ∈ rounds (approx x) up := by
-  by_cases n : x = nan
-  · simp only [n, approx_nan, rounds_univ, mem_univ]
-  · simp only [ne_eq, n, not_false_eq_true, approx_eq_singleton, mem_rounds_singleton, h n]
+    (h : x ≠ nan → if up = true then a ≤ x.val else x.val ≤ a) : Rounds x a up := by
+  simpa only [rounds_iff]
 
 /-- `val` if we're nonnegative -/
 lemma val_of_nonneg {x : Floating} (x0 : 0 ≤ x.val) :

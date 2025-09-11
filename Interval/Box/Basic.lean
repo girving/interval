@@ -22,6 +22,9 @@ open scoped Real ComplexConjugate
 
 namespace Box
 
+variable {z w : Box} {z' w' : ℂ}
+variable {x y : Interval} {x' y' : ℝ}
+
 /-- `Box` has nice equality -/
 instance : LawfulBEq Box where
   eq_of_beq {x y} e := by
@@ -47,7 +50,7 @@ instance : Repr Box where
 
 /-- `Box` approximates `ℂ` -/
 instance instApprox : Approx Box ℂ where
-  approx z := image2 (fun r i ↦ ⟨r,i⟩) (approx z.re) (approx z.im)
+  approx z z' := approx z.re z'.re ∧ approx z.im z'.im
 
 /-- `Box` zero -/
 instance : Zero Box where
@@ -94,59 +97,47 @@ lemma smul_def {x : Interval} {z : Box} : x • z = ⟨x * z.re, x * z.im⟩ := 
 -- Bounds properties of `Box` arithmetic
 @[simp] lemma re_zero : (0 : Box).re = 0 := rfl
 @[simp] lemma im_zero : (0 : Box).im = 0 := rfl
-@[simp] lemma approx_zero : approx (0 : Box) = {0} := by
-  simp only [instApprox, re_zero, Interval.approx_zero, im_zero, image2_singleton_right,
-    image_singleton, singleton_eq_singleton_iff, Complex.ext_iff, Complex.zero_re, Complex.zero_im,
-    and_self]
+@[simp] lemma approx_zero : approx (0 : Box) z' ↔ z' = 0 := by
+  simp only [instApprox, re_zero, Interval.approx_zero, im_zero, Complex.ext_iff, Complex.zero_re,
+    Complex.zero_im]
+@[simp] lemma re_neg {z : Box} : (-z).re = -z.re := rfl
+@[simp] lemma im_neg {z : Box} : (-z).im = -z.im := rfl
 @[simp] lemma re_smul {x : Interval} {z : Box} : (x • z).re = x * z.re := by simp [smul_def]
 @[simp] lemma im_smul {x : Interval} {z : Box} : (x • z).im = x * z.im := by simp [smul_def]
 
 /-- Prove `re ∈` via full `∈` -/
-@[approx] lemma mem_approx_re {z : ℂ} {w : Box} (zw : z ∈ approx w) : z.re ∈ approx w.re := by
-  simp only [approx, mem_image2_iff] at zw; exact zw.1
+@[approx] lemma mem_approx_re {z : ℂ} {w : Box} (zw : approx w z) : approx w.re z.re := zw.1
 
 /-- Prove `im ∈` via full `∈` -/
-@[approx] lemma mem_approx_im {z : ℂ} {w : Box} (zw : z ∈ approx w) : z.im ∈ approx w.im := by
-  simp only [approx, mem_image2_iff] at zw; exact zw.2
+@[approx] lemma mem_approx_im {z : ℂ} {w : Box} (zw : approx w z) : approx w.im z.im := zw.2
 
 /-- Split `∈ approx` into components -/
-lemma mem_approx_iff_ext {z : ℂ} {w : Box} :
-    z ∈ approx w ↔ z.re ∈ approx w.re ∧ z.im ∈ approx w.im := by
-  simp [approx, Complex.ext_iff]
+lemma mem_approx_iff_ext {z : ℂ} {w : Box} : approx w z ↔ approx w.re z.re ∧ approx w.im z.im := by
+  rfl
 
 /-- `star` is conservative -/
 instance : ApproxStar Box ℂ where
-  approx_star z := by
-    simp only [RCLike.star_def, instApprox, image_image2, re_conj, im_conj, Interval.approx_neg,
-      image2_subset_iff, mem_image2, mem_neg]
-    intro r rz i iz
-    exact ⟨r, rz, -i, by simpa only [neg_neg], rfl⟩
+  approx_star m := by
+    simp only [instApprox, RCLike.star_def, re_conj, Complex.conj_re, m.1, im_conj, Complex.conj_im,
+      Interval.approx_neg, neg_neg, m.2, and_self]
+
+@[approx] lemma approx_conj (m : approx z z') : approx (star z) (conj z') := approx_star m
 
 /-- `Box.neg` respects `approx` -/
 instance : ApproxNeg Box ℂ where
-  approx_neg z := by
-    intro x m
-    simp only [instApprox, mem_neg, mem_image2] at m ⊢
-    rcases m with ⟨r,rz,i,iz,e⟩
-    rw [← neg_eq_iff_eq_neg] at e
-    refine ⟨-r, ?_, -i, ?_, by rw [← e]; rfl⟩
-    repeat { apply approx_neg; simpa only [mem_neg, neg_neg] }
+  approx_neg m := by simpa [instApprox, mem_neg, mem_image2] using m
 
 /-- `Box.add` respects `approx` -/
 instance : ApproxAdd Box ℂ where
-  approx_add z w := by
-    simp only [Box.instApprox, add_subset_iff, Box.mem_image2_iff, and_imp, Complex.add_re,
-      Complex.add_im, Box.add_def]
-    intro a ar ai b br bi
-    exact ⟨approx_add _ _ (add_mem_add ar br), approx_add _ _ (add_mem_add ai bi)⟩
+  approx_add _ _ := by
+    simp only [instApprox, add_def, Complex.add_re, Complex.add_im]
+    approx
 
 /-- `Box.sub` respects `approx` -/
 instance : ApproxSub Box ℂ where
-  approx_sub x y := by
-    simp only [Box.instApprox, sub_subset_iff, Box.mem_image2_iff, and_imp, Complex.sub_re,
-      Complex.sub_im, Box.sub_def]
-    intro a ar ai b br bi
-    exact ⟨approx_sub _ _ (sub_mem_sub ar br), approx_sub _ _ (sub_mem_sub ai bi)⟩
+  approx_sub _ _ := by
+    simp only [instApprox, sub_def, Complex.sub_re, Complex.sub_im]
+    approx
 
 /-- `Box` approximates `ℂ` as an additive group -/
 noncomputable instance : ApproxAddGroup Box ℂ where
@@ -154,46 +145,23 @@ noncomputable instance : ApproxAddGroup Box ℂ where
 /-- `Box` multiplication approximates `ℂ` -/
 instance : ApproxMul Box ℂ where
   approx_mul z w := by
-    simp only [Box.instApprox, mul_subset_iff, Box.mem_image2_iff, and_imp, Complex.mul_re,
-      Complex.mul_im, Box.mul_def]
-    intro a ar ai b br bi
-    exact ⟨by approx, by approx⟩
+    simp only [Box.instApprox, Complex.mul_re, Complex.mul_im, Box.mul_def]
+    approx
 
 /-- `Interval • Box` approximates `ℂ` -/
-@[approx] lemma approx_smul (x : Interval) (z : Box) : approx x • approx z ⊆ approx (x • z) := by
-  simp only [instApprox, smul_def, smul_subset_iff, mem_image2, Complex.real_smul,
-    forall_exists_index, and_imp]
-  intro a ax b r rz i iz e
-  simp only [← e, Complex.ext_iff, Complex.ofReal_mul']
-  exact ⟨a * r, by approx, a * i, by approx, rfl, rfl⟩
-
-/-- `∈` friendly version of `approx_smul` -/
-@[approx] lemma mem_approx_smul {a : ℝ} {z : ℂ} {x : Interval} {w : Box} (ax : a ∈ approx x)
-    (zw : z ∈ approx w) : a • z ∈ approx (x • w) :=
-  approx_smul _ _ (smul_mem_smul ax zw)
+@[approx] lemma approx_smul (ax : approx x x') (az : approx z z') : approx (x • z) (x' • z') := by
+  simp only [instApprox, smul_def, Complex.real_smul, Complex.mul_re, Complex.ofReal_re,
+    Complex.ofReal_im, zero_mul, sub_zero, Complex.mul_im, add_zero]
+  approx
 
 /-- `Box` approximates `ℂ` as a ring -/
 noncomputable instance : ApproxRing Box ℂ where
 
 /-- `Box` squaring approximates `ℂ` -/
-@[approx] lemma approx_sqr (z : Box) : (fun z ↦ z^2) '' approx z ⊆ approx z.sqr := by
-  simp only [instApprox, image_image2, subset_def, Box.sqr, mem_image2]
-  rintro w ⟨r,rz,i,iz,e⟩
-  refine ⟨r^2 - i^2, ?_, 2*r*i, ?_, ?_⟩
-  · apply approx_sub
-    rw [Set.mem_sub]
-    exact ⟨r^2, Interval.approx_sqr _ (mem_image_of_mem _ rz),
-           i^2, Interval.approx_sqr _ (mem_image_of_mem _ iz), rfl⟩
-  · have e : (2 : ℝ) = 2^(1 : ℤ) := by norm_num
-    rw [mul_assoc, mul_comm, e]
-    exact Interval.mem_approx_scaleB (mem_approx_mul rz iz)
-  · rw [←e]
-    simp only [Complex.ext_iff, pow_two, Complex.mul_re, Complex.mul_im, mul_comm _ r, true_and]
-    ring
-
-/-- `Box` squaring approximates `ℂ`, `∈` version -/
-@[approx] lemma mem_approx_sqr {z' : ℂ} {z : Box} (m : z' ∈ approx z) : z'^2 ∈ approx z.sqr := by
-  apply approx_sqr; use z'
+@[approx] lemma approx_sqr (az : approx z z') : approx z.sqr (z' ^ 2) := by
+  simp only [instApprox, sqr, Complex.mul_re, Complex.mul_im, pow_two z', ← pow_two z'.re,
+    ← pow_two z'.im, mul_comm z'.im, ← two_mul]
+  approx
 
 /-!
 ### Multiplication and division by `I`
@@ -202,16 +170,13 @@ noncomputable instance : ApproxRing Box ℂ where
 @[irreducible] def mul_I (z : Box) : Box := ⟨-z.im, z.re⟩
 @[irreducible] def div_I (z : Box) : Box := ⟨z.im, -z.re⟩
 
-@[approx] lemma mem_approx_mul_I {z' : ℂ} {z : Box} (m : z' ∈ approx z) :
-    z' * Complex.I ∈ approx z.mul_I := by
+@[approx] lemma approx_mul_I (m : approx z z') : approx z.mul_I (z' * Complex.I) := by
   rw [mul_I, mem_approx_iff_ext]; simp; approx
 
-@[approx] lemma mem_approx_div_I {z' : ℂ} {z : Box} (m : z' ∈ approx z) :
-    z' / Complex.I ∈ approx z.div_I := by
+@[approx] lemma mem_approx_div_I (m : approx z z') : approx z.div_I (z' / Complex.I) := by
   rw [div_I, mem_approx_iff_ext]; simp; approx
 
-@[approx] lemma mem_approx_div_I' {z' : ℂ} {z : Box} (m : z' ∈ approx z) :
-    -z' * Complex.I ∈ approx z.div_I := by
+@[approx] lemma mem_approx_div_I' (m : approx z z') : approx z.div_I (-z' * Complex.I) := by
   rw [div_I, mem_approx_iff_ext]; simp; approx
 
 @[simp] lemma div_I_mul_I {z : Box} : z.div_I.mul_I = z := by rw [div_I, mul_I]; simp
@@ -226,27 +191,27 @@ noncomputable instance : ApproxRing Box ℂ where
   z.re.sqr + z.im.sqr
 
 /-- `normSq` is conservative -/
-@[approx] lemma mem_approx_normSq {z' : ℂ} {z : Box} (m : z' ∈ approx z) :
-    ‖z'‖ ^ 2 ∈ approx z.normSq := by
+@[approx] lemma mem_approx_normSq (m : approx z z') : approx z.normSq (‖z'‖ ^ 2) := by
   rw [normSq]
   simp only [Complex.sq_norm, Complex.normSq, ←pow_two, MonoidWithZeroHom.coe_mk, ZeroHom.coe_mk]
   approx
 
 /-- `normSq` is conservative -/
-@[approx] lemma mem_approx_normSq' {z' : ℂ} {z : Box} (m : z' ∈ approx z) :
-    Complex.normSq z' ∈ approx z.normSq := by
+@[approx] lemma mem_approx_normSq' (m : approx z z') : approx z.normSq z'.normSq := by
   simp only [Complex.normSq_eq_norm_sq]
-  exact mem_approx_normSq m
+  approx
 
 /-- Lower bounds on `normSq` produce lower bounds on contained radii -/
-lemma sqrt_normSq_le_abs {z' : ℂ} {z : Box} (m : z' ∈ approx z) (n : z.normSq ≠ nan) :
-    Real.sqrt z.normSq.lo.val ≤ ‖z'‖ := by
+lemma sqrt_normSq_le_abs (m : approx z z') : Real.sqrt z.normSq.lo.val ≤ ‖z'‖ := by
+  by_cases n : z.normSq = nan
+  · rw [Real.sqrt_eq_zero_of_nonpos]
+    all_goals simp [n]
   simp only [Real.sqrt_le_iff, norm_nonneg, true_and]
   apply Interval.lo_le n
   approx
 
 /-- Upper bounds on `normSq` produce upper bounds on contained radii -/
-lemma abs_le_sqrt_normSq {z' : ℂ} {z : Box} (m : z' ∈ approx z) (n : z.normSq ≠ nan) :
+lemma abs_le_sqrt_normSq (m : approx z z') (n : z.normSq ≠ nan) :
     ‖z'‖ ≤ Real.sqrt z.normSq.hi.val := by
   apply Real.le_sqrt_of_sq_le
   apply Interval.le_hi n
@@ -267,6 +232,5 @@ noncomputable instance : Coe (ℚ × ℚ) ℂ where
 @[irreducible] def ofRat (z : ℚ × ℚ) : Box :=
   ⟨.ofRat z.1, .ofRat z.2⟩
 
-@[approx] lemma approx_ofRat (z : ℚ × ℚ) : ↑z ∈ approx (ofRat z) := by
-  simp only [instApprox, ofRat, mem_image2, Complex.mk.injEq, exists_eq_right_right,
-    Interval.approx_ofRat, true_and, exists_eq_right, Complex.ofRat]
+@[approx] lemma approx_ofRat (z : ℚ × ℚ) : approx (ofRat z) (z : ℂ) := by
+  simp only [instApprox, ofRat, Interval.approx_ofRat, true_and, Complex.ofRat]

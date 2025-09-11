@@ -18,8 +18,7 @@ open Interval in
 def Interval.f (x : Interval) : Interval :=
   2 * x + (1 / x) + x⁻¹ + exp x + log x + sin x + cos x + x ^ (6 : Interval) + x * x
 
-lemma without_native_decide (x : ℝ) (x' : Interval) (hx : x ∈ approx x') :
-    f x ∈ approx (x'.f) := by
+lemma without_native_decide {x : Interval} {x' : ℝ} (hx : approx x x') : approx (x.f) (f x') := by
   simp only [f, Interval.f]
   approx
 

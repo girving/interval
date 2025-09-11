@@ -532,8 +532,10 @@ lemma max_assoc (x y z : Floating) : (x.max y).max z = x.max (y.max z) := by
 @[simp] lemma max_eq_right {x y : Floating} (xy : x.val ≤ y.val) (xn : x ≠ nan) : x.max y = y := by
   rw [max_comm, max_eq_left xy xn]
 
-@[simp] lemma val_nan_lt_zero : (nan : Floating).val < 0 := by
+@[simp, bound] lemma val_nan_lt_zero : (nan : Floating).val < 0 := by
   simp only [←lt_zero_iff, nan_lt_zero]
+
+@[simp, bound] lemma val_nan_le_zero : (nan : Floating).val ≤ 0 := val_nan_lt_zero.le
 
 /-!
 ### Additional facts about "naive" min and max (discarding single nans)
