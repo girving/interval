@@ -161,7 +161,7 @@ def Rounds [Approx A R] [LE R] (x : A) (y : R) (up : Bool) : Prop :=
 attribute [approx] subset_refl
 
 attribute [approx] approx_neg approx_add approx_sub approx_mul approx_div approx_smul approx_inv
-  approx_star approx_zero approx_one
+  approx_star approx_zero approx_one approx_nan
 
 /-- Test `approx` -/
 example [Field R] [ApproxField A R] {a b c : R} {x y z : A}
