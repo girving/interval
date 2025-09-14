@@ -136,8 +136,8 @@ instance : ApproxNan Interval ℝ where
   approx_nan a := by simp only [approx, lo_nan, hi_nan, true_or]
 
 -- Basic `approx` lemmas
-@[approx, simp] lemma mem_approx_zero : approx (0 : Interval) (0 : ℝ) := by simp only [approx_zero]
-@[approx, simp] lemma mem_approx_one : approx (1 : Interval) (1 : ℝ) := by simp only [approx_one]
+instance : ApproxZero Interval ℝ where approx_zero := by simp only [approx_zero]
+instance : ApproxOne Interval ℝ where approx_one := by simp only [approx_one]
 
 /-- `x.lo = nan` if `x = nan` -/
 @[simp] lemma lo_eq_nan {x : Interval} : x.lo = nan ↔ x = nan := by

@@ -241,11 +241,14 @@ instance : ApproxNan (Fixed s) ℝ where
 @[approx] lemma Fixed.approx_val (x : Fixed s) : approx x x.val := by
   simp only [approx, or_true]
 
-@[simp] lemma Fixed.approx_zero : approx (0 : Fixed s) a ↔ a = 0 := by
+@[simp] lemma Fixed.approx_zero_iff : approx (0 : Fixed s) a ↔ a = 0 := by
   simp only [approx, nan, ext_iff, zero_n, Int64.zero_def, Int64.ext_iff, Int64.n_min, val_zero,
     eq_comm (a := a)]
   simp only [UInt64.toInt64_ofNat, Int64.n_zero, or_iff_right_iff_imp]
   intro h; contrapose h; clear h; decide +kernel
+
+instance : ApproxZero (Fixed s) ℝ where
+  approx_zero := by simp only [approx, Fixed.val_zero, or_true]
 
 /-- If we're not `nan`, `approx` is a singleton -/
 @[simp] lemma Fixed.approx_eq_singleton {x : Fixed s} (n : x ≠ nan) : approx x a ↔ x.val = a := by

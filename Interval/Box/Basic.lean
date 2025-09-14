@@ -56,6 +56,10 @@ instance instApprox : Approx Box ℂ where
 instance : Zero Box where
   zero := ⟨0,0⟩
 
+/-- `Box` one -/
+instance : One Box where
+  one := ⟨1,0⟩
+
 /-- `Box` negation -/
 instance : Neg Box where
   neg x := ⟨-x.re, -x.im⟩
@@ -97,7 +101,9 @@ lemma smul_def {x : Interval} {z : Box} : x • z = ⟨x * z.re, x * z.im⟩ := 
 -- Bounds properties of `Box` arithmetic
 @[simp] lemma re_zero : (0 : Box).re = 0 := rfl
 @[simp] lemma im_zero : (0 : Box).im = 0 := rfl
-@[simp] lemma approx_zero : approx (0 : Box) z' ↔ z' = 0 := by
+@[simp] lemma re_one : (1 : Box).re = 1 := rfl
+@[simp] lemma im_one : (1 : Box).im = 0 := rfl
+@[simp] lemma approx_zero_iff : approx (0 : Box) z' ↔ z' = 0 := by
   simp only [instApprox, re_zero, Interval.approx_zero, im_zero, Complex.ext_iff, Complex.zero_re,
     Complex.zero_im]
 @[simp] lemma re_neg {z : Box} : (-z).re = -z.re := rfl
@@ -114,6 +120,9 @@ lemma smul_def {x : Interval} {z : Box} : x • z = ⟨x * z.re, x * z.im⟩ := 
 /-- Split `∈ approx` into components -/
 lemma mem_approx_iff_ext {z : ℂ} {w : Box} : approx w z ↔ approx w.re z.re ∧ approx w.im z.im := by
   rfl
+
+instance : ApproxZero Box ℂ where approx_zero := by simp [mem_approx_iff_ext]
+instance : ApproxOne Box ℂ where approx_one := by simp [mem_approx_iff_ext]
 
 /-- `star` is conservative -/
 instance : ApproxStar Box ℂ where

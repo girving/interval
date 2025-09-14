@@ -149,8 +149,11 @@ instance : ApproxNan Floating ℝ where
 @[simp] lemma nan_ne_one : (nan : Floating) ≠ 1 := by decide +kernel
 
 /-- `0` is just zero -/
-@[simp] lemma approx_zero : approx (0 : Floating) a ↔ a = 0 := by
+@[simp] lemma approx_zero_iff : approx (0 : Floating) a ↔ a = 0 := by
   simp only [approx, eq_comm, nan_ne_zero, val_zero, false_or]
+
+instance : ApproxZero Floating ℝ where
+  approx_zero := by simp only [approx, val_zero, or_true]
 
 /-- `1 = 1` -/
 @[simp] lemma val_one : (1 : Floating).val = 1 := by
@@ -158,6 +161,9 @@ instance : ApproxNan Floating ℝ where
   have e1 : (2^63 - 62 : UInt64).toInt - 2^63 = -62 := by decide +kernel
   simp only [val, n_one, e0, Int.cast_pow, Int.cast_ofNat, s_one, e1, zpow_neg]
   apply mul_inv_cancel₀; norm_num
+
+instance : ApproxOne Floating ℝ where
+  approx_one := by simp only [approx, val_one, or_true]
 
 lemma val_nan : (nan : Floating).val = -(2 ^ 63) * 2 ^ (2 ^ 63 - 1) := by
   simp only [Floating.val, Floating.n_nan, Int64.coe_min', Int.reducePow,

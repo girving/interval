@@ -20,6 +20,14 @@ class Approx (A : Type) (R : Type) where
 
 export Approx (approx)
 
+/-- `0 : A` is conservative -/
+class ApproxZero (A R : Type) [Zero R] [Zero A] [Approx A R] where
+  approx_zero : approx (0 : A) (0 : R)
+
+/-- `1 : A` is conservative -/
+class ApproxOne (A R : Type) [One R] [One A] [Approx A R] where
+  approx_one : approx (1 : A) (1 : R)
+
 /-- `-A` is conservative -/
 class ApproxNeg (A R : Type) [Neg R] [Neg A] [Approx A R] where
   approx_neg {x : A} {y : R} (m : approx x y) : approx (-x) (-y)
@@ -55,14 +63,18 @@ class ApproxSMul (A B A' B' : Type) [SMul A B] [SMul A' B'] [Approx A A'] [Appro
 
 /-- `A` approximates the additive group `R` -/
 class ApproxAddGroup (A R : Type) [AddGroup R] extends
-  Neg A, Add A, Sub A, Approx A R, ApproxNeg A R, ApproxAdd A R, ApproxSub A R where
+  Zero A, Neg A, Add A, Sub A, Approx A R,
+  ApproxZero A R, ApproxNeg A R, ApproxAdd A R, ApproxSub A R where
 
 /-- `A` approximates the ring `R` -/
-class ApproxRing (A R : Type) [Ring R] extends ApproxAddGroup A R, Mul A, ApproxMul A R where
+class ApproxRing (A R : Type) [Ring R] extends
+  ApproxAddGroup A R, One A, Mul A, ApproxOne A R, ApproxMul A R where
 
 /-- `A` approximates the field `R` -/
 class ApproxField (A R : Type) [Field R] extends ApproxRing A R, Div A, ApproxDiv A R where
 
+export ApproxZero (approx_zero)
+export ApproxOne (approx_one)
 export ApproxNeg (approx_neg)
 export ApproxAdd (approx_add)
 export ApproxSub (approx_sub)
@@ -77,6 +89,8 @@ export ApproxSMul (approx_smul)
 -/
 
 instance : Approx R R where approx x y := x = y
+instance [Zero R] : ApproxZero R R where approx_zero := by simp only [approx]
+instance [One R] : ApproxOne R R where approx_one := by simp only [approx]
 instance [Neg R] : ApproxNeg R R where approx_neg := by simp only [approx]; aesop
 instance [Add R] : ApproxAdd R R where approx_add := by simp only [approx]; aesop
 instance [Sub R] : ApproxSub R R where approx_sub := by simp only [approx]; aesop
@@ -147,7 +161,7 @@ def Rounds [Approx A R] [LE R] (x : A) (y : R) (up : Bool) : Prop :=
 attribute [approx] subset_refl
 
 attribute [approx] approx_neg approx_add approx_sub approx_mul approx_div approx_smul approx_inv
-  approx_star
+  approx_star approx_zero approx_one
 
 /-- Test `approx` -/
 example [Field R] [ApproxField A R] {a b c : R} {x y z : A}
