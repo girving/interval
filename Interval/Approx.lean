@@ -84,6 +84,8 @@ export ApproxStar (approx_star)
 export ApproxDiv (approx_div)
 export ApproxSMul (approx_smul)
 
+attribute [simp] approx_zero approx_one
+
 /-!
 ## Everything approximates itself
 -/
