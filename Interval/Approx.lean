@@ -20,9 +20,10 @@ class Approx (A : Type) (R : Type) where
 
 export Approx (approx)
 
-/-- `0 : A` is conservative -/
+/-- `0 : A` is conservative, and `0` only approximates `0` -/
 class ApproxZero (A R : Type) [Zero R] [Zero A] [Approx A R] where
   approx_zero : approx (0 : A) (0 : R)
+  approx_zero_imp : ∀ (x : R), approx (0 : A) x → x = 0
 
 /-- `1 : A` is conservative -/
 class ApproxOne (A R : Type) [One R] [One A] [Approx A R] where
@@ -86,12 +87,20 @@ export ApproxSMul (approx_smul)
 
 attribute [simp] approx_zero approx_one
 
+lemma approx_zero_iff [Approx A R] [Zero A] [Zero R] [ApproxZero A R] (x : R) :
+    approx (0 : A) x ↔ x = 0 := by
+  constructor
+  · apply ApproxZero.approx_zero_imp
+  · intro x0; rw [x0]; exact approx_zero
+
 /-!
 ## Everything approximates itself
 -/
 
 instance : Approx R R where approx x y := x = y
-instance [Zero R] : ApproxZero R R where approx_zero := by simp only [approx]
+instance [Zero R] : ApproxZero R R where
+  approx_zero := by simp only [approx]
+  approx_zero_imp x a := by simp only [approx] at a; simp only [a]
 instance [One R] : ApproxOne R R where approx_one := by simp only [approx]
 instance [Neg R] : ApproxNeg R R where approx_neg := by simp only [approx]; aesop
 instance [Add R] : ApproxAdd R R where approx_add := by simp only [approx]; aesop

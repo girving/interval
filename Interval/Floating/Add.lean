@@ -736,6 +736,16 @@ lemma le_add {x y : Floating} (n : x.add y true ≠ nan) :
     x.val + y.val ≤ (x.add y true).val := by
   simpa [rounds_iff, n] using approx_add x y true approx_val approx_val
 
+@[simp] lemma add_zero (x : Floating) (up : Bool) : x.add 0 up = x := by
+  rw [add]
+  simp only [BEq.rfl, Bool.true_or, bif_eq_if, Bool.or_eq_true, beq_iff_eq, zero_ne_nan, or_false]
+  aesop
+
+@[simp] lemma zero_add (x : Floating) (up : Bool) : (0 : Floating).add x up = x := by
+  rw [add]
+  simp only [BEq.rfl, Bool.true_or, bif_eq_if, Bool.or_eq_true, beq_iff_eq, zero_ne_nan, or_false]
+  aesop
+
 /-!
 ### Subtraction
 
@@ -781,3 +791,9 @@ lemma le_sub {x y : Floating} (n : x.sub y true ≠ nan) :
   have yn := (ne_nan_of_sub n).2
   simp only [sub_eq_add_neg, ne_eq, _root_.sub_eq_add_neg, ← val_neg yn, ge_iff_le] at n ⊢
   exact le_add n
+
+@[simp] lemma sub_zero (x : Floating) (up : Bool) : x.sub 0 up = x := by
+  rw [sub, neg_zero, add_zero]
+
+@[simp] lemma zero_sub (x : Floating) (up : Bool) : (0 : Floating).sub x up = -x := by
+  rw [sub, zero_add]

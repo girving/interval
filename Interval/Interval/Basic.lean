@@ -3,6 +3,7 @@ import Interval.Floating.Abs
 import Interval.Floating.Order
 import Interval.Floating.Scale
 import Interval.Misc.Real
+import Interval.Unbundled
 
 open Classical
 open Pointwise
@@ -136,7 +137,9 @@ instance : ApproxNan Interval ℝ where
   approx_nan a := by simp only [approx, lo_nan, hi_nan, true_or]
 
 -- Basic `approx` lemmas
-instance : ApproxZero Interval ℝ where approx_zero := by simp only [approx_zero]
+instance : ApproxZero Interval ℝ where
+  approx_zero := by simp only [approx_zero]
+  approx_zero_imp x a := by simpa only [approx_zero] using a
 instance : ApproxOne Interval ℝ where approx_one := by simp only [approx_one]
 
 /-- `x.lo = nan` if `x = nan` -/
@@ -913,3 +916,42 @@ lemma approx_grow {y z b : ℝ} {x : Interval} {e : Floating} (yz : |y - z| ≤ 
   constructor
   · exact le_trans (lo_add_le n) (by linarith [lo_error_le e])
   · exact le_trans (by linarith [le_hi_error e]) (le_hi_add n)
+
+/-!
+### Unbundled instances
+-/
+
+instance : NegZeroClass' Interval where
+  neg_zero' := by decide +kernel
+
+instance : AddZeroClass' Interval where
+  zero_add' x := by
+    by_cases n : x = nan
+    · simp only [n, add_nan]
+    · rw [Interval.ext_iff]
+      simp only [add_def, lo_zero, Floating.zero_add, hi_zero]
+      rw [Interval.lo_mix, Interval.hi_mix]
+      all_goals simp [n]
+  add_zero' x := by
+    by_cases n : x = nan
+    · simp only [n, nan_add]
+    · rw [Interval.ext_iff]
+      simp only [add_def, hi_zero, Floating.add_zero, lo_zero]
+      rw [Interval.lo_mix, Interval.hi_mix]
+      all_goals simp [n]
+
+instance : SubZeroClass Interval where
+  zero_sub' x := by
+    by_cases n : x = nan
+    · simp only [n, sub_nan, neg_nan]
+    · rw [Interval.ext_iff]
+      simp only [sub_def, lo_zero, Floating.zero_sub, hi_zero, lo_neg, hi_neg]
+      rw [Interval.lo_mix, Interval.hi_mix]
+      all_goals simp [n]
+  sub_zero' x := by
+    by_cases n : x = nan
+    · simp only [n, nan_sub]
+    · rw [Interval.ext_iff]
+      simp only [sub_def, hi_zero, Floating.sub_zero, lo_zero]
+      rw [Interval.lo_mix, Interval.hi_mix]
+      all_goals simp [n]

@@ -240,7 +240,7 @@ lemma Int64.n_mod_4 (x : Int64) : (x.toUInt64.toNat % 4 : ℕ) = x.toInt % 4 := 
   fin_cases a
   all_goals simp
   · refine fa (f := fun x ↦ Real.sin (x + π / 2 * d.val)) fun z w zw ↦ ?_
-    simp only [nq, CharP.cast_eq_zero, add_zero, p0, Real.sin_add_int_mul_two_pi, add_assoc,
+    simp only [nq, CharP.cast_eq_zero, add_zero', p0, Real.sin_add_int_mul_two_pi, add_assoc,
       ← mul_add, hmv]
     approx
   · refine fa (f := fun x ↦ Real.sin (x + π / 2 * d.val)) fun z w zw ↦ ?_
