@@ -137,9 +137,8 @@ instance : ApproxNan Interval ℝ where
   approx_nan a := by simp only [approx, lo_nan, hi_nan, true_or]
 
 -- Basic `approx` lemmas
-instance : ApproxZero Interval ℝ where
-  approx_zero := by simp only [approx_zero]
-  approx_zero_imp x a := by simpa only [approx_zero] using a
+instance : ApproxZero Interval ℝ where approx_zero := by simp only [approx_zero]
+instance : ApproxZeroIff Interval ℝ where approx_zero_imp x a := by simpa only [approx_zero] using a
 instance : ApproxOne Interval ℝ where approx_one := by simp only [approx_one]
 
 /-- `x.lo = nan` if `x = nan` -/

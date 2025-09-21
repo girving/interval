@@ -122,9 +122,8 @@ lemma smul_def {x : Interval} {z : Box} : x • z = ⟨x * z.re, x * z.im⟩ := 
 lemma mem_approx_iff_ext {z : ℂ} {w : Box} : approx w z ↔ approx w.re z.re ∧ approx w.im z.im := by
   rfl
 
-instance : ApproxZero Box ℂ where
-  approx_zero := by simp [mem_approx_iff_ext]
-  approx_zero_imp x a := by simpa only [approx_zero_iff] using a
+instance : ApproxZero Box ℂ where approx_zero := by simp [mem_approx_iff_ext]
+instance : ApproxZeroIff Box ℂ where approx_zero_imp x a := by simpa only [approx_zero_iff] using a
 instance : ApproxOne Box ℂ where approx_one := by simp [mem_approx_iff_ext]
 
 /-- `star` is conservative -/

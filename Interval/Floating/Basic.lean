@@ -154,6 +154,8 @@ instance : ApproxNan Floating ℝ where
 
 instance : ApproxZero Floating ℝ where
   approx_zero := by simp only [approx, val_zero, or_true]
+
+instance : ApproxZeroIff Floating ℝ where
   approx_zero_imp x a := by simpa only [approx_zero_iff] using a
 
 /-- `1 = 1` -/

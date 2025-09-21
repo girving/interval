@@ -249,6 +249,8 @@ instance : ApproxNan (Fixed s) ℝ where
 
 instance : ApproxZero (Fixed s) ℝ where
   approx_zero := by simp only [approx, Fixed.val_zero, or_true]
+
+instance : ApproxZeroIff (Fixed s) ℝ where
   approx_zero_imp x a := by simpa only [Fixed.approx_zero_iff] using a
 
 /-- If we're not `nan`, `approx` is a singleton -/
