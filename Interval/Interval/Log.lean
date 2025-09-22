@@ -58,7 +58,7 @@ lemma log1p_div_bound {x : ℝ} (x1 : |x| < 1) (n : ℕ) :
 /-- A power series approximation for `log1p_div` -/
 @[irreducible] def log1p_div_series (n : ℕ) : Series where
   radius := .ofRat log_series_radius false
-  coeffs := (Array.range n).map (fun n : ℕ ↦ .ofRat ((-1)^n / (n + 1)))
+  coeffs := (Array.range n).map (fun n : ℕ ↦ (((-1)^n / (n + 1) : ℚ) : Interval))
   error := .ofRat (log_series_radius ^ n / (1 - log_series_radius)) true
 
 /-- Our power series for `log1p_div` is correct -/
@@ -82,7 +82,7 @@ lemma approx_log1p_div_series (n : ℕ) : approx (log1p_div_series n) log1p_div 
       simp only [Rat.cast_div, Rat.cast_pow, Rat.cast_neg, Rat.cast_one, Rat.cast_add,
         Rat.cast_natCast]
     simp only [log1p_div_series, Array.getElem_map, Array.getElem_range, e]
-    apply Interval.approx_ofRat
+    approx
   · intro en
     simp only [log1p_div_series] at en ⊢
     refine le_trans (le_of_eq ?_) (Floating.le_ofRat en)

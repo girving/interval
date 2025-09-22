@@ -21,7 +21,8 @@ def sincos_sqrt_series_radius : ℚ := 0.886227
 /-- A power series approximation for `sinc_sqrt` -/
 @[irreducible] def sinc_sqrt_series (n : ℕ) : Series where
   radius := .ofRat sincos_sqrt_series_radius false
-  coeffs := (Array.range n).map (fun n ↦ .ofRat ((-1)^n * (Nat.factorial (2 * n + 1) : ℚ)⁻¹))
+  coeffs := (Array.range n).map (fun n ↦
+    (((-1)^n * (Nat.factorial (2 * n + 1) : ℚ)⁻¹ : ℚ) : Interval))
   error := bif n == 0 then nan
            else .ofRat (sincos_sqrt_series_radius ^ n * ((2 * n + 2) /
              ((2 * n + 1).factorial * (2 * n + 1)))) true
@@ -29,7 +30,7 @@ def sincos_sqrt_series_radius : ℚ := 0.886227
 /-- A power series approximation for `cos_sqrt` -/
 @[irreducible] def cos_sqrt_series (n : ℕ) : Series where
   radius := .ofRat sincos_sqrt_series_radius false
-  coeffs := (Array.range n).map (fun n ↦ .ofRat ((-1)^n * (Nat.factorial (2 * n) : ℚ)⁻¹))
+  coeffs := (Array.range n).map (fun n ↦ (((-1)^n * (Nat.factorial (2 * n) : ℚ)⁻¹ : ℚ) : Interval))
   error := bif n == 0 then nan
            else .ofRat (sincos_sqrt_series_radius ^ n * ((2 * n + 1) /
              ((2 * n).factorial * (2 * n)))) true
@@ -69,7 +70,7 @@ lemma mem_approx_sinc_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interv
       simp only [Rat.cast_inv, Rat.cast_natCast]
     simp only [sinc_sqrt_series, Array.getElem_map, Array.getElem_range, e,
       (by norm_num : (-1 : ℝ) = (-1 : ℚ)), ← Rat.cast_pow, ← Rat.cast_mul]
-    apply Interval.approx_ofRat
+    approx
   · intro en
     rw [sinc_sqrt_series, bif_eq_if] at en ⊢
     by_cases n0 : n = 0
@@ -111,7 +112,7 @@ lemma mem_approx_cos_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interva
         simp only [Rat.cast_inv, Rat.cast_natCast]
       simp only [cos_sqrt_series, Array.getElem_map, Array.getElem_range, e,
         (by norm_num : (-1 : ℝ) = (-1 : ℚ)), ← Rat.cast_pow, ← Rat.cast_mul]
-      apply Interval.approx_ofRat
+      approx
     · intro en
       rw [cos_sqrt_series, bif_eq_if] at en ⊢
       simp only [beq_iff_eq, ne_eq, n0, if_false] at en ⊢
@@ -287,7 +288,7 @@ lemma Floating.presin_inter_pm1 (x : Floating) (d : Fixed 0) :
   -- Helpful picture:
   --   https://en.wikipedia.org/wiki/Sine_and_cosine#/media/File:Sine_cosine_one_period.svg
   -- Sin is monotonic on each `[-π/2, π/2] + πn` interval, so figure out `n` for `lo` and `hi`.
-  let n := x * inv_pi + bif d then 1 else ofRat (1/2)
+  let n := x * inv_pi + bif d then 1 else ((1/2 : ℚ) : Interval)
   let n0 := n.lo.floor
   let n1 := n.hi.floor
   -- If `n0` and `n1` differ by more than 1, during the `n0 + 1` interval `sin` covers `[-1, 1]`
@@ -319,7 +320,7 @@ lemma floor_even_iff {n : Floating} (nn : n.floor ≠ nan) :
   rw [Interval.sincos]
   by_cases xn : x = nan
   · simp [xn, Real.neg_one_le_sin, Real.sin_le_one]
-  generalize hn : x * inv_pi + (if d then 1 else ofRat 2⁻¹) = n
+  generalize hn : x * inv_pi + (if d then 1 else ((2⁻¹ : ℚ) : Interval)) = n
   generalize hj : (if d then (1 : Fixed 0) else 0) = j
   simp only [one_div, hn, bif_eq_if, beq_iff_eq, Bool.or_eq_true, decide_eq_true_eq, or_assoc, hj]
   by_cases h : n.lo.floor = nan ∨ n.hi.floor = nan ∨ n.lo.floor + 1 = nan ∨

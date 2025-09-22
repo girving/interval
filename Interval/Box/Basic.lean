@@ -241,10 +241,11 @@ noncomputable instance : Coe (ℚ × ℚ) ℂ where
   coe z := Complex.ofRat z
 
 @[irreducible] def ofRat (z : ℚ × ℚ) : Box :=
-  ⟨.ofRat z.1, .ofRat z.2⟩
+  ⟨z.1, z.2⟩
 
 @[approx] lemma approx_ofRat (z : ℚ × ℚ) : approx (ofRat z) (z : ℂ) := by
-  simp only [instApprox, ofRat, Interval.approx_ofRat, true_and, Complex.ofRat]
+  simp only [instApprox, ofRat, Complex.ofRat]
+  approx
 
 /-!
 ### Unbundled instances

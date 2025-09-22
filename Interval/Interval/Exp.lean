@@ -22,7 +22,7 @@ def exp_series_radius : ℚ := 0.346574
 /-- A power series approximation for `exp` -/
 @[irreducible] def exp_series (n : ℕ) : Series where
   radius := .ofRat exp_series_radius false
-  coeffs := (Array.range n).map (fun n ↦ .ofRat (Nat.factorial n)⁻¹)
+  coeffs := (Array.range n).map (fun n ↦ (((Nat.factorial n)⁻¹ : ℚ) : Interval))
   error := bif n == 0 then nan
            else .ofRat (exp_series_radius ^ n * ((n + 1) / (Nat.factorial n * n))) true
 
@@ -51,7 +51,7 @@ lemma approx_exp_series (n : ℕ) : approx (exp_series n) Real.exp := by
       have e : (Nat.factorial k : ℝ)⁻¹ = (Nat.factorial k : ℚ)⁻¹ := by
         simp only [Rat.cast_inv, Rat.cast_natCast]
       simp only [exp_series, Array.getElem_map, Array.getElem_range, e]
-      apply Interval.approx_ofRat
+      approx
     · intro en
       simp only [mul_inv_rev, Nat.cast_succ]
       rw [exp_series, bif_eq_if] at en ⊢

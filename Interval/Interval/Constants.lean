@@ -23,7 +23,7 @@ namespace Interval
 
 /-- Approximate a real given a rational `m ± r` ball containing it -/
 lemma approx_of_rat_ball {x : ℝ} {m r : ℚ} (h : |x - m| ≤ r) :
-    approx (Interval.ofRat (m - r) ∪ .ofRat (m + r)) x := by
+    approx (((m - r : ℚ) : Interval) ∪ ((m + r : ℚ) : Interval)) x := by
   simp only [abs_le, neg_le_sub_iff_le_add, tsub_le_iff_right] at h
   simp only [approx, lo_eq_nan, or_iff_not_imp_left]
   intro n

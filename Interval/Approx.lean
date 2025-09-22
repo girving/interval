@@ -65,6 +65,18 @@ class ApproxSMul (A B A' B' : Type) [SMul A B] [SMul A' B'] [Approx A A'] [Appro
   approx_smul {s' : A'} {x' : B'} {s : A} {x : B} (sm : approx s s') (xm : approx x x') :
       approx (s • x) (s' • x')
 
+/-- `A` has conservative `ℕ` conversion -/
+class ApproxNatCast (A R : Type) [NatCast R] [NatCast A] [Approx A R] where
+  approx_natCast {n : ℕ} : approx (n : A) (n : R)
+
+/-- `A` has conservative `ℤ` conversion -/
+class ApproxIntCast (A R : Type) [IntCast R] [IntCast A] [Approx A R] where
+  approx_intCast {n : ℤ} : approx (n : A) (n : R)
+
+/-- `A` has conservative `ℚ` conversion -/
+class ApproxRatCast (A R : Type) [RatCast R] [RatCast A] [Approx A R] where
+  approx_ratCast {x : ℚ} : approx (x : A) (x : R)
+
 /-- `A` approximates the additive group `R` -/
 class ApproxAddGroup (A R : Type) [AddGroup R] extends
   Zero A, Neg A, Add A, Sub A, Approx A R,
@@ -87,6 +99,9 @@ export ApproxInv (approx_inv)
 export ApproxStar (approx_star)
 export ApproxDiv (approx_div)
 export ApproxSMul (approx_smul)
+export ApproxNatCast (approx_natCast)
+export ApproxIntCast (approx_intCast)
+export ApproxRatCast (approx_ratCast)
 
 attribute [simp] approx_zero approx_one
 
@@ -111,6 +126,9 @@ instance [Mul R] : ApproxMul R R where approx_mul := by simp only [approx]; aeso
 instance [Inv R] : ApproxInv R R where approx_inv := by simp only [approx]; aesop
 instance [Div R] : ApproxDiv R R where approx_div := by simp only [approx]; aesop
 instance [SMul A B] : ApproxSMul A B A B where approx_smul := by simp only [approx]; aesop
+instance [NatCast A] : ApproxNatCast A A where approx_natCast := by simp only [approx]; aesop
+instance [IntCast A] : ApproxIntCast A A where approx_intCast := by simp only [approx]; aesop
+instance [RatCast A] : ApproxRatCast A A where approx_ratCast := by simp only [approx]; aesop
 
 /-!
 ## Typeclass for `nan`
@@ -174,7 +192,7 @@ def Rounds [Approx A R] [LE R] (x : A) (y : R) (up : Bool) : Prop :=
 attribute [approx] subset_refl
 
 attribute [approx] approx_neg approx_add approx_sub approx_mul approx_div approx_smul approx_inv
-  approx_star approx_zero approx_one approx_nan
+  approx_star approx_zero approx_one approx_nan approx_natCast approx_intCast approx_ratCast
 
 /-- Test `approx` -/
 example [Field R] [ApproxField A R] {a b c : R} {x y z : A}
