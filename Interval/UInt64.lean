@@ -617,15 +617,14 @@ lemma UInt64.toNat_complement (x : UInt64) : (~~~x).toNat = 2^64 - 1 - x.toNat :
 ### Kernel-friendly version of `Nat.log2`
 -/
 
-lemma UInt64.fast_log2_lt (n : UInt64) : n.toFin.val.fast_log2 < UInt64.size := by
-  rw [Nat.fast_log2_eq]
+lemma UInt64.fast_log2_lt (n : UInt64) : n.toFin.val.log2 < UInt64.size := by
   exact lt_of_lt_of_le n.log2_lt_64 (by decide)
 
 @[irreducible] def UInt64.fast_log2 (n : UInt64) : UInt64 :=
-  ⟨⟨n.toFin.val.fast_log2, n.fast_log2_lt⟩⟩
+  ⟨⟨n.toFin.val.log2, n.fast_log2_lt⟩⟩
 
 @[simp, csimp] lemma UInt64.fast_log2_eq : fast_log2 = log2 := by
   ext n
   rw [UInt64.fast_log2]
-  simp only [Nat.fast_log2_eq, toFin_val, toNat_log2]
+  simp only [toFin_val, toNat_log2]
   rfl

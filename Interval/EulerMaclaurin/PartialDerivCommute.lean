@@ -71,11 +71,13 @@ lemma _root_.ContDiff.iteratedDeriv {𝕜 : Type*} [NontriviallyNormedField 𝕜
     {m : WithTop ℕ∞} {n : ℕ} (fc : ContDiff 𝕜 ⊤ (uncurry f)) (gc : ContDiff 𝕜 ⊤ g) :
     ContDiff 𝕜 m fun z ↦ iteratedDeriv n (fun y ↦ f z y) (g z) := by
   revert fc f
-  induction' n with n ic
-  · intro f fc
+  induction n with
+  | zero =>
+    intro f fc
     simp only [iteratedDeriv_zero]
     exact (fc.of_le le_top).comp (contDiff_id.prodMk (gc.of_le le_top))
-  · intro f fc
+  | succ n ic =>
+    intro f fc
     simp only [iteratedDeriv_succ']
     apply ic
     refine ContDiff.deriv ?_ contDiff_snd
@@ -84,9 +86,11 @@ lemma _root_.ContDiff.iteratedDeriv {𝕜 : Type*} [NontriviallyNormedField 𝕜
 lemma deriv_iteratedDeriv_comm {f : ℝ × ℝ → E} {z : ℝ × ℝ} (fc : ContDiff ℝ ⊤ f) (n : ℕ) :
     deriv (fun x ↦ iteratedDeriv n (fun y ↦ f (x,y)) z.2) z.1 =
     iteratedDeriv n (fun y ↦ deriv (fun x ↦ f (x,y)) z.1) z.2 := by
-  induction' n with n h generalizing f z
-  · simp
-  · simp only [iteratedDeriv_succ]
+  induction n generalizing f z with
+  | zero =>
+    simp
+  | succ n h =>
+    simp only [iteratedDeriv_succ]
     rw [deriv_deriv_comm (f := fun z : ℝ × ℝ ↦ iteratedDeriv n (fun y ↦ f (z.1,y)) z.2)]
     · refine congr_arg₂ _ ?_ rfl
       ext w

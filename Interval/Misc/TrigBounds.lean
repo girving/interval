@@ -41,9 +41,9 @@ lemma Real.sin_antitone (n : ℤ) :
 /-- Double the range of a `Finset.sum` -/
 lemma Finset.sum_range_even {M : Type*} [AddCommMonoid M] (n : ℕ) (f : ℕ → M) :
     ∑ k ∈ Finset.range n, f k = ∑ k ∈ Finset.range (2 * n), if Even k then f (k / 2) else 0 := by
-  induction' n with n h
-  · simp
-  · simp [Finset.sum_range_succ, h, mul_add]
+  induction n with
+  | zero => simp
+  | succ n h => simp [Finset.sum_range_succ, h, mul_add]
 
 lemma Complex.sin_series_bound {z : ℂ} (z1 : ‖z‖ ≤ 1) (n : ℕ) :
     ‖sin z - z * ∑ k ∈ Finset.range n, (-1) ^ k * z ^ (2 * k) / (2 * k + 1).factorial‖ ≤
@@ -156,7 +156,7 @@ lemma Complex.sinc_series_bound {z : ℂ} (z1 : ‖z‖ ≤ 1) (n : ℕ) :
     ‖sinc z - ∑ k ∈ Finset.range n, (-1) ^ k * z ^ (2 * k) / (2 * k + 1).factorial‖ ≤
       ‖z‖ ^ (2 * n) * ((2 * n + 2) / ((2 * n + 1).factorial * (2 * n + 1))) := by
   by_cases z0 : z = 0
-  · induction' n with n _
+  · induction n
     all_goals simp [sinc, z0, Finset.sum_range_succ']
   · rw [← mul_div_cancel_left₀ (∑ k ∈ Finset.range _, _) z0]
     simp only [sinc, z0, if_false, ← sub_div, norm_div, div_le_iff₀ (norm_pos_iff.mpr z0),

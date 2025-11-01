@@ -26,8 +26,8 @@ lemma Rat.abs_eq_div' {x : ℚ} : (|x| : 𝕜) = (x.num.natAbs : 𝕜) / x.den :
 @[irreducible] def Rat.log2 (x : ℚ) : ℤ :=
   -- Reduce to two possible answers
   let n := x.num.natAbs
-  let a := n.fast_log2  -- `2^a ≤ n < 2^(a+1)`
-  let b := x.den.fast_log2  -- `2^b ≤ d < 2^(b+1)`
+  let a := n.log2  -- `2^a ≤ n < 2^(a+1)`
+  let b := x.den.log2  -- `2^b ≤ d < 2^(b+1)`
   -- `2^(a-b-1) < n/d < 2^(a+1-b)`, so the answer is either `a-b-1` or `a-b`
   -- If `2^(a-b) ≤ n/d` then `a-b`, otherwise `a-b-1`
   let g : ℤ := a - b
@@ -37,8 +37,7 @@ lemma Rat.abs_eq_div' {x : ℚ} : (|x| : 𝕜) = (x.num.natAbs : 𝕜) / x.den :
 lemma Rat.log2_correct {x : ℚ} (x0 : x ≠ 0) : |x| ∈ Ico (2^x.log2) (2^(x.log2 + 1)) := by
   have t0 : (2:ℚ) ≠ 0 := by norm_num
   rw [log2]
-  simp only [sub_nonneg, Nat.cast_le, neg_sub, bif_eq_if, decide_eq_true_eq, Nat.shiftLeft_eq,
-    Nat.fast_log2_eq]
+  simp only [sub_nonneg, Nat.cast_le, neg_sub, bif_eq_if, decide_eq_true_eq, Nat.shiftLeft_eq]
   generalize hn : x.num.natAbs = n
   generalize ha : n.log2 = a
   generalize hb : x.den.log2 = b

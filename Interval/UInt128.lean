@@ -154,7 +154,7 @@ instance : LawfulBEq UInt128 where
   rw [ofInt]
   simp only [hn, toNat_def, Nat.cast_add, Nat.cast_mul, UInt64.toInt_intCast, Nat.cast_pow,
     Nat.cast_ofNat, s]
-  rw [←Int.ediv_add_emod x n]
+  rw [←Int.mul_ediv_add_emod x n]
   generalize x / n = a
   generalize hb : x % n = b
   have b0 : 0 ≤ b := by rw [←hb]; exact Int.emod_nonneg _ n0.ne'
@@ -272,7 +272,7 @@ lemma UInt128.toNat_neg (x : UInt128) : (-x).toNat = if x = 0 then 0 else 2^128 
     CharP.cast_eq_zero, Nat.cast_ite, Nat.cast_sub (UInt128.toNat_lt _).le, Nat.cast_pow,
     Nat.cast_ofNat, Int.neg_emod, Int.dvd_iff_emod_eq_zero]
   clear hn
-  rw [← Int.ediv_add_emod x n]
+  rw [← Int.mul_ediv_add_emod x n]
   generalize x / n = a
   generalize hb : x % n = b
   have b0 : 0 ≤ b := by rw [←hb]; exact Int.emod_nonneg _ n0.ne'
@@ -665,8 +665,7 @@ lemma UInt128.toNat_shiftLeft' (x : UInt128) {s : UInt64} :
       p128, p127, e, Nat.mod_mod]
   refine Eq.trans ?_ (toNat_shiftLeft (x := x) (s := s % 128) ?_)
   · rw [shiftLeft_def, shiftLeft_def, shiftLeft, shiftLeft, e]
-  · simp only [UInt64.lt_iff_toNat_lt, UInt64.toNat_mod, p128, gt_iff_lt, Nat.zero_lt_succ,
-      Nat.mod_lt]
+  · simp only [UInt64.lt_iff_toNat_lt, UInt64.toNat_mod, p128, Nat.zero_lt_succ, Nat.mod_lt]
 
 /-- Shifting left by zero does nothing -/
 @[simp] lemma UInt128.shiftLeft_zero (x : UInt128) : x <<< (0 : UInt64) = x := by
@@ -721,8 +720,7 @@ lemma UInt128.toNat_shiftRight' (x : UInt128) {s : UInt64} :
       p128, p127, e, Nat.mod_mod]
   refine Eq.trans ?_ (toNat_shiftRight (x := x) (s := s % 128) ?_)
   · rw [shiftRight_def, shiftRight_def, shiftRight, shiftRight, e]
-  · simp only [UInt64.lt_iff_toNat_lt, UInt64.toNat_mod, p128, gt_iff_lt, Nat.zero_lt_succ,
-      Nat.mod_lt]
+  · simp only [UInt64.lt_iff_toNat_lt, UInt64.toNat_mod, p128, Nat.zero_lt_succ, Nat.mod_lt]
 
 lemma UInt128.coe_shiftRight (x : UInt128) {s : UInt64} (sl : s < 128) :
     (x >>> s : ℝ) = ↑(x.toNat / 2^s.toNat) := by

@@ -10,9 +10,11 @@ variable {f : 𝕜 → E}
 lemma iteratedDeriv_mul {n : ℕ} (fc : ContDiff 𝕜 n f) {y : 𝕜} :
     iteratedDeriv n (fun x ↦ x • f x) y =
       y • iteratedDeriv n f y + n • iteratedDeriv (n - 1) f y := by
-  induction' n with n h generalizing f
-  · simp only [iteratedDeriv_zero, zero_le, tsub_eq_zero_of_le, zero_smul, add_zero]
-  · have ds : deriv (fun x ↦ x • f x) = (fun x ↦ f x + x • deriv f x) := by
+  induction n generalizing f with
+  | zero =>
+    simp only [iteratedDeriv_zero, zero_le, tsub_eq_zero_of_le, zero_smul, add_zero]
+  | succ n h =>
+    have ds : deriv (fun x ↦ x • f x) = (fun x ↦ f x + x • deriv f x) := by
       ext y
       rw [deriv_fun_smul]
       · simp only [deriv_id'', one_smul, add_comm]

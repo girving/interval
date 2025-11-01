@@ -503,7 +503,7 @@ lemma Fixed.approx_abs {x : Fixed s} (m : approx x a) : approx (abs x) (|a|) := 
   simp only [max, neg_eq_nan, min_eq_nan]
 
 lemma Fixed.val_lt_val {x y : Fixed s} : x.val < y.val ↔ x.n < y.n := by
-  rw [val, val, mul_lt_mul_right two_zpow_pos]
+  rw [val, val, mul_lt_mul_iff_left₀ two_zpow_pos]
   simp only [Int.cast_lt, Int64.coe_lt_coe]
 
 lemma Fixed.val_le_val {x y : Fixed s} : x.val ≤ y.val ↔ x.n ≤ y.n := by
@@ -835,7 +835,7 @@ lemma Fixed.approx_ofNat (n : ℕ) (up : Bool) : Rounds (.ofNat n up : Fixed s) 
     simp only [Nat.shiftLeft_eq]
     have lt : n * 2 ^ Int.toNat (-t) < 2^63 := by
       have lt := (Nat.log2_lt n0).mp nn.2
-      refine lt_of_lt_of_le ((mul_lt_mul_right (pow_pos (by norm_num) _)).mpr lt) ?_
+      refine lt_of_lt_of_le ((mul_lt_mul_iff_left₀ (pow_pos (by norm_num) _)).mpr lt) ?_
       simp only [←pow_add, Nat.sub_add_cancel nn.1.le, le_refl]
     have e : (Int.toNat (-t) : ℤ) = -t := Int.toNat_of_nonneg (by omega)
     simp only [Int64.toInt_ofNat'' lt, Nat.cast_mul (α := ℤ), Int.cast_pow, Nat.cast_two,

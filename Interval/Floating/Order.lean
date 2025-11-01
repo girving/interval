@@ -306,7 +306,7 @@ lemma val_lt_val_of_nonneg {x y : Floating} (xn : 0 ≤ x.n) (yn : 0 ≤ y.n) :
     simp only [UInt64.lt_iff_toNat_lt, ← Int64.coe_lt_coe, Int64.coe_of_nonneg, xn, yn,
       Nat.cast_lt]
   by_cases se : x.s = y.s
-  · simp only [se, two_zpow_pos, mul_lt_mul_right, Int.cast_lt, Int64.coe_lt_coe,
+  · simp only [se, two_zpow_pos, mul_lt_mul_iff_left₀, Int.cast_lt, Int64.coe_lt_coe,
       lt_self_iff_false, en, true_and, false_or]
   simp only [se, false_and, or_false]
   by_cases xys : x.s < y.s

@@ -2,6 +2,7 @@ import Mathlib.Algebra.Order.Floor.Semifield
 import Mathlib.Data.Nat.Bitwise
 import Mathlib.Data.Nat.ModEq
 import Mathlib.Data.Real.Basic
+import Mathlib.Tactic.Cases
 import Interval.Misc.Bool
 
 /-!
@@ -21,9 +22,10 @@ lemma Nat.add_sub_lt_left {m n k : ℕ} (m0 : m ≠ 0) : m + n - k < m ↔ n < k
     simp only [not_lt] at nk; rw [Nat.add_sub_assoc nk]; exact le_add_right _ _
 
 lemma Nat.bit_div2_eq (n : ℕ) : Nat.bit (Nat.bodd n) (Nat.div2 n) = n := by
-  induction' n with n h
-  · rfl
-  · by_cases p : bodd n
+  induction n with
+  | zero => rfl
+  | succ n h =>
+    by_cases p : bodd n
     · simp only [p, div2_val, bit_true, bodd_succ, Bool.not_true, bit_false] at h ⊢
       omega
     · simp only [bit, p, cond_false] at h
@@ -54,17 +56,18 @@ lemma Nat.div2_eq_shiftRight_one {n : ℕ} : n.div2 = n >>> 1 := by
 
 lemma Nat.le_of_testBit_le {m n : ℕ} (h : ∀ i, m.testBit i ≤ n.testBit i) : m ≤ n := by
   revert h n
-  induction' m using Nat.strong_induction_on with m p
-  intro n h
-  by_cases m0 : m = 0
-  · simp only [m0, _root_.zero_le]
-  · rw [← Nat.bit_div2_eq m, ← Nat.bit_div2_eq n]
-    apply Nat.bit_le_bit
-    · simp only [← testBit_zero_eq_bodd]; apply h
-    · apply p
-      · simp only [div2_val]
-        exact Nat.div_lt_self (Nat.pos_iff_ne_zero.mpr m0) one_lt_two
-      · intro i; simp only [testBit_div2]; apply h
+  induction m using Nat.strong_induction_on with
+  | h m p =>
+    intro n h
+    by_cases m0 : m = 0
+    · simp only [m0, _root_.zero_le]
+    · rw [← Nat.bit_div2_eq m, ← Nat.bit_div2_eq n]
+      apply Nat.bit_le_bit
+      · simp only [← testBit_zero_eq_bodd]; apply h
+      · apply p
+        · simp only [div2_val]
+          exact Nat.div_lt_self (Nat.pos_iff_ne_zero.mpr m0) one_lt_two
+        · intro i; simp only [testBit_div2]; apply h
 
 lemma Nat.land_le_max {m n : ℕ} : m &&& n ≤ max m n := by
   apply Nat.le_of_testBit_le
@@ -93,9 +96,10 @@ lemma Nat.bodd_sub_one {n : ℕ} : bodd (n-1) = decide (n ≠ 0 ∧ ¬bodd n) :=
     Bool.not_eq_true', Bool.not_eq_false, true_and, Bool.decide_coe]
 
 lemma Nat.bodd_two_pow {k : ℕ} : bodd (2^k) = decide (k = 0) := by
-  induction' k with k
-  · rfl
-  · simp only [pow_succ, bodd_mul, bodd_succ, bodd_zero, Bool.not_false, Bool.not_true,
+  induction k with
+  | zero => rfl
+  | succ k h =>
+    simp only [pow_succ, bodd_mul, bodd_succ, bodd_zero, Bool.not_false, Bool.not_true,
       Bool.and_false, succ_ne_zero, decide_false]
 
 @[simp] lemma Nat.pow_div' {a m n : ℕ} (a0 : a ≠ 0) : a^(m + n) / a^n = a^m := by
@@ -105,9 +109,11 @@ lemma Nat.bodd_two_pow {k : ℕ} : bodd (2^k) = decide (k = 0) := by
   · exact Nat.pos_of_ne_zero a0
 
 @[simp] lemma Nat.pow_dvd' {a m n : ℕ} : a^n ∣ a^(m + n) := by
-  induction' n with n h
-  · simp only [_root_.pow_zero, add_zero, isUnit_one, IsUnit.dvd]
-  · simp only [pow_succ, add_succ]
+  induction n with
+  | zero =>
+    simp only [_root_.pow_zero, add_zero, isUnit_one, IsUnit.dvd]
+  | succ n h =>
+    simp only [pow_succ, add_succ]
     exact Nat.mul_dvd_mul_right h a
 
 @[simp] lemma Nat.pow_mod' {a m n : ℕ} : a^(m + n) % a^n = 0 :=
@@ -119,11 +125,13 @@ lemma Nat.bodd_two_pow {k : ℕ} : bodd (2^k) = decide (k = 0) := by
   by_cases kn : k ≤ n
   · rw [←Nat.sub_add_cancel kn]; generalize n - k = n; clear kn
     simp only [add_tsub_cancel_right]
-    induction' n with n h
-    · simp only [zero_add, pow_zero, tsub_self, Nat.div_eq_zero_iff, pow_eq_zero_iff',
+    induction n with
+    | zero =>
+      simp only [zero_add, pow_zero, tsub_self, Nat.div_eq_zero_iff, pow_eq_zero_iff',
         OfNat.ofNat_ne_zero, ne_eq, false_and, tsub_lt_self_iff, ofNat_pos, pow_pos, zero_lt_one,
         and_self, or_true]
-    · simp only [succ_add, pow_succ, mul_two, Nat.add_sub_assoc (k1 _), Nat.add_div k0, ne_eq,
+    | succ n h =>
+      simp only [succ_add, pow_succ, mul_two, Nat.add_sub_assoc (k1 _), Nat.add_div k0, ne_eq,
         OfNat.ofNat_ne_zero, not_false_eq_true, pow_div', h, pow_mod', zero_add, add_eq_left,
         ite_eq_right_iff, one_ne_zero, imp_false, not_le, gt_iff_lt]
       exact Nat.mod_lt _ k0
@@ -138,16 +146,21 @@ lemma Nat.bodd_two_pow {k : ℕ} : bodd (2^k) = decide (k = 0) := by
 
 lemma Nat.land_eq_mod {n k : ℕ} : n &&& (2^k-1) = n % 2^k := by
   revert n
-  induction' k with k h
-  · simp only [_root_.pow_zero, le_refl, tsub_eq_zero_of_le, and_zero, mod_one, forall_const]
-  · intro n
-    induction' n using Nat.binaryRec with b n _
-    · simp only [zero_and, zero_mod]
-    · specialize @h n
+  induction k with
+  | zero =>
+    simp only [_root_.pow_zero, le_refl, tsub_eq_zero_of_le, and_zero, mod_one, forall_const]
+  | succ k h =>
+    intro n
+    induction n using Nat.binaryRec with
+    | zero =>
+      simp only [zero_and, zero_mod]
+    | bit b n _ =>
+      specialize @h n
       refine Nat.eq_of_testBit_eq fun i ↦ ?_
-      induction' i with i
-      · simp only [and_two_pow_sub_one_eq_mod, testBit_zero]
-      · simp only [and_two_pow_sub_one_eq_mod, testBit_mod_two_pow, succ_lt_succ_iff]
+      induction i with
+      | zero => simp only [and_two_pow_sub_one_eq_mod, testBit_zero]
+      | succ i h =>
+        simp only [and_two_pow_sub_one_eq_mod, testBit_mod_two_pow, succ_lt_succ_iff]
 
 lemma Nat.add_lt_add' {a b c d : ℕ} (ac : a < c) (bd : b ≤ d) : a + b < c + d := by
   omega
@@ -191,12 +204,16 @@ lemma Nat.div_mod_mul_add_mod_eq {a n : ℕ} : a / n % n * n + a % n = a % n^2 :
 lemma Nat.lor_eq_add {a b : ℕ} (h : ∀ i, testBit a i = false ∨ testBit b i = false) :
     a ||| b = a + b := by
   revert h b
-  induction' a using Nat.binaryRec with c a ha
-  · simp only [zero_testBit, true_or, implies_true, zero_or, zero_add]
-  · intro b h
-    induction' b using Nat.binaryRec with d b _
-    · simp only [or_zero, add_zero]
-    · simp only [lor_bit]
+  induction a using Nat.binaryRec with
+  | zero =>
+    simp only [zero_testBit, true_or, implies_true, zero_or, zero_add]
+  | bit c a ha =>
+    intro b h
+    induction b using Nat.binaryRec with
+    | zero =>
+      simp only [or_zero, add_zero]
+    | bit d b _ =>
+      simp only [lor_bit]
       simp only [bit_val]
       simp only [← add_assoc, add_comm _ (2 * b)]
       simp only [← mul_add, add_comm _ a]
@@ -207,10 +224,9 @@ lemma Nat.lor_eq_add {a b : ℕ} (h : ∀ i, testBit a i = false ∨ testBit b i
         simpa only [testBit_succ, bit_div_two] using h (i + 1)
       · specialize h 0
         simp only [testBit_zero, bit_mod_two, Bool.toNat_eq_one, Bool.decide_eq_true] at h
-        cases' h with h h
-        · simp only [h, Bool.false_or, Bool.toNat_false, zero_add]
-        · simp only [h, Bool.or_false, Bool.toNat_false, add_zero]
-
+        cases h with
+        | inl h => simp only [h, Bool.false_or, Bool.toNat_false, zero_add]
+        | inr h => simp only [h, Bool.or_false, Bool.toNat_false, add_zero]
 
 @[simp] lemma Nat.testBit_mul_two_pow' {n k i : ℕ} :
     testBit (n * 2^k) i = decide (k ≤ i ∧ testBit n (i-k)) := by
@@ -417,45 +433,4 @@ lemma Nat.le_rdiv_of_mul_le {a b c : ℕ} {up : Bool} (b0 : 0 < b) (h : c * b �
 @[simp] lemma Nat.log2_one : (1 : ℕ).log2 = 0 := by
   rw [log2]
   simp
-
-/-!
-### Kernel-friendly version of `Nat.log2`
-
-Necessary to make kernel computations work without timing out. Implementation courtesy of
-Joachim Breitner, though I've specialized it considerably:
-  https://leanprover.zulipchat.com/#narrow/stream/239415-metaprogramming-.2F-tactics/topic/An.20interval.20tactic.20for.20constant.20real.20inequalities/near/468309472
--/
-
-/-- Inner loop of `Nat.fast_log2` -/
-def Nat.fast_log2.go : ℕ → ℕ → ℕ :=
-  Nat.rec (fun _ ↦ 0) (fun _ h n ↦ if 2 ≤ n then h (n / 2) + 1 else 0)
-
-/-- Kernel-friendly version of `Nat.log2` -/
-@[irreducible]
-def Nat.fast_log2 (n : @& ℕ) : ℕ :=
-  fast_log2.go n n
-
-/-- `Nat.fast_log2 = Nat.log2` -/
-@[simp, csimp] lemma Nat.fast_log2_eq : fast_log2 = log2 := by
-  ext n
-  rw [fast_log2]
-  suffices h : ∀ f n, (h : n ≤ f) → fast_log2.go f n = n.log2 by
-    exact h _ _ (le_refl _)
-  intro f
-  induction' f using Nat.strong_induction_on with f h
-  · intro n nf
-    rw [fast_log2.go, log2]
-    by_cases n0 : n = 0
-    · simp only [n0, nonpos_iff_eq_zero, OfNat.ofNat_ne_zero, ↓reduceIte]
-      induction' f with f
-      · simp only [rec_zero]
-      · simp only [nonpos_iff_eq_zero, OfNat.ofNat_ne_zero, ↓reduceIte]
-    have n1 : 1 ≤ n := by omega
-    generalize hf1 : f - 1 = f1
-    have hf : f = f1 + 1 := by omega
-    simp only [hf]
-    by_cases n2 : 2 ≤ n
-    · simp only [n2, ↓reduceIte, add_left_inj]
-      apply h
-      all_goals omega
-    · simp only [n2, ↓reduceIte]
+  rfl

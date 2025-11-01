@@ -63,9 +63,11 @@ lemma deriv_interval_integral_of_contDiff (fc : ContDiff ℝ ⊤ (uncurry f)) (a
 lemma iteratedDeriv_interval_integral_of_contDiff (fc : ContDiff ℝ ⊤ (uncurry f)) (ab : a ≤ b)
     (n : ℕ) : iteratedDeriv n (fun t ↦ ∫ x in a..b, f t x) t =
       ∫ x in a..b, iteratedDeriv n (fun t ↦ f t x) t := by
-  induction' n with n h generalizing f
-  · simp
-  · simp only [iteratedDeriv_succ']
+  induction n generalizing f with
+  | zero =>
+    simp
+  | succ n h =>
+    simp only [iteratedDeriv_succ']
     rw [← h]
     · refine congr_arg₂ _ ?_ rfl
       ext t
@@ -75,6 +77,6 @@ lemma iteratedDeriv_interval_integral_of_contDiff (fc : ContDiff ℝ ⊤ (uncurr
 
 @[simp] lemma iteratedDeriv_const {n : ℕ} {c : E} {x : ℝ} :
     iteratedDeriv n (fun _ ↦ c) x = if n = 0 then c else 0 := by
-  induction' n with n h generalizing c
-  · simp
-  · simp [iteratedDeriv_succ', h]
+  induction n generalizing c with
+  | zero => simp
+  | succ n h => simp [iteratedDeriv_succ', h]

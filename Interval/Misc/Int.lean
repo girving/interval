@@ -131,7 +131,7 @@ lemma Int.ediv_eq_neg_one' {a b : ℤ} (a0 : a < 0) (b0 : 0 < b) (ab : -a < b) :
 
 /-- `-(-a / b)` rounds up if we don't divide -/
 lemma Int.neg_ediv_neg {a b : ℤ} (b0 : 0 < b) (ab : ¬b ∣ a) : -(-a / b) = a / b + 1 := by
-  rw [←Int.ediv_add_emod a b]
+  rw [←Int.mul_ediv_add_emod a b]
   generalize a / b = x
   generalize hy : a % b = y
   have y0 : 0 < y := by
@@ -279,7 +279,7 @@ end ZPow
 @[simp] lemma Int.natFloor_cast (n : ℤ) : ⌊(n : ℝ)⌋₊ = ⌊n⌋₊ := by
   induction' n using  Int.induction_overlap with n n
   · simp
-  · simp only [cast_neg, cast_natCast, Nat.floor_int, toNat_neg_nat, Nat.floor_eq_zero]
+  · simp only [cast_neg, cast_natCast, Nat.floor_int, toNat_neg_natCast, Nat.floor_eq_zero]
     refine lt_of_le_of_lt ?_ zero_lt_one
     simp only [Left.neg_nonpos_iff, Nat.cast_nonneg]
 
@@ -295,7 +295,7 @@ lemma Int.abs_def {n : ℤ} : |n| = if n < 0 then -n else n := by
 lemma Int.natAbs_def {n : ℤ} : n.natAbs = if n < 0 then (-n).toNat else n.toNat := by
   simp only [natAbs]
   induction' n using Int.rec with n
-  · simp only [ofNat_eq_coe, toNat_neg_nat, toNat_natCast]
+  · simp only [ofNat_eq_coe, toNat_neg_natCast, toNat_natCast]
     split_ifs
     all_goals omega
   · simp only [Nat.succ_eq_add_one, negSucc_eq, neg_add_rev, reduceNeg, add_neg_lt_iff_lt_add,

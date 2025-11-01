@@ -25,7 +25,8 @@ lemma Array.getElem_eq_getElem! [Inhabited α] (d : Array α) {n : ℕ} (i : Fin
 -/
 
 @[simp] lemma ByteArray.size_mkEmpty (c : ℕ) : (ByteArray.emptyWithCapacity c).size = 0 := by
-  simp only [ByteArray.size, ByteArray.emptyWithCapacity, List.size_toArray, List.length_nil]
+  simp only [size, emptyWithCapacity, Array.size_eq_zero_iff]
+  rfl
 
 lemma ByteArray.getElem_eq_data_getElem' (d : ByteArray) (i : Fin d.size) :
     d[i] = d.data[i] := by
@@ -44,6 +45,7 @@ lemma ByteArray.getElem!_push (d : ByteArray) (c : UInt8) (i : ℕ) :
   · have lt' : i < (d.push c).size := by simp only [ByteArray.size_push]; omega
     rw [← getElemNat_eq_getElem! lt, ← getElemNat_eq_getElem! lt', ByteArray.get_push_lt _ _ _ lt]
   · rw [e, ← getElemNat_eq_getElem!, ByteArray.get_push_eq]
+    simp only [size_push, lt_add_iff_pos_right, zero_lt_one]
   · apply getElem!_neg
     simp only [size_push, not_lt]
     omega

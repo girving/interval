@@ -41,7 +41,8 @@ lemma approx_taylor_sum' (c : Array Interval) (c' : ℕ → ℝ) (x p e : Interv
     apply approx_add (approx_mul (ac ⟨offset, by omega⟩) pp)
     specialize h (p * x) (p' * x') (offset + 1) (by omega) (by approx)
     simp only [mul_assoc, mul_comm (x' ^ _)] at h ⊢
-    exact h
+    apply h
+    approx
 
 /-- `taylor_sum` is conservative -/
 lemma approx_taylor_sum (c : Array Interval) (c' : ℕ → ℝ) (x e : Interval) (x' e' : ℝ)

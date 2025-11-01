@@ -228,7 +228,7 @@ lemma Int64.n_mod_4 (x : Int64) : (x.toUInt64.toNat % 4 : ℕ) = x.toInt % 4 := 
   have nq : m.val = 4 * q + a.val := by
     simp only [Fixed.val_of_s0, ← hq, ← ha, ← hk, UInt64.toNat_mod, UInt64.toNat_ofNat,
       (by norm_num : (4 : ℝ) = (4 : ℤ)), ← Int.cast_mul, ← Int.cast_natCast (R := ℝ), ←
-      Int.cast_add, q4, Int64.n_mod_4, Int.ediv_add_emod]
+      Int.cast_add, q4, Int64.n_mod_4, Int.mul_ediv_add_emod]
   have p0 : π / 2 * (4 * q) = q * (2 * π) := by ring
   have p1 : ∀ d, π / 2 * (4 * q + d) = π / 2 * d + q * (2 * π) := fun _ ↦ by ring
   simp only [ak] at hk ⊢

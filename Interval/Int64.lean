@@ -354,7 +354,7 @@ lemma Int64.toInt_ofInt' {n : ℤ} (h : |n| < 2^63) : ((n : Int64) : ℤ) = n :=
   simp only [toInt, BitVec.toInt, toNat_toBitVec_intCast, a2, a2', ha'] at h ⊢
   clear ha ha' a2 a2'
   induction' n using Int.induction_overlap with n n
-  all_goals simp only [Nat.abs_cast, Nat.cast_lt, Nat.ofNat_pos, mul_lt_mul_left, Int.ofNat_toNat,
+  all_goals simp only [Nat.abs_cast, Nat.cast_lt, Nat.ofNat_pos, mul_lt_mul_iff_right₀, Int.ofNat_toNat,
     Int.ofNat_mod_ofNat, Int.toNat_natCast, abs_neg, Nat.abs_cast, Nat.cast_lt] at h ⊢
   · rw [Nat.mod_eq_of_lt]
     · simp only [h, ↓reduceIte]

@@ -4,6 +4,7 @@ import Interval.EulerMaclaurin.LHopital
 import Mathlib.Analysis.Calculus.LocalExtr.Rolle
 import Mathlib.Analysis.Complex.RemovableSingularity
 import Mathlib.NumberTheory.ZetaValues
+import Mathlib.Tactic.Cases
 
 /-!
 # Bernoulli polynomials

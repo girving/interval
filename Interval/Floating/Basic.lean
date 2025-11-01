@@ -169,11 +169,15 @@ instance : ApproxOne Floating ℝ where
   approx_one := by simp only [approx, val_one, or_true]
 
 lemma val_nan : (nan : Floating).val = -(2 ^ 63) * 2 ^ (2 ^ 63 - 1) := by
+  generalize ha : 63 = a
   simp only [Floating.val, Floating.n_nan, Int64.coe_min', Int.reducePow,
     Int.cast_neg, Int.cast_ofNat, Floating.s_nan]
   rw [show UInt64.max.toInt - (9223372036854775808) = 2 ^ 63 - 1 by decide]
-  rw [show (9223372036854775808 : ℝ) = 2 ^ 63 by norm_num]
-  rfl
+  rw [show (9223372036854775808 : ℝ) = 2 ^ 63 by norm_num, ha]
+  convert rfl
+  simp only [← zpow_natCast]
+  convert rfl
+  simp only [Nat.ofNat_pos, pow_pos, Nat.cast_pred, Nat.cast_pow, Nat.cast_ofNat]
 
 /-- If we're not `nan`, `approx` is a singleton -/
 @[simp] lemma approx_eq_singleton {x : Floating} (n : x ≠ nan) : approx x a ↔ x.val = a := by
