@@ -4,7 +4,7 @@ import Mathlib.Data.Rat.Defs
 import Mathlib.Data.Rat.Floor
 import Mathlib.Data.Real.Archimedean
 import Mathlib.Tactic.Bound
-import Interval.Approx
+import Interval.Approx.Approx
 import Interval.Misc.Int
 import Interval.Misc.Real
 

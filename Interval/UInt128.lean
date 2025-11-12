@@ -1,5 +1,5 @@
 import Mathlib.Data.Real.Archimedean
-import Interval.Approx
+import Interval.Approx.Approx
 import Interval.UInt64
 import Interval.Misc.Int
 

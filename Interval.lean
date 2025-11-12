@@ -1,3 +1,8 @@
+import Interval.Approx.Approx
+import Interval.Approx.Div2
+import Interval.Approx.Dyadic
+import Interval.Approx.NormSq
+import Interval.Approx.Rat
 import Interval.Box.Basic
 import Interval.Box.Division
 import Interval.Box.Exp
@@ -10,6 +15,7 @@ import Interval.Floating.Floor
 import Interval.Floating.Neg
 import Interval.Floating.Order
 import Interval.Floating.Scale
+import Interval.Floating.Standardization
 import Interval.Interval.Basic
 import Interval.Interval.Conversion
 import Interval.Interval.Division
@@ -23,6 +29,5 @@ import Interval.Interval.Pow
 import Interval.Interval.Series
 import Interval.Interval.Sincos
 import Interval.Interval.Sqrt
-import Interval.Floating.Standardization
 import Interval.Tactic.Interval
 

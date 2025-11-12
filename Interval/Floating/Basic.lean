@@ -1,5 +1,5 @@
 import Mathlib.Data.Real.Basic
-import Interval.Approx
+import Interval.Approx.Approx
 import Interval.Fixed
 import Interval.Int64
 import Interval.UInt128

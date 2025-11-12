@@ -1,7 +1,7 @@
 import Batteries.Lean.Float
 import Mathlib.Data.Int.Bitwise
 import Mathlib.Data.Real.Basic
-import Interval.Approx
+import Interval.Approx.Approx
 import Interval.Int64
 import Interval.UInt128
 import Interval.Misc.Int
