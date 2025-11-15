@@ -28,6 +28,8 @@ instance : Repr Dyadic where
 
 instance : Div2 Dyadic where
   div2 x := x >>> 1
+
+instance : Div2Zero Dyadic where
   div2_zero := rfl
 
 lemma Dyadic.natCast_zero : (0 : ℕ) = (0 : Dyadic) := rfl
