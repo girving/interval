@@ -434,7 +434,6 @@ lemma pres_eq_reflect {s : ℕ} {x y b : ℝ} :
     replace q := (q x).mp e
     have ne : x ≠ (1 + s) / 2 := by
       contrapose xh
-      simp only [ne_eq, not_not] at xh
       simp only [xh, Real.sqrt_inv, not_lt, s]
       simp only [Real.sqrt_inv, s] at xh
       rw [le_div_iff₀]

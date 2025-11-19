@@ -30,8 +30,8 @@ variable {x : Interval} {x' : ℝ}
 
 /-- `scaleB` propagates `nan` -/
 lemma ne_nan_of_scaleB {t : Int64} (n : x.scaleB t ≠ nan) : x ≠ nan := by
-  contrapose n; simp only [ne_eq, not_not] at n
-  simp only [n, nan_scaleB, ne_eq, not_true_eq_false, not_false_eq_true]
+  contrapose n
+  simp only [n, nan_scaleB]
 
 /-- `scaleB'` propagates `nan` -/
 @[simp] lemma nan_scaleB' {t : Fixed 0} : (nan : Interval).scaleB' t = nan := by
@@ -46,7 +46,7 @@ lemma ne_nan_of_scaleB' {t : Fixed 0} (n : x.scaleB' t ≠ nan) :
     x ≠ nan ∧ t ≠ nan := by
   contrapose n; simp only [ne_eq, not_not, not_and_or] at n
   rcases n with n | n
-  all_goals simp only [n, nan_scaleB', scaleB'_nan, ne_eq, not_true_eq_false, not_false_eq_true]
+  all_goals simp only [n, nan_scaleB', scaleB'_nan]
 
 /-- `scaleB` is conservative -/
 @[approx] lemma mem_approx_scaleB {t : Int64} (xm : approx x x') :

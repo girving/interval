@@ -363,7 +363,7 @@ lemma Int64.toInt_ofInt' {n : ℤ} (h : |n| < 2^63) : ((n : Int64) : ℤ) = n :=
     · simp [n0]
     have d : ¬((2 * a : ℕ) : ℤ) ∣ n := by
       contrapose h
-      simp only [Decidable.not_not, not_lt, Int.natCast_dvd, Int.natAbs_natCast] at h ⊢
+      simp only [not_lt, Int.natCast_dvd, Int.natAbs_natCast] at h ⊢
       linarith [Nat.le_of_dvd (Nat.pos_iff_ne_zero.mpr n0) h]
     have lt : n < 2 * a := by omega
     simp only [Int.neg_emod, d, ite_false, Int.ofNat_mod_ofNat]
@@ -927,7 +927,6 @@ lemma Int64.abs_shiftRightRound_le (x : Int64) (s : UInt64) (up : Bool) :
 lemma Int64.shiftRightRound_ne_min {x : Int64} (n : x ≠ minValue) (s : UInt64) (up : Bool) :
     x.shiftRightRound s up ≠ minValue := by
   contrapose n
-  simp only [ne_eq, Decidable.not_not] at n ⊢
   have h := abs_shiftRightRound_le x s up
   simp only [n, coe_min', _root_.abs_neg, abs_pow, abs_two, le_abs] at h
   rcases h with h | h

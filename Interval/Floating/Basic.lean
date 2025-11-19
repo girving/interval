@@ -191,19 +191,18 @@ lemma val_nan : (nan : Floating).val = -(2 ^ 63) * 2 ^ (2 ^ 63 - 1) := by
 /-- If we're not nan, `x.n ≠ .min` -/
 lemma n_ne_min {x : Floating} (n : x ≠ nan) : x.n ≠ .minValue := by
   contrapose n
-  simp only [ne_eq, not_not, ext_iff, n_nan, s_nan, not_and, not_forall, exists_prop] at n ⊢
+  simp only [ext_iff, n_nan, s_nan] at n ⊢
   exact ⟨n, x.nan_same n⟩
 
 /-- If we're not zero, `x.n ≠ 0` -/
 lemma n_ne_zero {x : Floating} (n : x ≠ 0) : x.n ≠ 0 := by
   contrapose n
-  simp only [ne_eq, not_not, ext_iff, not_and, not_forall, exists_prop] at n ⊢
+  simp only [ext_iff] at n ⊢
   exact ⟨n, x.zero_same n⟩
 
 /-- If `x.s ≠ 0`, `x.n ≠ 0` -/
 lemma n_ne_zero' {x : Floating} (n : x.s ≠ 0) : x.n ≠ 0 := by
   contrapose n
-  simp only [ne_eq, not_not] at n ⊢
   simp only [x.zero_same n]
 
 /-- `x.n = 0` exactly at 0 -/
@@ -271,8 +270,8 @@ lemma val_of_nonneg {x : Floating} (x0 : 0 ≤ x.val) :
     x.val = (x.n.toUInt64.toNat : ℝ) * 2^((x.s.toNat : ℤ) - 2^63) := by
   rw [val, UInt64.toInt, Int64.coe_of_nonneg, Int.cast_natCast]
   rw [val] at x0
-  simpa only [Int64.isNeg_eq_le, decide_eq_false_iff_not, not_le, gt_iff_lt, two_zpow_pos,
-    mul_nonneg_iff_of_pos_right, Int.cast_nonneg, Int64.coe_nonneg_iff] using x0
+  simpa only [Int.reducePow, two_zpow_pos, mul_nonneg_iff_of_pos_right, Int.cast_nonneg_iff,
+    Int64.coe_nonneg_iff] using x0
 
 /-!
 ### The smallest normalized value

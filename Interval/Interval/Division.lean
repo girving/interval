@@ -236,7 +236,7 @@ lemma inv_def (x : Interval) : x⁻¹ = inv x := rfl
     approx (x.inv_pos l0) x'⁻¹ := by
   rw [inv_pos]
   have xn : x ≠ nan := by
-    contrapose l0; simp only [ne_eq, not_not] at l0
+    contrapose l0
     simp only [l0, lo_nan, not_lt, Floating.val_nan_lt_zero.le]
   simp only [approx, lo_eq_nan, xn, false_or] at ax
   have x0 := lt_of_lt_of_le l0 ax.1

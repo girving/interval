@@ -164,7 +164,7 @@ lemma UInt64.toNat_sub'' {x y : UInt64} (h : y ≤ x) : (x - y).toNat = x.toNat 
 lemma UInt64.toNat_add_one {m : UInt64} (h : m.toNat ≠ 2^64-1) : (m + 1).toNat = m.toNat + 1 := by
   rw [UInt64.toNat_add, toNat_one, Nat.mod_eq_of_lt]
   contrapose h; simp only [not_lt] at h
-  simp only [ne_eq, Nat.reducePow, Nat.add_one_sub_one, Decidable.not_not]
+  simp only [Nat.reducePow, Nat.add_one_sub_one]
   exact _root_.le_antisymm (UInt64.le_size_sub_one _) (Nat.sub_le_of_le_add h)
 
 /-- Adding 1 is usually adding one `toNat` -/

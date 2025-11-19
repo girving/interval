@@ -104,8 +104,7 @@ lemma Fixed.neg_def (x : Fixed s) : -x = x.neg := rfl
 /-- The contrapose of `-nan = nan` -/
 @[simp] lemma Fixed.ne_nan_of_neg {x : Fixed s} (h : -x ≠ nan) : x ≠ nan := by
   contrapose h
-  simp only [ne_eq, not_not] at h
-  simp only [h, neg_nan, ne_eq, not_true_eq_false, not_false_eq_true]
+  simp only [h, neg_nan]
 
 /-- `Fixed` addition saturates to `nan` -/
 @[irreducible] def Fixed.add (x y : Fixed s) :=
@@ -201,15 +200,15 @@ lemma Fixed.add_comm (x y : Fixed s) : x + y = y + x := by
 lemma Fixed.ne_nan_of_add {x y : Fixed s} (h : x + y ≠ nan) : x ≠ nan ∧ y ≠ nan := by
   contrapose h; simp only [not_and_or, not_not] at h
   cases' h with h h
-  · simp only [h, nan_add, ne_eq, not_true, not_false_eq_true]
-  · simp only [h, add_nan, ne_eq, not_true, not_false_eq_true]
+  · simp only [h, nan_add]
+  · simp only [h, add_nan]
 
 /-- If `x - y ≠ nan`, neither `x` or `y` are `nan` -/
 lemma Fixed.ne_nan_of_sub {x y : Fixed s} (h : x - y ≠ nan) : x ≠ nan ∧ y ≠ nan := by
   contrapose h; simp only [not_and_or, not_not] at h
   cases' h with h h
-  · simp only [h, nan_sub, ne_eq, not_true, not_false_eq_true]
-  · simp only [h, sub_nan, ne_eq, not_true, not_false_eq_true]
+  · simp only [h, nan_sub]
+  · simp only [h, sub_nan]
 
 /-- `Fixed.val` commutes with negation, except at `nan` -/
 lemma Fixed.val_neg {x : Fixed s} (xn : x ≠ nan) : (-x).val = -x.val := by
@@ -346,7 +345,6 @@ lemma Fixed.neg_add {x y : Fixed s} : -(x + y) = -y + -x := by
     · simp only [not_lt, xym, Int64.isNeg_min, iff_true, Int64.neg_min, ite_self]
     · have xy0 : x.n + y.n ≠ 0 := by
         contrapose xyn
-        simp only [not_not] at xyn
         simp only [eq_neg_iff_add_eq_zero.mpr xyn, Int64.isNeg_neg y0 yn, ← not_le, iff_not_self,
           not_false_eq_true]
       simp only [Int64.isNeg_neg xy0 xym, ite_not, ← not_iff]
@@ -559,7 +557,7 @@ lemma Fixed.val_nan : (nan : Fixed s).val = -(2:ℝ) ^ (s + 63 : ℤ) := by
 
 /-- Positive `Fixed`s are `≠ nan` -/
 lemma Fixed.ne_nan_of_pos {x : Fixed s} (h : 0 < x.val) : x ≠ nan := by
-  contrapose h; rw [not_not] at h; simp only [not_lt, h, val_nan_neg.le]
+  contrapose h; simp only [not_lt, h, val_nan_neg.le]
 
 /-!
 ### `Fixed` multiplication, rounding up or down
@@ -1109,8 +1107,7 @@ lemma Fixed.approx_two_pow (n : Fixed 0) (up : Bool) :
 @[simp] lemma Fixed.ne_nan_of_two_pow {n : Fixed 0} {up : Bool}
     (h : (two_pow n up : Fixed s) ≠ nan) : n ≠ nan := by
   contrapose h
-  simp only [ne_eq, not_not] at h
-  simp only [h, two_pow_nan, ne_eq, not_true_eq_false, not_false_eq_true]
+  simp only [h, two_pow_nan]
 
 /-- `Fixed.approx_two_pow`, down version -/
 lemma Fixed.two_pow_le {n : Fixed 0} (h : (.two_pow n false : Fixed s) ≠ nan) :

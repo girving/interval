@@ -191,7 +191,6 @@ lemma isNeg_iff' {x : Floating} : x.n < 0 ↔ x < 0 := by
   · simp only [x0, s_zero, ne_eq, not_true_eq_false] at s0
   have xm : x.n ≠ .minValue := by
     contrapose xn
-    simp only [ne_eq, not_not] at xn
     simp only [xn]
     decide
   have e : (2^62 : ℝ) = (2^62 : ℤ) := by norm_num
@@ -227,7 +226,7 @@ lemma isNeg_iff' {x : Floating} : x.n < 0 ↔ x < 0 := by
     UInt64.lt_iff_toNat_lt, UInt64.toNat_max, UInt64.toNat_2_pow_63, true_and, false_or]
     simp only [Int64.isNeg_eq_le] at xn
     contrapose n
-    simp only [not_or, not_lt, tsub_le_iff_right, not_and, not_not] at n ⊢
+    simp only [not_or, not_lt, tsub_le_iff_right, not_and] at n ⊢
     have se : x.s = .max := by
       simp only [UInt64.eq_iff_toNat_eq, UInt64.toNat_max]
       have h := x.s.toNat_le_pow_sub_one
@@ -283,7 +282,7 @@ lemma isNeg_iff' {x : Floating} : x.n < 0 ↔ x < 0 := by
   rw [val]; symm
   by_cases xn : x.n < 0
   · simp only [xn, ← not_le, mul_nonneg_iff_of_pos_right (two_zpow_pos (𝕜 := ℝ)), iff_true]
-    simpa only [Int.cast_nonneg, not_le, Int64.coe_lt_zero_iff]
+    simpa only [Int.cast_nonneg_iff, Int64.coe_nonneg_iff, not_le]
   · simp only [xn, not_lt, two_zpow_pos, mul_nonneg_iff_of_pos_right, Int.cast_nonneg,
       Int64.coe_nonneg_iff, iff_false, not_lt.mp xn]
 
@@ -412,11 +411,11 @@ instance : LinearOrder Floating where
   simpa only [val_le_val, val_zero, not_lt] using nan_lt_zero.le
 
 lemma ne_nan_of_nonneg {x : Floating} (n : 0 ≤ x.val) : x ≠ nan := by
-  contrapose n; simp only [ne_eq, not_not] at n; simp only [n, not_nan_nonneg, not_false_eq_true]
+  contrapose n; simp only [n, not_nan_nonneg, not_false_eq_true]
 
 lemma ne_nan_of_le {x y : Floating} (n : x ≠ nan) (le : x.val ≤ y.val) : y ≠ nan := by
   contrapose n
-  simp only [ne_eq, not_not, ←val_inj] at n ⊢
+  simp only [← val_inj] at n ⊢
   simp only [n] at le
   exact le_antisymm le (val_nan_le _)
 

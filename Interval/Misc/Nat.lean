@@ -142,7 +142,7 @@ lemma Nat.bodd_two_pow {k : ℕ} : bodd (2^k) = decide (k = 0) := by
     simp only
     trans 2^n
     · apply Nat.pred_lt; apply pow_ne_zero; norm_num
-    · apply pow_lt_pow_right₀; norm_num; exact lt.base n
+    · apply pow_lt_pow_right₀; norm_num; exact lt_add_one n
 
 lemma Nat.land_eq_mod {n k : ℕ} : n &&& (2^k-1) = n % 2^k := by
   revert n

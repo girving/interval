@@ -59,7 +59,6 @@ theorem lhopital_field {f g : 𝕜 → 𝕜} {a f' g' : 𝕜} (df : HasDerivAt f
       _ = 2⁻¹ * ‖g'‖ * ‖y‖ := by ring
   have dg0 : g x ≠ 0 := by
     contrapose lo
-    simp only [ne_eq, not_not] at lo
     simp only [lo, norm_zero, ge_iff_le, not_le]
     bound
   calc ‖f x / g x - f' / g'‖

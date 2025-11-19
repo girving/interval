@@ -152,16 +152,12 @@ instance : ApproxOne Interval ℝ where approx_one := by simp only [approx_one]
 /-- If we're not `nan`, our components are not `nan` -/
 @[simp] lemma lo_ne_nan {x : Interval} (n : x ≠ nan) : x.lo ≠ nan := by
   contrapose n
-  simp only [ne_eq, not_not] at n
-  simp only [ne_eq, ext_iff, n, lo_nan, x.norm.mp n, hi_nan, and_self, not_true_eq_false,
-    not_false_eq_true]
+  simp only [ext_iff, n, lo_nan, x.norm.mp n, hi_nan, and_self]
 
 /-- If we're not `nan`, our components are not `nan` -/
 @[simp] lemma hi_ne_nan {x : Interval} (n : x ≠ nan) : x.hi ≠ nan := by
   contrapose n
-  simp only [ne_eq, not_not] at n
-  simp only [ne_eq, ext_iff, n, lo_nan, x.norm.mpr n, hi_nan, and_self, not_true_eq_false,
-    not_false_eq_true]
+  simp only [ext_iff, n, lo_nan, x.norm.mpr n, hi_nan, and_self]
 
 -- We're not nan if lo or hi aren't nan -/
 lemma ne_nan_of_lo {x : Interval} (n : x.lo ≠ nan) : x ≠ nan := ne_of_apply_ne lo n
@@ -541,10 +537,10 @@ lemma sub_def : x - y = mix (x.lo.sub y.hi false) (x.hi.sub y.lo true) (by
   simp only [HSub.hSub, Sub.sub, lo_nan, Floating.nan_sub, hi_nan, mix_nan]
 lemma ne_nan_of_add {x y : Interval} (n : x + y ≠ nan) : x ≠ nan ∧ y ≠ nan := by
   contrapose n; simp only [ne_eq, not_and_or, not_not] at n
-  rcases n with n | n; repeat simp only [n, nan_add, add_nan, not_not]
+  rcases n with n | n; repeat simp only [n, nan_add, add_nan]
 lemma ne_nan_of_sub {x y : Interval} (n : x - y ≠ nan) : x ≠ nan ∧ y ≠ nan := by
   contrapose n; simp only [ne_eq, not_and_or, not_not] at n
-  rcases n with n | n; repeat simp only [n, nan_sub, sub_nan, not_not]
+  rcases n with n | n; repeat simp only [n, nan_sub, sub_nan]
 
 /-- `add` respects `approx` -/
 instance : ApproxAdd Interval ℝ where
@@ -797,8 +793,8 @@ lemma abs_pos_of_not_zero_mem {x : Interval} (z : ¬approx x (0 : ℝ)) : 0 < x.
   by_cases n : x = nan
   · simp only [n, approx_nan, not_true_eq_false] at z
   apply abs_pos n
-  · contrapose z; simp only [ne_eq, not_not, ←Floating.val_eq_zero] at z
-    simp only [← z, not_not, lo_mem]
+  · contrapose z; simp only [← Floating.val_eq_zero] at z
+    simp only [← z, lo_mem]
   · simp only [approx, lo_eq_nan, n, false_or, not_and, not_le] at z
     by_cases l0 : x.lo.val < 0
     · simpa only [l0, l0.le, true_iff, true_implies] using z
@@ -873,7 +869,7 @@ lemma valid_error {e : Floating} (e0 : ¬e.n.isNeg) : Valid (-e) e where
 
 /-- `error` propagates `nan` -/
 lemma ne_nan_of_error {e : Floating} (n : error e ≠ nan) : e ≠ nan := by
-  contrapose n; simp only [ne_eq, not_not] at n; simp only [n, ne_eq, not_not, error_nan]
+  contrapose n; simp only [n, error_nan]
 
 /-- `grow` propagates `nan` -/
 @[simp] lemma grow_nan {x : Interval} : x.grow nan = nan := by

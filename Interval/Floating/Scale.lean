@@ -74,8 +74,8 @@ lemma val_scaleB {x : Floating} {t : Int64} (n : x.scaleB t ≠ nan) :
 
 /-- `scaleB` propagates `nan` -/
 @[simp] lemma ne_nan_of_scaleB {x : Floating} {t : Int64} (n : x.scaleB t ≠ nan) : x ≠ nan := by
-  contrapose n; simp only [ne_eq, not_not] at n
-  simp only [n, nan_scaleB, ne_eq, not_true_eq_false, not_false_eq_true]
+  contrapose n
+  simp only [n, nan_scaleB]
 
 /-!
 ### Dividing by two

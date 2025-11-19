@@ -219,8 +219,8 @@ lemma UInt128.toNat_succ' (x : UInt128) :
 
 lemma UInt128.coe_succ {x : UInt128} (h : (x:ℝ) ≠ (2:ℝ)^128-1) : (x.succ : ℝ) = x+1 := by
   rw [toReal, toReal, toNat_succ, Nat.cast_add_one]
-  contrapose h; simp only [ne_eq, not_not] at h
-  simp only [toReal, h, ne_eq, not_not]
+  contrapose h
+  simp only [toReal, h]
   norm_num
 
 /-!
@@ -261,7 +261,7 @@ lemma UInt128.toNat_neg (x : UInt128) : (-x).toNat = if x = 0 then 0 else 2^128 
     · simp only [toNat_complement]
       omega
     · contrapose x0
-      simp only [toNat_complement, ne_eq, not_not, eq_iff_toNat_eq, toNat_zero] at x0 ⊢
+      simp only [toNat_complement, eq_iff_toNat_eq, toNat_zero] at x0 ⊢
       omega
 
 /-- `ofInt` commutes with `-` -/
@@ -585,7 +585,7 @@ lemma tb_false {x : UInt64} {i : ℕ} (il : 64 ≤ i) : Nat.testBit x.toNat i = 
   replace x0 : 0 < x.toNat := by
     simpa only [ne_eq, UInt128.eq_iff_toNat_eq, UInt128.toNat_zero, ← Nat.pos_iff_ne_zero] using x0
   replace h : 2^128 ≤ 2^t := Nat.pow_le_pow_right (by norm_num) h
-  exact not_le.mpr (lt_of_lt_of_le (by norm_num) (Nat.mul_le_mul (Nat.succ_le.mpr x0) h))
+  exact not_le.mpr (lt_of_lt_of_le (by norm_num) (Nat.mul_le_mul (Nat.succ_le_iff.mpr x0) h))
 @[local simp] lemma a4 {t i : ℕ} (hi : i < 64) (ht : 64 ≤ t) : ¬t ≤ i := by omega
 @[local simp] lemma a5 {t i : ℕ} (hi : i < 64) (ti : t < 64) : i - t < 64 - t := by omega
 
@@ -761,7 +761,7 @@ lemma UInt128.toInt_shiftRightRound (x : UInt128) (s : UInt64) (up : Bool) :
   · simp only [not_le] at h1
     simp only [h3.1, Nat.mod_eq_of_lt h1, true_and] at h3 h4
     contrapose h3; clear h3
-    simp only [d1 h4, pow_zero, Nat.div_one, mul_one, not_not] at h4 ⊢
+    simp only [d1 h4, pow_zero, Nat.div_one, mul_one] at h4 ⊢
     rw [h4]; decide
   · simp only [not_le] at h1; clear h4
     simp only [h3.1, Nat.mod_eq_of_lt h1, true_and, Int.rdiv, Nat.cast_pow, Nat.cast_ofNat,

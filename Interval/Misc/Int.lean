@@ -12,7 +12,7 @@ import Interval.Misc.Nat
 /-- `abs` and `zpow` commute -/
 lemma abs_zpow {x : ℝ} {n : ℤ} : |x ^ n| = |x| ^ n := by
   induction' n using Int.rec with n n
-  · simp only [Int.ofNat_eq_coe, zpow_natCast, abs_pow]
+  · simp only [Int.ofNat_eq_natCast, zpow_natCast, abs_pow]
   · simp [zpow_negSucc, abs_inv, abs_pow]
 
 /-- `Int` division, rounding up or down -/
@@ -142,7 +142,7 @@ lemma Int.neg_ediv_neg {a b : ℤ} (b0 : 0 < b) (ab : ¬b ∣ a) : -(-a / b) = a
   have yb : y < b := by
     rw [← hy]
     convert emod_lt a b0.ne'
-    rw [Int.cast_natAbs, abs_of_pos b0, cast_id]
+    rw [Nat.cast_natAbs, abs_of_pos b0, cast_id]
   have e0 : -(b * x + y) = -y + (-x) * b := by ring
   have e1 : (b * x + y) = y + (x) * b := by ring
   rw [e0, e1]
@@ -295,7 +295,7 @@ lemma Int.abs_def {n : ℤ} : |n| = if n < 0 then -n else n := by
 lemma Int.natAbs_def {n : ℤ} : n.natAbs = if n < 0 then (-n).toNat else n.toNat := by
   simp only [natAbs]
   induction' n using Int.rec with n
-  · simp only [ofNat_eq_coe, toNat_neg_natCast, toNat_natCast]
+  · simp only [ofNat_eq_natCast, toNat_neg_natCast, toNat_natCast]
     split_ifs
     all_goals omega
   · simp only [Nat.succ_eq_add_one, negSucc_eq, neg_add_rev, reduceNeg, add_neg_lt_iff_lt_add,

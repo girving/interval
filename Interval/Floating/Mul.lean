@@ -129,7 +129,6 @@ lemma mul_norm_correct (n : UInt128) (up : Bool) (n0 : n ≠ 0) (lo : n.toNat �
         rw [Nat.one_le_iff_ne_zero]
         contrapose r_eq
         apply ne_of_lt
-        simp only [ne_eq, not_not] at r_eq
         simp only [r_eq, pow_zero, mul_one, ← UInt128.eq_iff_toNat_eq] at hz
         simp only [UInt64.lt_iff_toNat_lt, ←hz, ←hr, UInt64.toNat_2_pow_63]
         simp only [UInt128.toNat_def, mul_n_max] at lo

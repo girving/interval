@@ -246,7 +246,7 @@ lemma add_n_norm (r : UInt128) (s : UInt64) (up : Bool) :
   rw [Nat.le_div_iff_mul_le (by positivity), ←pow_add]
   refine adjust_le_mul ?_ (UInt64.ne_zero_iff_toNat_ne_zero.mp s0)
   contrapose r0
-  simp only [ne_eq, not_not, ←UInt128.eq_zero_iff] at r0 ⊢
+  simp only [← UInt128.eq_zero_iff] at r0 ⊢
   rw [add_n]
   simp only [r0, UInt128.log2_zero, UInt128.zero_lo, UInt64.zero_shiftLeft,
     UInt128.zero_shiftRightRound, ite_self]
@@ -264,7 +264,9 @@ lemma valid_small_shift1 {n s : UInt64} (n63 : n ≠ 2^63) (n0 : n ≠ 0)
     (n_le : n.toNat ≤ 2^63)
     : Valid n.toInt64 s where
   zero_same := by
-    intro z; clear n63; contrapose n0; rw [Int64.ext_iff] at z; exact not_not.mpr z
+    intro z
+    contrapose n0
+    simpa only [Int64.ext_iff, UInt64.toUInt64_toInt64, Int64.n_zero] using z
   nan_same := by
     intro m
     rw [Int64.ext_iff, UInt64.toUInt64_toInt64, Int64.n_min] at m

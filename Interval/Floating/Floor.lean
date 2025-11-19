@@ -43,7 +43,7 @@ namespace Floating
   rw [floor]; simp only [beq_self_eq_true, s_nan, Bool.true_or, n_nan, cond_true]
 
 @[simp] lemma ne_nan_of_floor {x : Floating} (n : x.floor ≠ nan) : x ≠ nan := by
-  contrapose n; simp only [not_not] at n; simp [n]
+  contrapose n; simp [n]
 
 lemma floor_mono {x y : Floating} (le : x ≤ y) (yn : y.floor ≠ nan) : x.floor ≤ y.floor := by
   by_cases xn : x.floor = nan
