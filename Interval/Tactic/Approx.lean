@@ -25,6 +25,13 @@ typeclass. For example, `approx_add` says that `approx (x + y) (a + b)` if `appr
 can apply it. -/
 syntax "approx" : tactic
 
+/-- Same as `approx`, but also uses `simp` -/
+syntax "approx_simp" : tactic
+
 -- Rewrite `approx` into `aesop`
 macro_rules
   | `(tactic| approx) => `(tactic| aesop (rule_sets := [Approx]) (config := approxConfig))
+
+-- Rewrite `approx` into `aesop`, including `simp`
+macro_rules
+  | `(tactic| approx_simp) => `(tactic| aesop (rule_sets := [Approx]))
