@@ -1,3 +1,4 @@
+import Interval.Approx.Div2
 import Interval.Floating.Standardization
 
 open Pointwise
@@ -77,11 +78,20 @@ lemma val_scaleB {x : Floating} {t : Int64} (n : x.scaleB t ≠ nan) :
   contrapose n
   simp only [n, nan_scaleB]
 
+@[simp] lemma scaleB_zero {t : Int64} : (0 : Floating).scaleB t = 0 := by
+  rw [scaleB]
+  simp
+
 /-!
 ### Dividing by two
 -/
 
 @[irreducible] def div2 (x : Floating) : Floating := x.scaleB (-1)
+
+instance : Div2 Floating where
+  div2 := Floating.div2
+
+lemma div2_def (x : Floating) : Div2.div2 x = Floating.div2 x := rfl
 
 /-- `div2` is conservative -/
 @[approx] lemma mem_approx_div2 (xm : approx x x') : approx x.div2 (x' / 2) := by
@@ -89,6 +99,11 @@ lemma val_scaleB {x : Floating} {t : Int64} (n : x.scaleB t ≠ nan) :
     simp only [div_eq_mul_inv, Int.reduceNeg, zpow_neg, zpow_one]
   rw [e, div2]
   exact mem_approx_scaleB _ xm
+
+instance : ApproxDiv2 Floating ℝ where
+  approx_div2 {x x'} a := by
+    rw [div2_def, div2_eq_mul, ← div_eq_inv_mul]
+    approx
 
 /-- `div2` is exact if not `nan` -/
 lemma val_div2 {x : Floating} (n : x.div2 ≠ nan) : x.div2.val = x.val / 2 := by
@@ -101,3 +116,6 @@ lemma val_div2 {x : Floating} (n : x.div2 ≠ nan) : x.div2.val = x.val / 2 := b
 /-- `div2` propagates `nan` -/
 @[simp] lemma ne_nan_of_div2 {x : Floating} (n : x.div2 ≠ nan) : x ≠ nan := by
   rw [div2] at n; exact ne_nan_of_scaleB n
+
+instance : Div2Zero Floating where
+  div2_zero := by simp [div2_def, div2]

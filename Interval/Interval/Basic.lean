@@ -624,6 +624,12 @@ instance : Coe Floating Interval where
 @[simp] lemma lo_coe {x : Floating} : (x : Interval).lo = x := rfl
 @[simp] lemma hi_coe {x : Floating} : (x : Interval).hi = x := rfl
 
+/-- Coercsion preserves `0` -/
+@[simp] lemma coe_zero : ((0 : Floating) : Interval) = 0 := by decide +kernel
+
+/-- Coercsion preserves `1` -/
+@[simp] lemma coe_one : ((1 : Floating) : Interval) = 1 := by decide +kernel
+
 /-- Coercion preserves `nan` -/
 @[simp] lemma coe_eq_nan {x : Floating} : (x : Interval) = nan ↔ x = nan := by
   simp only [ext_iff, lo_coe, lo_nan, hi_coe, hi_nan, and_self]

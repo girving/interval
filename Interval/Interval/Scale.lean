@@ -1,3 +1,4 @@
+import Interval.Approx.Div2
 import Interval.Floating.Scale
 import Interval.Interval.Basic
 
@@ -89,8 +90,15 @@ lemma ne_nan_of_scaleB' {t : Fixed 0} (n : x.scaleB' t ≠ nan) :
     simp only [ne_eq, n0, not_false_eq_true, Floating.val_div2, n1]
     exact div_le_div_of_nonneg_right x.le (by norm_num))
 
-@[approx] lemma mem_approx_div2 {x : Interval} {x' : ℝ} (xm : approx x x') :
-    approx (div2 x) (x' / 2) := by
+instance : Div2 Interval where
+  div2 := Interval.div2
+
+lemma div2_def (x : Interval) : Div2.div2 x = Interval.div2 x := rfl
+
+instance : Div2Zero Interval where
+  div2_zero := by simp [div2_def, div2, ← Floating.div2_def]
+
+@[approx] lemma mem_approx_div2 (xm : approx x x') : approx (x.div2) (x' / 2) := by
   rw [div2]
   simp only [approx, lo_eq_nan, or_iff_not_imp_left] at xm ⊢
   intro n
@@ -101,3 +109,8 @@ lemma ne_nan_of_scaleB' {t : Fixed 0} (n : x.scaleB' t ≠ nan) :
   simp only [xn, not_false_eq_true, forall_true_left] at xm
   simpa only [ne_eq, n.1, not_false_eq_true, Floating.val_div2, n.2,
     div_le_div_iff_of_pos_right (by norm_num : (0 : ℝ) < 2)]
+
+instance : ApproxDiv2 Interval ℝ where
+  approx_div2 {x x'} a := by
+    rw [div2_def, div2_eq_mul, ← div_eq_inv_mul]
+    approx
