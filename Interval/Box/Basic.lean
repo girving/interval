@@ -90,6 +90,10 @@ def sqr (z : Box) : Box :=
   let w := z.re * z.im
   ⟨z.re.sqr - z.im.sqr, w.scaleB 1⟩
 
+/-- Power of two scaling -/
+@[irreducible] def scaleB (z : Box) (t : Int64) : Box :=
+  ⟨z.re.scaleB t, z.im.scaleB t⟩
+
 -- Definition lemmas
 lemma neg_def {z : Box} : -z = ⟨-z.re, -z.im⟩ := rfl
 lemma add_def {z w : Box} : z + w = ⟨z.re + w.re, z.im + w.im⟩ := rfl
@@ -173,6 +177,18 @@ noncomputable instance : ApproxRing Box ℂ where
   simp only [instApprox, sqr, Complex.mul_re, Complex.mul_im, pow_two z', ← pow_two z'.re,
     ← pow_two z'.im, mul_comm z'.im, ← two_mul]
   approx
+
+/-- `Box` scaling approximates `ℂ` -/
+@[approx] lemma approx_scaleB (az : approx z z') (t : Int64) :
+    approx (z.scaleB t) (z' * 2 ^ (t : ℤ)) := by
+  have two : (2 : ℂ) = (2 : ℝ) := by  norm_num
+  simp only [scaleB, instApprox, two, Complex.mul_re, ← Complex.ofReal_zpow, Complex.ofReal_im,
+    mul_zero, sub_zero, Complex.ofReal_re, Complex.mul_im, zero_add]
+  approx
+
+/-- `Box` doubling approximates `ℂ` -/
+@[approx] lemma approx_scaleB_one (az : approx z z') : approx (z.scaleB 1) (2 * z') := by
+  simpa only [Int64.coe_one, zpow_one, mul_comm _ (2 : ℂ)] using approx_scaleB az 1
 
 /-!
 ### Multiplication and division by `I`
