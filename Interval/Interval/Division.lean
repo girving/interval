@@ -35,7 +35,7 @@ open Set
 open scoped Real
 namespace Interval
 
-variable {x' : ℝ}
+variable {x : Interval} {x' : ℝ}
 
 /-!
 ## Exact precision preliminaries
@@ -285,3 +285,11 @@ lemma div_def (x y : Interval) : x / y = x * y⁻¹ := rfl
 noncomputable instance : ApproxDiv Interval ℝ where
   approx_div x y := by
     rw [div_def, div_eq_mul_inv]; approx
+
+/-!
+## `nan` propagation lemmas
+-/
+
+@[simp] lemma inv_nan : (nan : Interval)⁻¹ = nan := by simp [inv_def, inv]
+@[simp] lemma nan_div : nan / x = nan := by simp [div_def]
+@[simp] lemma div_nan : x / nan = nan := by simp [div_def]
