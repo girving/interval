@@ -27,7 +27,7 @@ def exp_series_radius : ℚ := 0.346574
            else .ofRat (exp_series_radius ^ n * ((n + 1) / (Nat.factorial n * n))) true
 
 /-- Our power series for `exp` is correct -/
-lemma approx_exp_series (n : ℕ) : approx (exp_series n) Real.exp := by
+lemma approx_exp_series' (n : ℕ) : approx (exp_series n) Real.exp := by
   have nn : (exp_series n).coeffs.size = n := by rw [exp_series, Array.size_map, Array.size_range]
   by_cases n0 : n = 0
   · intro a x _
@@ -61,9 +61,9 @@ lemma approx_exp_series (n : ℕ) : approx (exp_series n) Real.exp := by
         Rat.cast_inv, Rat.cast_natCast, Rat.cast_add, Rat.cast_one]
 
 /-- `approx` friendly version of `approx_exp_series` -/
-@[approx] lemma mem_approx_exp_series (ax : approx x x') {n : ℕ} :
+@[approx] lemma approx_exp_series (ax : approx x x') {n : ℕ} :
     approx ((exp_series n).eval x) (Real.exp x') :=
-  approx_exp_series n x' x ax
+  approx_exp_series' n x' x ax
 
 /-- 16 terms are about enough for 64 bits of precision -/
 @[irreducible] def exp_series_16 := exp_series 16
@@ -92,7 +92,7 @@ via Taylor series, and form `exp x = exp (y + n log 2) = exp y * 2^n` via shifti
   x.lo.exp ∪ x.hi.exp
 
 /-- `Floating.exp` is conservative -/
-@[approx] lemma Floating.mem_approx_exp {x : Floating} (xm : approx x x') :
+@[approx] lemma Floating.approx_exp {x : Floating} (xm : approx x x') :
     approx x.exp (Real.exp x') := by
   rw [Floating.exp]
   generalize hn : floor ((mul x Floating.inv_log_two false).add (ofRat (1 / 2) false) false) = n

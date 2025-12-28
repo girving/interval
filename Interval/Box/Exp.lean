@@ -35,21 +35,21 @@ variable {t : Interval} {t' : ℝ}
 @[irreducible] def Box.sinh (z : Box) : Box := z.div_I.sin.mul_I
 @[irreducible] def Box.cosh (z : Box) : Box := z.mul_I.cos
 
-@[approx] lemma Interval.mem_approx_cis (m : approx t t') : approx t.cis (t' * Complex.I).exp := by
+@[approx] lemma Interval.approx_cis (m : approx t t') : approx t.cis (t' * Complex.I).exp := by
   rw [Complex.exp_eq_exp_re_mul_sin_add_cos, Interval.cis]
-  rw [Box.mem_approx_iff_ext]
+  rw [Box.approx_iff_ext]
   simp [Complex.cos_ofReal_re, Complex.sin_ofReal_re]
   approx
 
-@[approx] lemma Box.mem_approx_exp (m : approx z z') : approx z.exp z'.exp := by
+@[approx] lemma Box.approx_exp (m : approx z z') : approx z.exp z'.exp := by
   rw [Complex.exp_eq_exp_re_mul_sin_add_cos, exp, Interval.cis]
-  rw [mem_approx_iff_ext] at m ⊢
+  rw [approx_iff_ext] at m ⊢
   simp [Complex.exp_ofReal_re, Complex.cos_ofReal_re, Complex.sin_ofReal_re]
   approx
 
-@[approx] lemma Box.mem_approx_sin (m : approx z z') : approx z.sin z'.sin := by
+@[approx] lemma Box.approx_sin (m : approx z z') : approx z.sin z'.sin := by
   rw [Complex.sin_eq, sin, Complex.cosh, Complex.sinh]
-  rw [mem_approx_iff_ext] at m ⊢
+  rw [approx_iff_ext] at m ⊢
   simp only [Complex.add_re, Complex.mul_re, Complex.sin_ofReal_re, Complex.div_ofNat_re,
     Complex.exp_ofReal_re, Complex.sin_ofReal_im, Complex.div_ofNat_im, Complex.add_im,
     Complex.exp_ofReal_im, zero_add, zero_mul, sub_zero, Complex.cos_ofReal_re, Complex.sub_re,
@@ -57,9 +57,9 @@ variable {t : Interval} {t' : ℝ}
     Complex.I_im, mul_one, ← Complex.ofReal_neg, zero_div]
   approx
 
-@[approx] lemma Box.mem_approx_cos (m : approx z z') : approx z.cos z'.cos := by
+@[approx] lemma Box.approx_cos (m : approx z z') : approx z.cos z'.cos := by
   rw [Complex.cos_eq, cos, Complex.cosh, Complex.sinh]
-  rw [mem_approx_iff_ext] at m ⊢
+  rw [approx_iff_ext] at m ⊢
   simp only [Complex.add_re, Complex.mul_re, Complex.sin_ofReal_re, Complex.div_ofNat_re,
     Complex.exp_ofReal_re, Complex.sin_ofReal_im, Complex.div_ofNat_im, Complex.add_im,
     Complex.exp_ofReal_im, zero_mul, sub_zero, Complex.cos_ofReal_re, Complex.sub_re,
@@ -67,11 +67,11 @@ variable {t : Interval} {t' : ℝ}
     add_zero, Complex.I_im, mul_one, ← Complex.ofReal_neg, zero_div, ← neg_mul]
   approx
 
-@[approx] lemma Box.mem_approx_sinh (m : approx z z') : approx z.sinh z'.sinh := by
+@[approx] lemma Box.approx_sinh (m : approx z z') : approx z.sinh z'.sinh := by
   have e : z' = z' / Complex.I * Complex.I := by simp [mul_assoc]
   rw [e, Complex.sinh_mul_I, sinh]; approx
 
-@[approx] lemma Box.mem_approx_cosh (m : approx z z') : approx z.cosh z'.cosh := by
+@[approx] lemma Box.approx_cosh (m : approx z z') : approx z.cosh z'.cosh := by
   rw [← Complex.cos_mul_I, cosh]; approx
 
 @[simp] lemma Interval.cis_nan : (nan : Interval).cis = ⟨pm1, pm1⟩ := by

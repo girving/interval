@@ -27,7 +27,7 @@ variable {x : Floating} {x' : ℝ}
   bif t == nan then nan else scaleB x t.n
 
 /-- `scaleB` is conservative -/
-@[approx] lemma mem_approx_scaleB {x : Floating} (t : Int64) (xm : approx x x') :
+@[approx] lemma approx_scaleB {x : Floating} (t : Int64) (xm : approx x x') :
     approx (x.scaleB t) (x' * 2^(t : ℤ)) := by
   rw [scaleB]
   have t0 : 0 < (2 : ℝ) := by norm_num
@@ -65,7 +65,7 @@ variable {x : Floating} {x' : ℝ}
 /-- `scaleB _ _` is exact if not `nan` -/
 lemma val_scaleB {x : Floating} {t : Int64} (n : x.scaleB t ≠ nan) :
     (x.scaleB t).val = x.val * 2^(t : ℤ) := by
-  simpa [approx, n, ↓reduceIte] using mem_approx_scaleB t (approx_val (x := x))
+  simpa [approx, n, ↓reduceIte] using approx_scaleB t (approx_val (x := x))
 
 /-- `scaleB` propagates `nan` -/
 @[simp] lemma nan_scaleB {t : Int64} : (nan : Floating).scaleB t = nan := by
@@ -94,11 +94,11 @@ instance : Div2 Floating where
 lemma div2_def (x : Floating) : Div2.div2 x = Floating.div2 x := rfl
 
 /-- `div2` is conservative -/
-@[approx] lemma mem_approx_div2 (xm : approx x x') : approx x.div2 (x' / 2) := by
+@[approx] lemma approx_div2 (xm : approx x x') : approx x.div2 (x' / 2) := by
   have e : x' / 2 = x' * 2^(-1 : ℤ) := by
     simp only [div_eq_mul_inv, Int.reduceNeg, zpow_neg, zpow_one]
   rw [e, div2]
-  exact mem_approx_scaleB _ xm
+  exact approx_scaleB _ xm
 
 instance : ApproxDiv2 Floating ℝ where
   approx_div2 {x x'} a := by
@@ -107,7 +107,7 @@ instance : ApproxDiv2 Floating ℝ where
 
 /-- `div2` is exact if not `nan` -/
 lemma val_div2 {x : Floating} (n : x.div2 ≠ nan) : x.div2.val = x.val / 2 := by
-  simpa [approx, n] using mem_approx_div2 (approx_val (x := x))
+  simpa [approx, n] using approx_div2 (approx_val (x := x))
 
 /-- `div2` propagates `nan` -/
 @[simp] lemma nan_div2 : (nan : Floating).div2 = nan := by

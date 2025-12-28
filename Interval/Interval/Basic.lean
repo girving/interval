@@ -481,7 +481,7 @@ lemma valid_inter {x y : Interval} (t : ∃ a : ℝ, approx x a ∧ approx y a)
   simp only [Floating.max_eq_nan', lo_eq_nan, Floating.naive_min_eq_nan, hi_eq_nan, and_self]
 
 /-- `inter` respects `approx` -/
-@[simp] lemma approx_inter {x y : Interval} {t : ∃ a : ℝ, approx x a ∧ approx y a} :
+@[simp] lemma approx_inter_iff {x y : Interval} {t : ∃ a : ℝ, approx x a ∧ approx y a} :
     approx (x.inter y t) a ↔ approx x a ∧ approx y a := by
   by_cases n : x = nan ∨ y = nan
   · rcases n with n | n
@@ -495,9 +495,9 @@ lemma valid_inter {x y : Interval} (t : ∃ a : ℝ, approx x a ∧ approx y a)
   aesop
 
 /-- `approx ∈` version of `approx_inter` -/
-@[approx] lemma mem_approx_inter {a : ℝ} {x y : Interval} {t : ∃ a : ℝ, approx x a ∧ approx y a}
+@[approx] lemma approx_inter {a : ℝ} {x y : Interval} {t : ∃ a : ℝ, approx x a ∧ approx y a}
     (ax : approx x a) (ay : approx y a) : approx (x.inter y t) a := by
-  simp only [approx_inter, ax, ay, and_self]
+  simp only [approx_inter_iff, ax, ay, and_self]
 
 /-!
 ### Addition and subtraction
@@ -639,7 +639,7 @@ instance : Coe Floating Interval where
   simp only [coe_eq_nan]
 
 /-- Coercion preserves `approx` -/
-@[simp] lemma approx_coe {x : Floating} : approx (x : Interval) a ↔ approx x a := by
+@[simp] lemma approx_coe_iff {x : Floating} : approx (x : Interval) a ↔ approx x a := by
   simp only [approx, lo_coe, hi_coe, le_antisymm_iff (b := a)]
 
 /-- `mix x x _ = x -/
@@ -651,8 +651,8 @@ instance : Coe Floating Interval where
     simp only [n, or_self, dite_false, ext_iff, lo_coe, hi_coe, and_self]
 
 /-- Teach `approx` how to convert `a ∈ approx ↑x` to `a ∈ approx x` -/
-@[approx] lemma mem_approx_coe {a : ℝ} {x : Floating} (ax : approx x a) :
-    approx (x : Interval) a := by rwa [approx_coe]
+@[approx] lemma approx_coe {a : ℝ} {x : Floating} (ax : approx x a) :
+    approx (x : Interval) a := by rwa [approx_coe_iff]
 
 /-!
 ### Absolute value

@@ -31,7 +31,7 @@ lemma valid_two_pow {n : Fixed 0} :
     v := valid_two_pow }
 
 /-- `two_pow` is conservative -/
-@[approx] lemma mem_approx_two_pow (n : Fixed 0) : approx (two_pow n) (2 ^ n.val : ℝ) := by
+@[approx] lemma approx_two_pow (n : Fixed 0) : approx (two_pow n) (2 ^ n.val : ℝ) := by
   rw [two_pow]
   simp only [bif_eq_if, Bool.or_eq_true, beq_iff_eq, decide_eq_true_eq]
   by_cases b : n = nan ∨ n.n.toUInt64 + (2^63 : UInt64) < 62

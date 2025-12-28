@@ -18,8 +18,8 @@ variable {x : Interval} {x' : ℝ}
 @[irreducible] def cosh (x : Interval) : Interval :=
   (exp x + exp (-x)).div2
 
-@[approx] lemma mem_approx_sinh (ax : approx x x') : approx x.sinh (Real.sinh x') := by
+@[approx] lemma approx_sinh (ax : approx x x') : approx x.sinh (Real.sinh x') := by
   rw [sinh, Real.sinh_eq]; approx
 
-@[approx] lemma mem_approx_cosh (ax : approx x x') : approx x.cosh (Real.cosh x') := by
+@[approx] lemma approx_cosh (ax : approx x x') : approx x.cosh (Real.cosh x') := by
   rw [cosh, Real.cosh_eq]; approx

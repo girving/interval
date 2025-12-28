@@ -30,4 +30,4 @@ attribute [approx] Around.mem
 instance : Inter (Around c) where
   inter x y := {
     i := x.i.inter y.i ⟨c, x.mem, y.mem⟩
-    mem := Interval.mem_approx_inter x.mem y.mem }
+    mem := Interval.approx_inter x.mem y.mem }

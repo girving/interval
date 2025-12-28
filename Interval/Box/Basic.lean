@@ -117,18 +117,18 @@ lemma smul_def {x : Interval} {z : Box} : x • z = ⟨x * z.re, x * z.im⟩ := 
 @[simp] lemma im_smul {x : Interval} {z : Box} : (x • z).im = x * z.im := by simp [smul_def]
 
 /-- Prove `re ∈` via full `∈` -/
-@[approx] lemma mem_approx_re {z : ℂ} {w : Box} (zw : approx w z) : approx w.re z.re := zw.1
+@[approx] lemma approx_re {z : ℂ} {w : Box} (zw : approx w z) : approx w.re z.re := zw.1
 
 /-- Prove `im ∈` via full `∈` -/
-@[approx] lemma mem_approx_im {z : ℂ} {w : Box} (zw : approx w z) : approx w.im z.im := zw.2
+@[approx] lemma approx_im {z : ℂ} {w : Box} (zw : approx w z) : approx w.im z.im := zw.2
 
 /-- Split `∈ approx` into components -/
-lemma mem_approx_iff_ext {z : ℂ} {w : Box} : approx w z ↔ approx w.re z.re ∧ approx w.im z.im := by
+lemma approx_iff_ext {z : ℂ} {w : Box} : approx w z ↔ approx w.re z.re ∧ approx w.im z.im := by
   rfl
 
-instance : ApproxZero Box ℂ where approx_zero := by simp [mem_approx_iff_ext]
+instance : ApproxZero Box ℂ where approx_zero := by simp [approx_iff_ext]
 instance : ApproxZeroIff Box ℂ where approx_zero_imp x a := by simpa only [approx_zero_iff] using a
-instance : ApproxOne Box ℂ where approx_one := by simp [mem_approx_iff_ext]
+instance : ApproxOne Box ℂ where approx_one := by simp [approx_iff_ext]
 
 /-- `star` is conservative -/
 instance : ApproxStar Box ℂ where
@@ -198,13 +198,13 @@ noncomputable instance : ApproxRing Box ℂ where
 @[irreducible] def div_I (z : Box) : Box := ⟨z.im, -z.re⟩
 
 @[approx] lemma approx_mul_I (m : approx z z') : approx z.mul_I (z' * Complex.I) := by
-  rw [mul_I, mem_approx_iff_ext]; simp; approx
+  rw [mul_I, approx_iff_ext]; simp; approx
 
-@[approx] lemma mem_approx_div_I (m : approx z z') : approx z.div_I (z' / Complex.I) := by
-  rw [div_I, mem_approx_iff_ext]; simp; approx
+@[approx] lemma approx_div_I (m : approx z z') : approx z.div_I (z' / Complex.I) := by
+  rw [div_I, approx_iff_ext]; simp; approx
 
-@[approx] lemma mem_approx_div_I' (m : approx z z') : approx z.div_I (-z' * Complex.I) := by
-  rw [div_I, mem_approx_iff_ext]; simp; approx
+@[approx] lemma approx_div_I' (m : approx z z') : approx z.div_I (-z' * Complex.I) := by
+  rw [div_I, approx_iff_ext]; simp; approx
 
 @[simp] lemma div_I_mul_I {z : Box} : z.div_I.mul_I = z := by rw [div_I, mul_I]; simp
 @[simp] lemma mul_I_div_I {z : Box} : z.mul_I.div_I = z := by rw [div_I, mul_I]; simp
@@ -218,13 +218,13 @@ noncomputable instance : ApproxRing Box ℂ where
   z.re.sqr + z.im.sqr
 
 /-- `normSq` is conservative -/
-@[approx] lemma mem_approx_normSq (m : approx z z') : approx z.normSq (‖z'‖ ^ 2) := by
+@[approx] lemma approx_normSq (m : approx z z') : approx z.normSq (‖z'‖ ^ 2) := by
   rw [normSq]
   simp only [Complex.sq_norm, Complex.normSq, ←pow_two, MonoidWithZeroHom.coe_mk, ZeroHom.coe_mk]
   approx
 
 /-- `normSq` is conservative -/
-@[approx] lemma mem_approx_normSq' (m : approx z z') : approx z.normSq z'.normSq := by
+@[approx] lemma approx_normSq' (m : approx z z') : approx z.normSq z'.normSq := by
   simp only [Complex.normSq_eq_norm_sq]
   approx
 

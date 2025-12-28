@@ -57,7 +57,7 @@ lemma pi_lt_314159265358979323847 : π < 3.14159265358979323847 := by
   rw [pi_div_4, (by norm_num : (4 : ℝ) = 2 * 2), ← div_div]; approx
 @[approx] lemma approx_two_div_pi : approx two_div_pi (2 / π) := by
   rw [two_div_pi, div_eq_inv_mul, (by norm_num : (2 : ℝ) = 2^1)]
-  apply mem_approx_scaleB; approx
+  apply approx_scaleB; approx
 @[approx] lemma approx_four_div_pi : approx four_div_pi (4 / π) := by
   rw [four_div_pi, div_eq_inv_mul, (by norm_num : (4 : ℝ) = 2^2)]
-  apply mem_approx_scaleB; approx
+  apply approx_scaleB; approx

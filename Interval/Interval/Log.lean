@@ -62,7 +62,7 @@ lemma log1p_div_bound {x : ℝ} (x1 : |x| < 1) (n : ℕ) :
   error := .ofRat (log_series_radius ^ n / (1 - log_series_radius)) true
 
 /-- Our power series for `log1p_div` is correct -/
-lemma approx_log1p_div_series (n : ℕ) : approx (log1p_div_series n) log1p_div := by
+lemma approx_log1p_div_series' (n : ℕ) : approx (log1p_div_series n) log1p_div := by
   have nn : (log1p_div_series n).coeffs.size = n := by
     rw [log1p_div_series, Array.size_map, Array.size_range]
   have r0 : 0 ≤ log_series_radius := by rw [log_series_radius]; norm_num
@@ -89,9 +89,9 @@ lemma approx_log1p_div_series (n : ℕ) : approx (log1p_div_series n) log1p_div 
     simp only [Rat.cast_div, Rat.cast_pow, Rat.cast_sub, Rat.cast_one]
 
 /-- `approx` friendly version of `approx_log1p_div_series` -/
-@[approx] lemma mem_approx_log1p_div_series {a : ℝ} {x : Interval} (ax : approx x a) {n : ℕ} :
+@[approx] lemma approx_log1p_div_series {a : ℝ} {x : Interval} (ax : approx x a) {n : ℕ} :
     approx ((log1p_div_series n).eval x) (log1p_div a) :=
-  approx_log1p_div_series n a x ax
+  approx_log1p_div_series' n a x ax
 
 /-- The series for `log1p_div` converges very slowly, so we need ~38 terms -/
 @[irreducible] def log1p_div_series_38 := log1p_div_series 38
@@ -128,7 +128,7 @@ set the final precision.
   x.lo.log ∪ x.hi.log
 
 /-- `Floating.log` is conservative -/
-@[approx] lemma Floating.mem_approx_log {x : Floating} (xm : approx x x') :
+@[approx] lemma Floating.approx_log {x : Floating} (xm : approx x x') :
     approx x.log (Real.log x') := by
   rw [Floating.log, log1p_div_series_38]
   generalize x.untrusted_log_shift = n

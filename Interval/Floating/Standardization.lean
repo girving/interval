@@ -198,7 +198,7 @@ instance {s : Int64} : CoeHead (Fixed s) Floating where
   coe x := x.toFloating
 
 /-- To prove `a ∈ approx (x : Floating)`, we prove `a ∈ approx x` -/
-@[approx] lemma mem_approx_coe {s : Int64} {x : Fixed s} {a : ℝ}
+@[approx] lemma approx_coe {s : Int64} {x : Fixed s} {a : ℝ}
     (ax : approx x a) : approx (x : Floating) a := by
   rw [Fixed.toFloating]
   by_cases n : x = nan

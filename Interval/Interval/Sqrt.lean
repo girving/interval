@@ -16,6 +16,6 @@ variable {x : Interval} {x' : ℝ}
   x ^ (Interval.div2 1)
 
 /-- `Interval.sqrt` is conservative -/
-@[approx] lemma Interval.mem_approx_sqrt (m : approx x x') : approx x.sqrt x'.sqrt := by
+@[approx] lemma Interval.approx_sqrt (m : approx x x') : approx x.sqrt x'.sqrt := by
   rw [Interval.sqrt, Real.sqrt_eq_rpow]
   approx

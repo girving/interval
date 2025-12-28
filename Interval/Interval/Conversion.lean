@@ -55,13 +55,13 @@ instance : ApproxNatCast Interval ℝ where
 
 /-- `approx_ofNat` for integer literals.
 `no_index` is required because of https://github.com/leanprover/lean4/issues/2867. -/
-@[approx] lemma ofNat_mem_approx_ofNat {n : ℕ} [n.AtLeastTwo] :
+@[approx] lemma ofNat_approx_ofNat {n : ℕ} [n.AtLeastTwo] :
     approx (Interval.ofNat (no_index (OfNat.ofNat n))) (no_index (OfNat.ofNat n) : ℝ) :=
   approx_natCast (A := Interval) (R := ℝ) (n := n)
 
 /-- `approx_ofNat` for integer literals.
 `no_index` is required because of https://github.com/leanprover/lean4/issues/2867. -/
-@[approx] lemma ofNat_mem_approx_ofNat' {n : ℕ} [n.AtLeastTwo] :
+@[approx] lemma ofNat_approx_ofNat' {n : ℕ} [n.AtLeastTwo] :
     approx (no_index (OfNat.ofNat n : Interval)) (no_index (OfNat.ofNat n) : ℝ) :=
   approx_natCast (A := Interval) (R := ℝ) (n := n)
 
@@ -87,7 +87,7 @@ instance : ApproxRatCast Interval ℝ where
 
 /-- `approx_ofRat` for rational literals `a / b`.
 `no_index` is required because of https://github.com/leanprover/lean4/issues/2867. -/
-@[approx] lemma ofNat_div_mem_approx_ofRat {a b : ℕ} [a.AtLeastTwo] [b.AtLeastTwo] :
+@[approx] lemma ofNat_div_approx_ofRat {a b : ℕ} [a.AtLeastTwo] [b.AtLeastTwo] :
     approx (Interval.ofRat (no_index (OfNat.ofNat a) / no_index (OfNat.ofNat b)))
       (no_index (OfNat.ofNat a) / no_index (OfNat.ofNat b) : ℝ) := by
   convert approx_ratCast (A := Interval) (R := ℝ) (x := a / b)
@@ -96,7 +96,7 @@ instance : ApproxRatCast Interval ℝ where
 
 /-- `approx_ofRat` for rational literals `1 / b`.
 `no_index` is required because of https://github.com/leanprover/lean4/issues/2867. -/
-@[approx] lemma one_div_ofNat_mem_approx_ofRat {b : ℕ} [b.AtLeastTwo] :
+@[approx] lemma one_div_ofNat_approx_ofRat {b : ℕ} [b.AtLeastTwo] :
     approx (Interval.ofRat (1 / no_index (OfNat.ofNat b))) (1 / no_index (OfNat.ofNat b) : ℝ) := by
   convert approx_ratCast (A := Interval) (R := ℝ) (x := 1 / b)
   simp only [one_div, Rat.cast_inv, Rat.cast_natCast]

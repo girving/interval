@@ -9,7 +9,7 @@ open scoped Real
 namespace Interval
 
 /-- If `f` is monotonic, we can approximate it as the union of endpoints -/
-lemma mem_approx_of_monotone' {f : ℝ → ℝ} {a u v : ℝ} (fs : MonotoneOn f (Icc u v))
+lemma approx_of_monotone' {f : ℝ → ℝ} {a u v : ℝ} (fs : MonotoneOn f (Icc u v))
     (auv : a ∈ Icc u v) (x y : Interval) (ux : approx x (f u)) (vy : approx y (f v)) :
     approx (x ∪ y) (f a) := by
   by_cases xn : x = nan; · simp [xn]
@@ -23,7 +23,7 @@ lemma mem_approx_of_monotone' {f : ℝ → ℝ} {a u v : ℝ} (fs : MonotoneOn f
   exact ⟨.inl (by linarith), .inr (by linarith)⟩
 
 /-- If `f` is monotonic, we can approximate it as the union of endpoints -/
-lemma mem_approx_of_antitone' {f : ℝ → ℝ} {a u v : ℝ} (fs : AntitoneOn f (Icc u v))
+lemma approx_of_antitone' {f : ℝ → ℝ} {a u v : ℝ} (fs : AntitoneOn f (Icc u v))
     (auv : a ∈ Icc u v) (x y : Interval) (ux : approx x (f u)) (vy : approx y (f v)) :
     approx (x ∪ y) (f a) := by
   by_cases xn : x = nan; · simp [xn]
@@ -37,7 +37,7 @@ lemma mem_approx_of_antitone' {f : ℝ → ℝ} {a u v : ℝ} (fs : AntitoneOn f
   exact ⟨.inr (by linarith), .inl (by linarith)⟩
 
 /-- If `f` is monotonic, we can approximate it as the union of endpoints -/
-lemma mem_approx_of_monotone {f : ℝ → ℝ} {s : Set ℝ} (fs : MonotoneOn f s)
+lemma approx_of_monotone {f : ℝ → ℝ} {s : Set ℝ} (fs : MonotoneOn f s)
     (g : Floating → Interval) (fg : ∀ (a : ℝ) (x : Floating), approx x a → approx (g x) (f a))
     {a : ℝ} {x : Interval} (ax : approx x a) (xn : x ≠ nan)
     (as : a ∈ s) (ls : x.lo.val ∈ s) (hs : x.hi.val ∈ s) :
@@ -59,12 +59,12 @@ lemma mem_approx_of_monotone {f : ℝ → ℝ} {s : Set ℝ} (fs : MonotoneOn f 
     exact le_trans (fs as hs ax.2) m.2
 
 /-- If `f` is antitone, we can approximate it as the union of endpoints -/
-lemma mem_approx_of_antitone {f : ℝ → ℝ} {s : Set ℝ} (fs : AntitoneOn f s)
+lemma approx_of_antitone {f : ℝ → ℝ} {s : Set ℝ} (fs : AntitoneOn f s)
     (g : Floating → Interval) (fg : ∀ (a : ℝ) (x : Floating), approx x a → approx (g x) (f a))
     {a : ℝ} {x : Interval} (ax : approx x a) (xn : x ≠ nan)
     (as : a ∈ s) (ls : x.lo.val ∈ s) (hs : x.hi.val ∈ s) :
     approx (g x.lo ∪ g x.hi) (f a) := by
   rw [← neg_neg (f a), ← neg_neg (_ ∪ _), approx_neg, union_neg, neg_neg]
-  refine mem_approx_of_monotone fs.neg (g := fun x ↦ -g x) ?_ ax xn as ls hs
+  refine approx_of_monotone fs.neg (g := fun x ↦ -g x) ?_ ax xn as ls hs
   intro _ _ ax
   simp only [approx_neg, neg_neg, fg _ _ ax]

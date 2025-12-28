@@ -42,7 +42,7 @@ lemma abs_sqrt_abs_le_one {x : ℝ} (xr : |x| ≤ sincos_sqrt_series_radius) : |
   exact le_trans xr (by norm_num)
 
 /-- Our power series for `sinc (sqrt x)` is correct -/
-lemma mem_approx_sinc_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interval)
+lemma approx_sinc_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interval)
     (xy : approx y x) : approx ((sinc_sqrt_series n).eval y) (sinc_sqrt x) := by
   have nn : (sinc_sqrt_series n).coeffs.size = n := by
     rw [sinc_sqrt_series, Array.size_map, Array.size_range]
@@ -82,7 +82,7 @@ lemma mem_approx_sinc_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interv
       ring
 
 /-- Our power series for `cos (sqrt x)` is correct -/
-lemma mem_approx_cos_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interval)
+lemma approx_cos_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interval)
     (xy : approx y x) : approx ((cos_sqrt_series n).eval y) (cos_sqrt x) := by
   have nn : (cos_sqrt_series n).coeffs.size = n := by
     rw [cos_sqrt_series, Array.size_map, Array.size_range]
@@ -121,18 +121,18 @@ lemma mem_approx_cos_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interva
         Rat.cast_inv, Rat.cast_natCast, Rat.cast_add, Rat.cast_one]
       ring
 
-@[approx] lemma mem_approx_sin_series {a : ℝ} {x : Interval} (ax : approx x a) {n : ℕ} :
+@[approx] lemma approx_sin_series {a : ℝ} {x : Interval} (ax : approx x a) {n : ℕ} :
     approx (x * (sinc_sqrt_series n).eval x.sqr) (Real.sin a) := by
   simp only [Real.sin_eq_sinc_sqrt, sq_abs]
   apply approx_mul ax
-  apply mem_approx_sinc_sqrt_series
+  apply approx_sinc_sqrt_series
   · bound
   · approx
 
-@[approx] lemma mem_approx_cos_series {a : ℝ} {x : Interval} (ax : approx x a) {n : ℕ} :
+@[approx] lemma approx_cos_series {a : ℝ} {x : Interval} (ax : approx x a) {n : ℕ} :
     approx ((cos_sqrt_series n).eval x.sqr) (Real.cos a) := by
   simp only [cos_eq_cos_sqrt, sq_abs]
-  apply mem_approx_cos_sqrt_series
+  apply approx_cos_sqrt_series
   · bound
   · approx
 
@@ -146,15 +146,15 @@ lemma mem_approx_cos_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interva
 @[irreducible] def Interval.cos_small (x : Interval) : Interval :=
   cos_sqrt_series_11.eval x.sqr
 
-@[approx] lemma Interval.mem_approx_sin_small {a : ℝ} {x : Interval} (ax : approx x a) :
+@[approx] lemma Interval.approx_sin_small {a : ℝ} {x : Interval} (ax : approx x a) :
     approx x.sin_small (Real.sin a) := by
   rw [sin_small, Real.sin_eq_sinc_sqrt, sq_abs, sinc_sqrt_series_11]
-  exact approx_mul ax (mem_approx_sinc_sqrt_series _ _ (by bound) _ (by approx))
+  exact approx_mul ax (approx_sinc_sqrt_series _ _ (by bound) _ (by approx))
 
-@[approx] lemma Interval.mem_approx_cos_small {a : ℝ} {x : Interval} (ax : approx x a) :
+@[approx] lemma Interval.approx_cos_small {a : ℝ} {x : Interval} (ax : approx x a) :
     approx x.cos_small (Real.cos a) := by
   rw [cos_small, cos_eq_cos_sqrt, sq_abs, cos_sqrt_series_11]
-  exact mem_approx_cos_sqrt_series _ _ (by bound) _ (by approx)
+  exact approx_cos_sqrt_series _ _ (by bound) _ (by approx)
 
 @[simp] lemma Interval.sin_small_nan : Interval.sin_small nan = nan := by
   rw [sin_small]; simp only [nan_mul]
@@ -205,7 +205,7 @@ lemma Int64.n_mod_4 (x : Int64) : (x.toUInt64.toNat % 4 : ℕ) = x.toInt % 4 := 
     rw [Int64.coe_of_nonneg (not_lt.mp xn), Int.natCast_emod, Nat.cast_ofNat]
 
 /-- `Floating.presin` is conservative -/
-@[approx] lemma Floating.mem_approx_presin {x' : ℝ} {x : Floating} (ax : approx x x')
+@[approx] lemma Floating.approx_presin {x' : ℝ} {x : Floating} (ax : approx x x')
     (d : Fixed 0) : approx (x.presin d) (Real.sin (x' + π / 2 * d.val)) := by
   rw [presin]
   generalize hn : ((x.mul Interval.two_div_pi.lo false).add (.ofRat (1/2) false) false).floor = n
@@ -270,7 +270,7 @@ lemma Floating.presin_inter_pm1 (x : Floating) (d : Fixed 0) :
   (x.presin d).inter Interval.pm1 (x.presin_inter_pm1 d)
 
 /-- `Floating.sin` is conservative -/
-@[approx] lemma Floating.mem_approx_sin {x' : ℝ} {x : Floating} (ax : approx x x')
+@[approx] lemma Floating.approx_sin {x' : ℝ} {x : Floating} (ax : approx x x')
     (d : Fixed 0) : approx (x.sin d) (Real.sin (x' + π / 2 * d.val)) := by
   have m : approx Interval.pm1 (Real.sin (x' + π / 2 * d.val)) := by
     simp [Real.neg_one_le_sin, Real.sin_le_one]
@@ -315,7 +315,7 @@ lemma floor_even_iff {n : Floating} (nn : n.floor ≠ nan) :
   omega
 
 /-- `Interval.sincos` is conservative -/
-@[approx] lemma Interval.mem_approx_sincos {x : Interval} {a : ℝ} (ax : approx x a) (d : Bool) :
+@[approx] lemma Interval.approx_sincos {x : Interval} {a : ℝ} (ax : approx x a) (d : Bool) :
     approx (x.sincos d) (Real.sin (a + bif d then π / 2 else 0)) := by
   rw [Interval.sincos]
   by_cases xn : x = nan
@@ -370,7 +370,7 @@ lemma floor_even_iff {n : Floating} (nn : n.floor ≠ nan) :
   · by_cases k01 : k0 = k1
     · simp only [e, Int.cast_mul, Int.cast_ofNat, ← k01, mul_right_comm _ _ π] at an0 an1
       simp only [k01, ↓reduceIte]
-      apply mem_approx_of_monotone' (u := x.lo.val + π / 2 * j.val) (v := x.hi.val + π / 2 * j.val)
+      apply approx_of_monotone' (u := x.lo.val + π / 2 * j.val) (v := x.hi.val + π / 2 * j.val)
       · exact (Real.sin_monotone k).mono (Icc_subset_Icc (by linarith) (by linarith))
       · rw [← hb]; exact ⟨by linarith [ax'.1], by linarith [ax'.2]⟩
       · approx
@@ -383,13 +383,13 @@ lemma floor_even_iff {n : Floating} (nn : n.floor ≠ nan) :
       simp only [e, k01, left_eq_add, one_ne_zero, ↓reduceIte, even_two, Even.mul_right, u]
       by_cases s : b ≤ 2 * π * ↑k + π / 2
       · apply approx_union_left
-        apply mem_approx_of_monotone' (u := x.lo.val + π / 2 * j.val) (v := 2 * π * k + π / 2)
+        apply approx_of_monotone' (u := x.lo.val + π / 2 * j.val) (v := 2 * π * k + π / 2)
         · exact (Real.sin_monotone k).mono (Icc_subset_Icc (by linarith) (by linarith))
         · exact ⟨by linarith [ax'.1], by linarith⟩
         · approx
         · simp [Real.sin_add_pi_div_two, mul_comm (2 * π)]
       · apply approx_union_right
-        apply mem_approx_of_antitone' (u := 2 * π * k + π / 2) (v := x.hi.val + π / 2 * j.val)
+        apply approx_of_antitone' (u := 2 * π * k + π / 2) (v := x.hi.val + π / 2 * j.val)
         · exact (Real.sin_antitone k).mono (Icc_subset_Icc (by linarith) (by linarith))
         · exact ⟨by linarith, by linarith [ax'.2]⟩
         · simp [Real.sin_add_pi_div_two, mul_comm (2 * π)]
@@ -397,7 +397,7 @@ lemma floor_even_iff {n : Floating} (nn : n.floor ≠ nan) :
   · by_cases k01 : k0 = k1
     · simp only [e, Int.cast_mul, Int.cast_ofNat, Int.cast_add, Int.cast_one, ← k01] at an0 an1
       simp only [k01, ↓reduceIte]
-      apply mem_approx_of_antitone' (u := x.lo.val + π / 2 * j.val) (v := x.hi.val + π / 2 * j.val)
+      apply approx_of_antitone' (u := x.lo.val + π / 2 * j.val) (v := x.hi.val + π / 2 * j.val)
       · exact (Real.sin_antitone k).mono (Icc_subset_Icc (by linarith) (by linarith))
       · rw [← hb]; exact ⟨by linarith [ax'.1], by linarith [ax'.2]⟩
       · approx
@@ -410,14 +410,14 @@ lemma floor_even_iff {n : Floating} (nn : n.floor ≠ nan) :
       simp only [e, k01, left_eq_add, one_ne_zero, ↓reduceIte, u, Int.not_even_two_mul_add_one]
       by_cases s : b ≤ 2 * π * k + 3 * π / 2
       · apply approx_union_left
-        apply mem_approx_of_antitone' (u := x.lo.val + π / 2 * j.val) (v := 2 * π * k + 3 * π / 2)
+        apply approx_of_antitone' (u := x.lo.val + π / 2 * j.val) (v := 2 * π * k + 3 * π / 2)
         · exact (Real.sin_antitone k).mono (Icc_subset_Icc (by linarith) (by linarith))
         · exact ⟨by linarith [ax'.1], by linarith⟩
         · approx
         · simp [(by ring : 3 * π / 2 = π + π / 2), ← add_assoc, Real.sin_add_pi_div_two,
             mul_comm (2 * π)]
       · apply approx_union_right
-        apply mem_approx_of_monotone' (u := 2 * π * k + 3 * π / 2) (v := x.hi.val + π / 2 * j.val)
+        apply approx_of_monotone' (u := 2 * π * k + 3 * π / 2) (v := x.hi.val + π / 2 * j.val)
         · refine (Real.sin_monotone (k + 1)).mono (Icc_subset_Icc ?_ ?_)
           all_goals simp only [Int.cast_add, Int.cast_one]; linarith
         · exact ⟨by linarith, by linarith [ax'.2]⟩
@@ -436,19 +436,19 @@ lemma floor_even_iff {n : Floating} (nn : n.floor ≠ nan) :
 @[irreducible] def Interval.cos (x : Interval) : Interval := x.sincos true
 
 /-- `Interval.sin` is conservative -/
-@[approx] lemma Interval.mem_approx_sin {x : Interval} {a : ℝ} (ax : approx x a)
+@[approx] lemma Interval.approx_sin {x : Interval} {a : ℝ} (ax : approx x a)
     : approx x.sin (Real.sin a) := by
   have e : a = a + bif false then π / 2 else 0 := by simp
   rw [sin, e]
-  exact mem_approx_sincos ax false
+  exact approx_sincos ax false
 
 /-- `Interval.cos` is conservative -/
-@[approx] lemma Interval.mem_approx_cos {x : Interval} {a : ℝ} (ax : approx x a)
+@[approx] lemma Interval.approx_cos {x : Interval} {a : ℝ} (ax : approx x a)
     : approx x.cos (Real.cos a) := by
   have e : Real.cos a = Real.sin (a + bif true then π / 2 else 0) := by
     simp [Real.sin_add_pi_div_two]
   rw [cos, e]
-  exact mem_approx_sincos ax true
+  exact approx_sincos ax true
 
 @[simp] lemma Interval.sin_nan : (nan : Interval).sin = pm1 := by rw [Interval.sin]; simp
 @[simp] lemma Interval.cos_nan : (nan : Interval).cos = pm1 := by rw [Interval.cos]; simp
