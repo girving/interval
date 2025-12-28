@@ -105,6 +105,11 @@ instance : CommRing Dyadic where
     simp only [Dyadic.instIntCast, Int.negSucc_eq, neg_add, Dyadic.intCast_add, Dyadic.natCast_succ,
       Dyadic.neg_add, Dyadic.intCast_neg, Dyadic.intCast_one]
     rfl
+  npow n x := x.pow n
+  npow_zero x := Dyadic.pow_zero _
+  npow_succ x n := Dyadic.pow_succ _ _
+
+@[simp] lemma Dyadic.monoidPow_eq_instPowNat : Monoid.toNatPow = instPowNat := rfl
 
 /-!
 ### Dyadic rationals approximate any field
