@@ -776,9 +776,13 @@ lemma Fixed.le_mul {x : Fixed s} {y : Fixed t} {u : Int64} (n : Fixed.mul x y u 
     let k := (bif up then n + (1 <<< u) - 1 else n) >>> u
     bif k.log2 < 63 then ⟨k⟩ else nan
 
-/-- Conversion from `ℕ` literals to `Fixed 0`, not rounding -/
+/-- Conversion from `ℕ` to `Fixed 0`, not rounding -/
 @[irreducible] def Fixed.ofNat0 (n : ℕ) : Fixed 0 :=
   bif n.log2 < 63 then ⟨n⟩ else nan
+
+/-- Conversion from `ℤ` to `Fixed 0`, not rounding -/
+@[irreducible] def Fixed.ofInt0 (n : ℤ) : Fixed 0 :=
+  bif n.natAbs.log2 < 63 then ⟨n⟩ else nan
 
 /-- We use the general `.ofNat` routine even for `1`, to handle overflow,
     rounding down arbitrarily -/
@@ -884,18 +888,26 @@ lemma Real.cast_natCast (n : ℤ) (n0 : 0 ≤ n) : (n : ℝ) = (n.toNat : ℝ) :
   conv => left; rw [←Int.toNat_of_nonneg n0]
   rw [Int.cast_natCast]
 
-/-- `Fixed.ofNat0` is conservative -/
-@[approx] lemma Fixed.approx_ofNat0 (n : ℕ) : approx (ofNat0 n) (n : ℝ) := by
-  by_cases nn : (ofNat0 n) = nan
+/-- `Fixed.ofInt0` is conservative -/
+@[approx] lemma Fixed.approx_ofInt0 (n : ℤ) : approx (ofInt0 n) (n : ℝ) := by
+  by_cases nn : (ofInt0 n) = nan
   · simp only [nn, approx_nan]
-  rw [ofNat0] at nn ⊢
+  rw [ofInt0] at nn ⊢
   simp only [bif_eq_if, decide_eq_true_eq, ite_eq_right_iff, not_forall, exists_prop] at nn ⊢
-  simp only [approx, nn, ite_true, val, Int64.coe_zero, zpow_zero, mul_one]
+  simp only [approx, nn, ite_true, val, Int64.coe_zero, zpow_zero, mul_one, false_or]
   replace nn := nn.1
   by_cases n0 : n = 0
-  · simp only [n0, Nat.cast_zero, Int64.coe_zero, Int.cast_zero, CharP.cast_eq_zero, or_true]
-  simp only [Nat.log2_lt n0] at nn
-  simp only [Int64.toInt_ofNat'' nn, Int.cast_natCast, or_true]
+  · simp only [n0, Int64.coe_zero, Int.cast_zero]
+  have n0' : n.natAbs ≠ 0 := Int.natAbs_ne_zero.mpr n0
+  simp only [Nat.log2_lt n0', ← Nat.cast_lt (α := ℤ), Nat.cast_pow, Nat.cast_two, Nat.cast_natAbs] at nn
+  rw [Int64.toInt_ofInt' nn]
+
+@[simp] lemma Fixed.ofInt0_natCast (n : ℕ) : ofInt0 (n : ℤ) = ofNat0 n := by simp [ofInt0, ofNat0]
+
+/-- `Fixed.ofNat0` is conservative -/
+@[approx] lemma Fixed.approx_ofNat0 (n : ℕ) : approx (ofNat0 n) (n : ℝ) := by
+  simp only [← ofInt0_natCast, ← Int.cast_natCast (R := ℝ)]
+  approx
 
 /-- `Fixed.approx_ofNat`, down version -/
 lemma Fixed.ofNat_le {n : ℕ} (h : (.ofNat n false : Fixed s) ≠ nan) :
