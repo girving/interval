@@ -61,7 +61,7 @@ lemma _root_.ContDiff.deriv {𝕜 : Type*} [NontriviallyNormedField 𝕜] {E : T
     [NormedAddCommGroup E] [NormedSpace 𝕜 E] {F : Type*} [NormedAddCommGroup F] [NormedSpace 𝕜 F]
     {f : E → 𝕜 → F} {g : E → 𝕜} {m : WithTop ℕ∞} (fc : ContDiff 𝕜 ⊤ (uncurry f))
     (gc : ContDiff 𝕜 ⊤ g) : ContDiff 𝕜 m fun z ↦ deriv (fun y ↦ f z y) (g z) := by
-  simp_rw [← fderiv_deriv]
+  simp_rw [← fderiv_apply_one_eq_deriv]
   simp_rw [← ContinuousLinearMap.apply_apply (v := (1 : 𝕜))]
   exact contDiff_const.clm_apply (ContDiff.fderiv fc (gc.of_le le_top) le_top)
 

@@ -223,15 +223,15 @@ lemma isNeg_iff' {x : Floating} : x.n < 0 ↔ x < 0 := by
   simp only [lt_def, n_nan, gt_iff_lt, s_nan, Int64.n_min]
   by_cases xn : x.n < 0
   · simp only [Int64.isNeg, xn, decide_true, Int64.isNeg_min, lt_self_iff_false, ↓reduceIte,
-    UInt64.lt_iff_toNat_lt, UInt64.toNat_max, UInt64.toNat_2_pow_63, true_and, false_or]
+    UInt64.lt_iff_toNat_lt, UInt64.toNat_max', UInt64.toNat_2_pow_63, true_and, false_or]
     simp only [Int64.isNeg_eq_le] at xn
     contrapose n
     simp only [not_or, not_lt, tsub_le_iff_right, not_and] at n ⊢
     have se : x.s = .max := by
-      simp only [UInt64.eq_iff_toNat_eq, UInt64.toNat_max]
+      simp only [UInt64.eq_iff_toNat_eq, UInt64.toNat_max']
       have h := x.s.toNat_le_pow_sub_one
       omega
-    simp only [se, UInt64.toNat_max, forall_true_left] at n
+    simp only [se, UInt64.toNat_max', forall_true_left] at n
     simp only [ext_iff, n_nan, Int64.ext_iff, Int64.n_min, UInt64.eq_iff_toNat_eq,
       UInt64.toNat_2_pow_63, se, s_nan, and_true]
     omega
@@ -243,7 +243,7 @@ lemma isNeg_iff' {x : Floating} : x.n < 0 ↔ x < 0 := by
   simp only [le_def, lt_def, Int64.isNeg, n_nan, Int64.isNeg_min, decide_true, gt_iff_lt,
     decide_eq_true_eq, s_nan, Int64.n_min, not_or, not_lt, Bool.le_true, not_and, true_and]
   by_cases xn : x.n < 0
-  · simp only [xn, ↓reduceIte, not_lt, UInt64.le_iff_toNat_le, UInt64.toNat_max,
+  · simp only [xn, ↓reduceIte, not_lt, UInt64.le_iff_toNat_le, UInt64.toNat_max',
       UInt64.toNat_2_pow_63, forall_const]
     simp only [Int64.isNeg_eq_le] at xn
     simp only [UInt64.toNat_le_pow_sub_one, true_and, xn, implies_true]
@@ -253,7 +253,7 @@ lemma isNeg_iff' {x : Floating} : x.n < 0 ↔ x < 0 := by
 @[simp] lemma val_nan_lt {x : Floating} (n : x ≠ nan) : (nan : Floating).val < x.val := by
   rw [val, val]
   simp only [n_nan, Int64.coe_min', Int.cast_neg, Int.cast_pow, Int.cast_ofNat, s_nan, neg_mul,
-    UInt64.toInt, UInt64.toNat_max]
+    UInt64.toInt, UInt64.toNat_max']
   rw [neg_lt, ←neg_mul]
   refine lt_of_lt_of_le (b := 2^63 * 2 ^ ((x.s.toNat : ℤ) - 2 ^ 63)) ?_ ?_
   · rw [mul_lt_mul_iff_of_pos_right two_zpow_pos]

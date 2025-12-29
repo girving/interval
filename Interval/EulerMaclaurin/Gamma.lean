@@ -484,7 +484,7 @@ lemma Finset.sum_range_even_odd {α : Type*} [AddCommMonoid α] {f : ℕ → α}
 lemma sum_eq_even (x : ℝ) (s : ℕ) : sum x (2 * s) = ∑ m ∈ Finset.range (s + 1), term x (2 * m) := by
   have o : ∀ s, bernoulli (2 * s + 1 + 2) = 0 := by
     intro s
-    rw [bernoulli, bernoulli'_odd_eq_zero, mul_zero]
+    rw [bernoulli, bernoulli'_eq_zero_of_odd, mul_zero]
     · simp only [Nat.odd_iff]
       omega
     · omega

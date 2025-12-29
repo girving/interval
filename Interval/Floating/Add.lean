@@ -40,7 +40,7 @@ lemma add_adjust_2_eq {r : UInt128} {s : UInt64} (g : r.log2 ≠ 127 ∨ s ≠ U
   rw [add_adjust]
   simp only [bif_eq_if, beq_iff_eq]
   split_ifs with h
-  · simp only [h, ne_eq, not_true_eq_false, UInt64.eq_iff_toNat_eq, UInt64.toNat_max, false_or] at g
+  · simp only [h, ne_eq, not_true_eq_false, UInt64.eq_iff_toNat_eq, UInt64.toNat_max', false_or] at g
     simp only [UInt64.toNat_zero, CharP.cast_eq_zero, UInt64.toNat_add_one g, Nat.cast_add,
       Nat.cast_one, sub_self]
   · have d0 : (lower (126 - r.log2) s).2.toNat < 2^64-1 := by
@@ -65,7 +65,7 @@ lemma adjust_d_le (r : UInt128) (s : UInt64) :
       omega
     have d1 : r.log2 ≤ 126 := by simpa only [UInt64.le_iff_toNat_le, UInt128.toNat_log2, u126]
     have d2 : (lower (126 - r.log2) s).2.toNat + 1 ≤ 127 - r.toNat.log2 := by
-      refine le_trans (add_le_add_right (low_d_le _ _) _) ?_
+      refine le_trans (add_le_add_left (low_d_le _ _) _) ?_
       rw [UInt64.toNat_sub'' d1, u126, UInt128.toNat_log2]
       omega
     rwa [UInt64.toNat_add, UInt64.toNat_one, Nat.mod_eq_of_lt]
@@ -349,7 +349,7 @@ lemma val_add_shift_r (r : UInt128) (s : UInt64) (up : Bool) :
       n.toUInt64 := by simp only [← hn', UInt64.toUInt64_toInt64]
   simp only [hn'']; clear hn'
   by_cases over : r.log2 = 127 ∧ s = UInt64.max
-  · simp only [over, and_self, ↓reduceIte, UInt64.toNat_max, Nat.reducePow, Nat.add_one_sub_one,
+  · simp only [over, and_self, ↓reduceIte, UInt64.toNat_max', Nat.reducePow, Nat.add_one_sub_one,
       Nat.cast_ofNat, Int.reduceSub, Int.reducePow, rounds_nan]
   simp only [over, ite_false]
   simp only [not_and_or] at over
@@ -556,7 +556,7 @@ lemma add_to_128_shift_le {x y : Floating} (xy : x.add_bigger y) {up : Bool}
         refine mul_le_of_le_one_right (Nat.cast_nonneg _) ?_
         exact div_le_one_of_le₀ (pow_le_pow_right₀ (by norm_num) slt.le) (by norm_num)
       · simp only [e1, ← Nat.cast_mul, ← Nat.cast_add_one, Nat.cast_le]
-        refine le_trans (add_le_add_right y.n.toUInt64.toNat_lt.le _) ?_
+        refine le_trans (add_le_add_left y.n.toUInt64.toNat_lt.le _) ?_
         refine le_trans ?_ (Nat.le_add_right _ _)
         norm_num
 

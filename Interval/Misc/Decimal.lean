@@ -136,7 +136,7 @@ instance : Repr Decimal where
       let s := toString x.n.natAbs
       let s := toString s.head ++ "." ++ s.drop 1
       let s := bif x.n < 0 then "-" ++ s else s
-      s.dropRightWhile fun c ↦ c == '0' || c == '.'
+      (s.dropEndWhile fun c ↦ c == '0' || c == '.').toString
     let s := x.s + Nat.log 10 x.n.natAbs
     if s = 0 then m else
     m ++ "e" ++ toString s

@@ -9,12 +9,6 @@ import Interval.Misc.Nat
 ## `ℤ` facts
 -/
 
-/-- `abs` and `zpow` commute -/
-lemma abs_zpow {x : ℝ} {n : ℤ} : |x ^ n| = |x| ^ n := by
-  induction' n using Int.rec with n n
-  · simp only [Int.ofNat_eq_natCast, zpow_natCast, abs_pow]
-  · simp [zpow_negSucc, abs_inv, abs_pow]
-
 /-- `Int` division, rounding up or down -/
 def Int.rdiv (a : ℤ) (b : ℕ) (up : Bool) : ℤ :=
   bif up then -(-a / b) else a / b
@@ -235,10 +229,10 @@ lemma Int.emod_mul_eq_mul_emod' (a n m : ℤ) (n0 : 0 ≤ n) (m0 : 0 < m) :
   generalize hx : (a + |a| * z).toNat = x
   replace hx : a + |a| * z = x := by
     rw [←hx, Int.toNat_of_nonneg]
-    refine le_trans ?_ (add_le_add_left (mul_le_mul_of_nonneg_left
+    refine le_trans ?_ (add_le_add_right (mul_le_mul_of_nonneg_left
       (Nat.cast_le.mpr z1) (abs_nonneg _)) _)
     simp only [Nat.cast_one, mul_one]
-    exact le_trans (by simp) (add_le_add_left (neg_le_abs a) _)
+    exact add_abs_nonneg a
   rw [e, hx, Int.add_mul_emod_self_right, add_mul, mul_assoc, Int.add_mul_emod_self_right]
   simp only [←Nat.cast_mul, ← Int.natCast_emod, Nat.cast_inj]
   apply Nat.mul_mod_mul_right

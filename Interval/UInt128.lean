@@ -938,7 +938,7 @@ lemma UInt128.toNat_hi_shiftRightRound_le_hi {y : UInt64} {s : UInt64} {up : Boo
     Nat.cast_ofNat, Int.cast_mul, Int.cast_ofNat, Int.cast_pow, Int.cast_natCast, Nat.cast_add,
     Int.cast_add]
   trans y.toNat * 2^64 + 1
-  · exact add_le_add_right (div_le_self (by positivity) (one_le_pow₀ (by norm_num))) _
+  · exact add_le_add_left (div_le_self (by positivity) (one_le_pow₀ (by norm_num))) _
   · have e : (2^64 : ℝ) = (2^64 : ℕ) := by norm_num
     simp only [e, ←Nat.cast_mul, ←Nat.cast_add_one, ←Nat.cast_add, Nat.cast_le]
     norm_num

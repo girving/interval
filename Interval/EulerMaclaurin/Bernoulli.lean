@@ -38,24 +38,6 @@ lemma contDiff_polynomial (f : Polynomial ℚ) : ContDiff ℝ ⊤ (fun x : ℝ �
   · simp only [Polynomial.aeval_monomial, eq_ratCast]
     exact contDiff_const.mul (contDiff_id.pow _)
 
-lemma contDiff_bernoulliFun : ContDiff ℝ ⊤ (bernoulliFun s) := by
-  have e : bernoulliFun s = fun x ↦ bernoulliFun s x := rfl
-  rw [e]
-  simp only [bernoulliFun]
-  simp only [Polynomial.eval_map_algebraMap]
-  apply contDiff_polynomial
-
-@[continuity] lemma continuous_bernoulliFun : Continuous (bernoulliFun s) :=
-  contDiff_bernoulliFun.continuous
-
-@[simp] lemma bernoulliFun_zero {x : ℝ} : bernoulliFun 0 x = 1 := by
-  simp only [bernoulliFun, Polynomial.bernoulli_zero, Polynomial.map_one, Polynomial.eval_one]
-
-@[simp] lemma deriv_bernoulliFun :
-    deriv (bernoulliFun s) = fun x ↦ s * bernoulliFun (s - 1) x := by
-  ext x
-  exact (hasDerivAt_bernoulliFun _ _).deriv
-
 /-- Bernoulli polys have mean `n = 0` -/
 lemma mean_bernoulliFun (s : ℕ) :
     ∫ x in (0 : ℝ)..1, bernoulliFun s x = if s = 0 then 1 else 0 := by
@@ -63,17 +45,6 @@ lemma mean_bernoulliFun (s : ℕ) :
   · simp only [bernoulliFun_zero, integral_const, sub_zero, smul_eq_mul, mul_one, ↓reduceIte]
   · apply integral_bernoulliFun_eq_zero
     omega
-
-@[simp] lemma bernoulliFun_one {x : ℝ} : bernoulliFun 1 x = x - 1 / 2 := by
-  simp [bernoulliFun, Polynomial.bernoulli_def, Finset.sum_range_succ]
-  ring
-
-@[simp] lemma bernoulli_two : bernoulli 2 = 6⁻¹ := by
-  simp [bernoulli]
-
-@[simp] lemma bernoulliFun_two {x : ℝ} : bernoulliFun 2 x = x ^ 2 - x + 6⁻¹ := by
-  simp [bernoulliFun, Polynomial.bernoulli_def, Finset.sum_range_succ]
-  ring
 
 /-!
 ### Integrability tactic
@@ -90,40 +61,8 @@ macro "integrable" : tactic =>
 ### Reflection principle: `B_s(1 - x) = (-)^s B_s(x)`
 -/
 
-/-- Fundamental theorem of calculus to express a Bernoulli polynomial via the previous one -/
-lemma bernoulliFun_eq_integral (s : ℕ) (x y : ℝ) :
-    bernoulliFun (s + 1) y =
-      bernoulliFun (s + 1) x + ∫ t in x..y, (s + 1 : ℕ) * bernoulliFun (s + 1 - 1) t := by
-  rw [intervalIntegral.integral_eq_sub_of_hasDerivAt (f := bernoulliFun (s + 1))]
-  · abel
-  · intro y _
-    apply hasDerivAt_bernoulliFun
-  · integrable
-
-lemma bernoulliFun_eval_one_sub {s : ℕ} {x : ℝ} :
-    bernoulliFun s (1 - x) = (-1) ^ s * bernoulliFun s x := by
-  induction' s with s h generalizing x
-  · simp only [bernoulliFun_zero, pow_zero, mul_one]
-  · simp only [bernoulliFun_eq_integral _ 1 (1 - x), bernoulliFun_eval_one, bernoulliFun_eval_zero,
-      add_eq_right, Nat.cast_add, Nat.cast_one, add_tsub_cancel_right, integral_const_mul,
-      bernoulliFun_eq_integral _ 0 x]
-    by_cases s0 : s = 0
-    · simp [s0]
-      ring
-    · have ev : (-1) ^ (s + 1) * (bernoulli (s + 1) : ℝ) = bernoulli (s + 1) := by
-        cases' (s + 1).even_or_odd with e o
-        · simp only [e, Even.neg_pow, one_pow, one_mul]
-        · rw [bernoulli, bernoulli'_odd_eq_zero o (by omega)]
-          simp only [mul_zero, Rat.cast_zero]
-      simp only [s0, ↓reduceIte, add_zero, mul_add, ev, add_right_inj]
-      rw [← mul_assoc, mul_comm _ (s + 1 : ℝ), mul_assoc]
-      apply congr_arg₂ _ rfl
-      nth_rw 1 [← sub_zero 1]
-      rw [← intervalIntegral.integral_comp_sub_left, intervalIntegral.integral_symm]
-      simp only [h, integral_const_mul, pow_succ, mul_neg, mul_one, neg_mul]
-
 @[simp] lemma bernoulli_odd_eq_zero {s : ℕ} (s0 : s ≠ 0) : bernoulli (2 * s + 1) = 0 := by
-  rw [bernoulli, bernoulli'_odd_eq_zero]
+  rw [bernoulli, bernoulli'_eq_zero_of_odd]
   all_goals simp; try omega
 
 /-- The values at 0 and 1 match for `2 ≤ s` -/
@@ -134,89 +73,14 @@ lemma bernoulliPoly_one_eq_zero (s : ℕ) : bernoulliFun (s + 2) 1 = bernoulliFu
 ### Multiplication theorem
 -/
 
-lemma hasDerivAt_const_mul {𝕜 : Type*} [NontriviallyNormedField 𝕜] {x : 𝕜} (c : 𝕜) :
-    HasDerivAt (fun x ↦ c * x) c x := by
-  simp only [mul_comm c, hasDerivAt_mul_const c]
-
 lemma integrable_bernoulliFun {s : ℕ} {a b : ℝ} :
     IntervalIntegrable (bernoulliFun s) volume a b := by
-  apply contDiff_bernoulliFun.continuous.intervalIntegrable
+  apply (contDiff_bernoulliFun _).continuous.intervalIntegrable
 
 lemma integrable_bernoulliFun_comp_add_right {s : ℕ} {a b c : ℝ} :
     IntervalIntegrable (fun x ↦ bernoulliFun s (x + c)) volume a b := by
   apply Continuous.intervalIntegrable
   continuity
-
-/-- The multiplication theorem. Proof follows https://math.stackexchange.com/a/1721099/38218. -/
-lemma bernoulliFun_mul (s m : ℕ) (m0 : m ≠ 0) (x : ℝ) :
-    bernoulliFun s (m * x) =
-      m ^ s / m * ∑ k ∈ Finset.range m, bernoulliFun s (x + k / m) := by
-  have m0' : (m : ℝ) ≠ 0 := Nat.cast_ne_zero.mpr m0
-  set f := fun s x ↦ bernoulliFun s (m * x) -
-    m ^ s / m * ∑ k ∈ Finset.range m, bernoulliFun s (x + k / ↑m)
-  suffices h : ∀ x, f s x = 0 by
-    rw [← sub_eq_zero]
-    exact h x
-  induction' s with s h
-  · intro x
-    simp only [f, bernoulliFun_zero, pow_zero, one_div, Finset.sum_const, Finset.card_range,
-      nsmul_eq_mul, mul_one, sub_eq_zero]
-    rw [inv_mul_cancel₀ (Nat.cast_ne_zero.mpr m0)]
-  · have d : ∀ x, HasDerivAt (fun x ↦ f (s + 1) x) (m * (s + 1) * f s x) x := by
-      intro x
-      simp only [f, mul_sub, Finset.mul_sum, pow_succ, mul_div_cancel_right₀ _ m0',
-        ← mul_assoc, mul_comm _ (_ / _), div_mul_cancel₀ _ m0']
-      apply HasDerivAt.sub
-      · rw [mul_assoc, mul_comm (m : ℝ) _, ← Nat.cast_add_one]
-        apply (hasDerivAt_bernoulliFun _ _).comp
-        apply hasDerivAt_const_mul
-      · refine HasDerivAt.fun_sum fun k _ ↦ ?_
-        simp only [mul_assoc, ← Nat.cast_add_one]
-        apply HasDerivAt.const_mul
-        rw [← mul_one (_ * _)]
-        apply (hasDerivAt_bernoulliFun _ _).comp
-        exact (hasDerivAt_id _).add_const _
-    simp only [h, mul_zero] at d
-    have fc : ∀ x y, f (s + 1) x = f (s + 1) y :=
-      is_const_of_deriv_eq_zero (fun _ ↦ (d _).differentiableAt) (fun _ ↦ (d _).deriv)
-    replace fc := fun x ↦ fc x 0
-    generalize f (s + 1) 0 = c at fc
-    have i : ∫ x in (0 : ℝ)..m⁻¹, f (s + 1) x = 0 := by
-      simp only [f]
-      rw [intervalIntegral.integral_sub, intervalIntegral.integral_comp_mul_left _ m0', mul_zero,
-        mul_inv_cancel₀ m0', integral_bernoulliFun_eq_zero (by omega), smul_zero, sub_eq_zero,
-        intervalIntegral.integral_const_mul, eq_comm (a := 0), mul_eq_zero]
-      · right
-        rw [intervalIntegral.integral_finset_sum]
-        · simp only [intervalIntegral.integral_comp_add_right, zero_add, ← one_div, ← add_div,
-            add_comm (1 : ℝ), ← Nat.cast_add_one]
-          rw [intervalIntegral.sum_integral_adjacent_intervals]
-          · simp [div_self m0', integral_bernoulliFun_eq_zero]
-          · integrable
-        · integrable
-      · integrable
-      · integrable
-    simp only [fc, integral_const, sub_zero, smul_eq_mul, mul_eq_zero, inv_eq_zero,
-      Nat.cast_eq_zero, m0, false_or] at i
-    simpa only [i] using fc
-
-/-!
-### Values at 1/2
--/
-
-lemma bernoulliFun_eval_half_eq_zero {s : ℕ} : bernoulliFun (2 * s + 1) 2⁻¹ = 0 := by
-  have h := bernoulliFun_eval_one_sub (s := 2 * s + 1) (x := 2⁻¹)
-  simp only [pow_succ, even_two, Even.mul_right, Even.neg_pow, one_pow, mul_neg, mul_one, neg_mul,
-    one_mul] at h
-  linarith
-
-lemma bernoulliFun_eval_half (s : ℕ) : bernoulliFun s 2⁻¹ = (2 / 2 ^ s - 1) * bernoulli s := by
-  by_cases s1 : s = 1
-  · simp [s1]
-  · have m := bernoulliFun_mul s 2 (by omega) 2⁻¹
-    norm_num [Finset.sum_range_succ, bernoulliFun_eval_one, s1, bernoulliFun_eval_zero] at m
-    rw [← inv_mul_eq_iff_eq_mul₀ (by positivity), ← sub_eq_iff_eq_add, ← sub_one_mul, inv_div] at m
-    rw [m, one_div]
 
 /-!
 ### The presaw functions
@@ -232,7 +96,7 @@ def presaw (s : ℕ) (a : ℤ) (x : ℝ) : ℝ :=
 
 /-- `presaw` is smooth -/
 lemma contDiff_presaw : ContDiff ℝ ⊤ (presaw s a) := by
-  exact (contDiff_bernoulliFun.comp (contDiff_id.sub contDiff_const)).const_smul _
+  exact ((contDiff_bernoulliFun _).comp (contDiff_id.sub contDiff_const)).const_smul _
 
 @[simp] lemma presaw_start {x : ℝ} : presaw 0 a x = 1 := by simp [presaw]
 
@@ -368,7 +232,8 @@ We first count the zeros of even and odd Bernoulli polynomials by induction, usi
 /-- Rolle's theorem specialised to the Bernoulli polynomials -/
 lemma bernoulliFun_rolle {s : ℕ} (s0 : s ≠ 0) {x y : ℝ} (xy : x < y)
     (e : bernoulliFun s x = bernoulliFun s y) : ∃ z ∈ Ioo x y, bernoulliFun (s - 1) z = 0 := by
-  obtain ⟨z, m, r⟩ := exists_hasDerivAt_eq_zero xy contDiff_bernoulliFun.continuous.continuousOn e
+  obtain ⟨z, m, r⟩ := exists_hasDerivAt_eq_zero xy
+      (contDiff_bernoulliFun _).continuous.continuousOn e
       (f' := s * bernoulliFun (s - 1)) (fun _ _ ↦ hasDerivAt_bernoulliFun _ _)
   refine ⟨z, m, ?_⟩
   simpa only [Pi.natCast_def, Pi.mul_apply, mul_eq_zero, Nat.cast_eq_zero, s0, false_or] using r
@@ -502,9 +367,9 @@ lemma pres_union_le {s : ℕ} {x y z b : ℝ} (xy : x < y) (yz : y < z) :
       · exact ⟨xy.trans h.1, h.2⟩
   rw [sub]
   refine le_trans (Set.encard_union_le _ _) ?_
-  refine add_le_add_right ?_ _
-  refine le_trans (Set.encard_union_le _ _) ?_
   refine add_le_add_left ?_ _
+  refine le_trans (Set.encard_union_le _ _) ?_
+  refine add_le_add_right ?_ _
   simp only [encard_le_one_iff, mem_inter_iff, mem_singleton_iff, and_imp]
   aesop
 
@@ -518,7 +383,7 @@ lemma bernoulliFun_zeros (s : ℕ) (s1 : 2 ≤ s) :
     rcases s.even_or_odd' with ⟨t, e | e⟩
     · simp only [e, even_two, Even.mul_right, ↓reduceIte, Nat.not_even_bit1] at h ⊢
       obtain ⟨h, r⟩ := h
-      refine pres_eq_zero (by norm_num) r ?_ bernoulliFun_eval_half_eq_zero
+      refine pres_eq_zero (by norm_num) r ?_ (bernoulliFun_eval_half_eq_zero _)
       rw [bernoulliFun_eval_zero, bernoulli_odd_eq_zero (by omega), Rat.cast_zero]
     · simp only [e, Nat.not_even_bit1, ↓reduceIte, add_assoc, Nat.reduceAdd, Nat.even_add_one,
         not_false_eq_true] at h ⊢

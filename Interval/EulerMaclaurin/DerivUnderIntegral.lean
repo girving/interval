@@ -25,15 +25,15 @@ lemma deriv_interval_integral_of_contDiff (fc : ContDiff ℝ ⊤ (uncurry f)) (a
     intro t x
     have e : (fun t ↦ f t x) = uncurry f ∘ (fun t ↦ (t,x)) := rfl
     simp only [f']
-    rw [← fderiv_deriv, e, fderiv_comp]
+    rw [← fderiv_apply_one_eq_deriv, e, fderiv_comp]
     · nth_rw 2 [(hasFDerivAt_prodMk_left _ _).fderiv]
       simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, ContinuousLinearMap.inl_apply]
-    · exact (fc.differentiable le_top).differentiableAt
+    · exact (fc.differentiable (by decide)).differentiableAt
     · simp only [differentiableAt_fun_id, differentiableAt_const, DifferentiableAt.prodMk]
   have dc : Continuous (uncurry f') := by
     simp only [f'] at de ⊢
     simp only [de, ← ContinuousLinearMap.apply_apply ((1 : ℝ), (0 : ℝ))]
-    exact (ContinuousLinearMap.continuous _).comp (fc.continuous_fderiv le_top)
+    exact (ContinuousLinearMap.continuous _).comp (fc.continuous_fderiv (by decide))
   have pc : IsCompact (closedBall t 1 ×ˢ Icc a b) := (isCompact_closedBall _ _).prod isCompact_Icc
   have pn : (closedBall t 1 ×ˢ Icc a b).Nonempty := by use (t,a); simp [ab]
   obtain ⟨m,_,mm⟩ := pc.exists_isMaxOn pn dc.norm.continuousOn
@@ -56,7 +56,7 @@ lemma deriv_interval_integral_of_contDiff (fc : ContDiff ℝ ⊤ (uncurry f)) (a
     have e : (fun t ↦ f t x) = uncurry f ∘ (fun t ↦ (t,x)) := rfl
     simp only [hasDerivAt_deriv_iff, f', e]
     apply DifferentiableAt.comp
-    · exact fc.contDiffAt.differentiableAt le_top
+    · exact fc.contDiffAt.differentiableAt (by decide)
     · exact differentiableAt_id.prodMk (differentiableAt_const _)
 
 /-- Iterated differentiation under the integral sign -/
@@ -74,9 +74,3 @@ lemma iteratedDeriv_interval_integral_of_contDiff (fc : ContDiff ℝ ⊤ (uncurr
       exact deriv_interval_integral_of_contDiff fc ab
     · refine ContDiff.deriv ?_ contDiff_fst
       exact fc.comp₂ contDiff_snd (contDiff_snd.comp contDiff_fst)
-
-@[simp] lemma iteratedDeriv_const {n : ℕ} {c : E} {x : ℝ} :
-    iteratedDeriv n (fun _ ↦ c) x = if n = 0 then c else 0 := by
-  induction n generalizing c with
-  | zero => simp
-  | succ n h => simp [iteratedDeriv_succ', h]

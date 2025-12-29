@@ -315,10 +315,10 @@ lemma UInt64.toNat_add_of_le {x y : UInt64} (h : x ≤ .max - y) :
     · exact Nat.le_sub_one_of_lt yp
     · rw [le_iff_toNat_le, e]; exact Nat.le_sub_one_of_lt yp
 
-@[simp, to_omega] lemma UInt64.toNat_max : UInt64.max.toNat = 2^64 - 1 := rfl
+@[simp, to_omega] lemma UInt64.toNat_max' : UInt64.max.toNat = 2^64 - 1 := rfl
 
 @[simp] lemma UInt64.le_max (n : UInt64) : n ≤ max := by
-  rw [UInt64.le_iff_toNat_le, toNat_max]; exact Nat.le_of_lt_succ (lt_size _)
+  rw [UInt64.le_iff_toNat_le, toNat_max']; exact Nat.le_of_lt_succ (lt_size _)
 
 @[simp] lemma UInt64.toNat_le_pow_sub_one (n : UInt64) : n.toNat ≤ 2^64 - 1 :=
   Nat.le_of_lt_succ (toNat_lt_2_pow_64 _)
@@ -573,7 +573,7 @@ lemma UInt64.toNat_shiftRightRound {x : UInt64} {s : UInt64} {up : Bool} :
           have a1 : a + 1 < size := by
             rw [←ha, size_eq_pow]
             have h : x.toNat < 2^64 := toNat_lt_2_pow_64 x
-            exact lt_of_le_of_lt (add_le_add_right (Nat.div_le_div h.le p2 (by norm_num)) _)
+            exact lt_of_le_of_lt (add_le_add_left (Nat.div_le_div h.le p2 (by norm_num)) _)
               (by norm_num)
           simp only [b0, Nat.mod_eq_of_lt a1, ite_false]
           have e : a * 2^s.toNat + b + (2^s.toNat - 1) = a * 2^s.toNat + 2^s.toNat + (b - 1) := by

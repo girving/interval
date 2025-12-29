@@ -19,7 +19,7 @@ lemma iteratedDeriv_mul {n : ℕ} (fc : ContDiff 𝕜 n f) {y : 𝕜} :
       rw [deriv_fun_smul]
       · simp only [deriv_id'', one_smul, add_comm]
       · exact differentiableAt_fun_id
-      · exact fc.contDiffAt.differentiableAt (mod_cast (Nat.le_add_left 1 n))
+      · exact fc.contDiffAt.differentiableAt (by norm_cast)
     nth_rw 1 [iteratedDeriv_succ', ds]
     change iteratedDeriv n (f + _) y = _
     rw [iteratedDeriv_add, h]

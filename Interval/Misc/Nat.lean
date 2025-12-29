@@ -194,7 +194,7 @@ lemma Nat.div_mod_mul_add_mod_eq {a n : ℕ} : a / n % n * n + a % n = a % n^2 :
       rw [pow_two]
       apply Nat.le_mul_self
     have lt : b % n * n + c < n^2 := by
-      apply lt_of_lt_of_le (add_lt_add_left cn _)
+      apply lt_of_lt_of_le (add_lt_add_right cn _)
       rw [pow_two, mul_comm _ n, ←_root_.mul_add_one (α := ℕ)]
       apply Nat.mul_le_mul_left
       rw [Nat.add_one_le_iff]
