@@ -1,5 +1,6 @@
 import Interval.Approx.Div2
 import Mathlib.Algebra.Lie.OfAssociative
+import Mathlib.Tactic.Bound
 import Mathlib.Tactic.Cases
 
 /-!
@@ -110,6 +111,17 @@ instance : CommRing Dyadic where
   npow_succ x n := Dyadic.pow_succ _ _
 
 @[simp] lemma Dyadic.monoidPow_eq_instPowNat : Monoid.toNatPow = instPowNat := rfl
+
+@[simp] lemma Dyadic.toRat_nonneg (x : Dyadic) : 0 ≤ x.toRat ↔ 0 ≤ x := by
+  rw [← Dyadic.toRat_zero, Dyadic.toRat_le_toRat_iff]
+
+@[bound] alias ⟨_, Bound.dyadic_toRat_nonneg⟩ := Dyadic.toRat_nonneg
+
+@[bound] alias ⟨_, Bound.ratCast_nonneg⟩ := Rat.cast_nonneg
+
+@[bound] lemma Dyadic.div2_nonneg (x : Dyadic) (x0 : 0 ≤ x) : 0 ≤ div2 x := by
+  simp only [← Dyadic.toRat_le_toRat_iff, Dyadic.toRat_div2, Dyadic.toRat_zero, div2_eq_mul]
+  bound
 
 /-!
 ### Dyadic rationals approximate any field

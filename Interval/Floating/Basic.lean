@@ -231,7 +231,7 @@ lemma val_ne_zero {x : Floating} : x.val ≠ 0 ↔ x ≠ 0 := by
   rw [←not_iff_not, not_not, not_not, val_eq_zero]
 
 /-- `valq = val` -/
-lemma coe_valq {x : Floating} : x.valq = x.val := by
+@[simp] lemma coe_valq {x : Floating} : x.valq = x.val := by
   rw [valq, val]; simp
 
 /-!
