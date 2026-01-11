@@ -30,52 +30,9 @@ noncomputable section
 
 variable {s : ℕ}
 
-/-- Polynomials are smooth -/
-lemma contDiff_polynomial (f : Polynomial ℚ) : ContDiff ℝ ⊤ (fun x : ℝ ↦ f.aeval x) := by
-  induction' f using Polynomial.induction_on' with f g fc gc n a
-  · simp only [map_add]
-    exact fc.add gc
-  · simp only [Polynomial.aeval_monomial, eq_ratCast]
-    exact contDiff_const.mul (contDiff_id.pow _)
-
-/-- Bernoulli polys have mean `n = 0` -/
-lemma mean_bernoulliFun (s : ℕ) :
-    ∫ x in (0 : ℝ)..1, bernoulliFun s x = if s = 0 then 1 else 0 := by
-  induction' s with s _
-  · simp only [bernoulliFun_zero, integral_const, sub_zero, smul_eq_mul, mul_one, ↓reduceIte]
-  · apply integral_bernoulliFun_eq_zero
-    omega
-
-/-!
-### Integrability tactic
--/
-
-/-- Show interval integrability via continuity -/
-macro "integrable" : tactic =>
-  `(tactic|
-    · intros
-      apply Continuous.intervalIntegrable
-      continuity)
-
-/-!
-### Reflection principle: `B_s(1 - x) = (-)^s B_s(x)`
--/
-
-@[simp] lemma bernoulli_odd_eq_zero {s : ℕ} (s0 : s ≠ 0) : bernoulli (2 * s + 1) = 0 := by
-  rw [bernoulli, bernoulli'_eq_zero_of_odd]
-  all_goals simp; try omega
-
-/-- The values at 0 and 1 match for `2 ≤ s` -/
-lemma bernoulliPoly_one_eq_zero (s : ℕ) : bernoulliFun (s + 2) 1 = bernoulliFun (s + 2) 0 := by
-  simp only [bernoulliFun_eval_one, bernoulliFun_eval_zero, Nat.reduceEqDiff, ↓reduceIte, add_zero]
-
 /-!
 ### Multiplication theorem
 -/
-
-lemma integrable_bernoulliFun {s : ℕ} {a b : ℝ} :
-    IntervalIntegrable (bernoulliFun s) volume a b := by
-  apply (contDiff_bernoulliFun _).continuous.intervalIntegrable
 
 lemma integrable_bernoulliFun_comp_add_right {s : ℕ} {a b c : ℝ} :
     IntervalIntegrable (fun x ↦ bernoulliFun s (x + c)) volume a b := by
@@ -145,8 +102,7 @@ lemma saw_eqOn {a : ℤ} :
 
 /-- `presaw` at integer values in terms of `saw` -/
 @[simp] lemma presaw_coe_succ {a : ℤ} : presaw (s + 2) a (a + 1) = saw (s + 2) 0 := by
-  simp only [presaw, add_sub_cancel_left, bernoulliPoly_one_eq_zero, smul_eq_mul, saw,
-    Int.fract_zero]
+  simp [presaw, bernoulliFun_endpoints_eq_of_ne_one, saw]
 
 /-- `presaw` at integer values in terms of `saw` -/
 @[simp] lemma presaw_one_coe_succ {a : ℤ} : presaw 1 a (a + 1) = 1 / 2 := by
@@ -384,7 +340,8 @@ lemma bernoulliFun_zeros (s : ℕ) (s1 : 2 ≤ s) :
     · simp only [e, even_two, Even.mul_right, ↓reduceIte, Nat.not_even_bit1] at h ⊢
       obtain ⟨h, r⟩ := h
       refine pres_eq_zero (by norm_num) r ?_ (bernoulliFun_eval_half_eq_zero _)
-      rw [bernoulliFun_eval_zero, bernoulli_odd_eq_zero (by omega), Rat.cast_zero]
+      rw [bernoulliFun_eval_zero, bernoulli_eq_zero_of_odd (odd_two_mul_add_one t) (by omega),
+        Rat.cast_zero]
     · simp only [e, Nat.not_even_bit1, ↓reduceIte, add_assoc, Nat.reduceAdd, Nat.even_add_one,
         not_false_eq_true] at h ⊢
       constructor
