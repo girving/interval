@@ -30,48 +30,9 @@ noncomputable section
 
 variable {s : ℕ}
 
-/-- Polynomials are smooth -/
-@[deprecated Polynomial.contDiff_aeval]
-lemma contDiff_polynomial (f : Polynomial ℚ) : ContDiff ℝ ⊤ (fun x : ℝ ↦ f.aeval x) := by
-  exact Polynomial.contDiff_aeval f ⊤
-
-/-- Bernoulli polys have mean `n = 0` -/
-@[deprecated integral_bernoulliFun]
-lemma mean_bernoulliFun (s : ℕ) :
-    ∫ x in (0 : ℝ)..1, bernoulliFun s x = if s = 0 then 1 else 0 := by
-  exact integral_bernoulliFun s
-
-/-!
-### Integrability tactic
--/
-
-/-- Show interval integrability via continuity -/
-macro "integrable" : tactic =>
-  `(tactic|
-    · intros
-      apply Continuous.intervalIntegrable
-      continuity)
-
-/-!
-### Reflection principle: `B_s(1 - x) = (-)^s B_s(x)`
--/
-
-@[simp, deprecated bernoulli_eq_zero_of_odd]
-lemma bernoulli_odd_eq_zero {s : ℕ} (s0 : s ≠ 0) : bernoulli (2 * s + 1) = 0 := by
-  exact bernoulli_eq_zero_of_odd (odd_two_mul_add_one s) (by grind)
-
-/-- The values at 0 and 1 match for `2 ≤ s` -/
-@[deprecated bernoulliFun_endpoints_eq_of_ne_one]
-lemma bernoulliPoly_one_eq_zero (s : ℕ) : bernoulliFun (s + 2) 1 = bernoulliFun (s + 2) 0 := by
-  exact bernoulliFun_endpoints_eq_of_ne_one (by grind)
-
 /-!
 ### Multiplication theorem
 -/
-@[deprecated intervalIntegrable_bernoulliFun]
-lemma integrable_bernoulliFun {s : ℕ} {a b : ℝ} :
-    IntervalIntegrable (bernoulliFun s) volume a b := by
-  exact intervalIntegrable_bernoulliFun s a b
 
 lemma integrable_bernoulliFun_comp_add_right {s : ℕ} {a b c : ℝ} :
     IntervalIntegrable (fun x ↦ bernoulliFun s (x + c)) volume a b := by
