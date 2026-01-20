@@ -21,4 +21,6 @@ jobs:
         with:
           check-reservoir-eligibility: true
       
-      - uses: leanprover-community/docgen-action@v1
+      - name: Build and Deploy API-DOCS
+        if: github.ref == 'refs/heads/main'
+        uses: leanprover-community/docgen-action@v1
