@@ -2,6 +2,12 @@ on:
   push:
   pull_request:
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read # Read access to repository contents
+  pages: write # Write access to GitHub Pages
+  id-token: write # Write access to ID tokens
+
 name: build
 
 jobs:
@@ -14,3 +20,7 @@ jobs:
       - uses: leanprover/lean-action@v1
         with:
           check-reservoir-eligibility: true
+      
+      - name: Build and Deploy API-DOCS
+        if: github.ref == 'refs/heads/main'
+        uses: leanprover-community/docgen-action@v1
