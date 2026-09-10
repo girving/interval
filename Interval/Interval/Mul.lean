@@ -141,7 +141,7 @@ variable {x y : Interval} {x' y' : ℝ}
 
 /-- Multiply two intervals -/
 @[irreducible] def mul (x : Interval) (y : Interval) : Interval :=
-  (x.premul y).mix' (approx_premul x.lo_mem y.lo_mem)
+  (x.premul y).mix' ⟨_, approx_premul x.lo_mem y.lo_mem⟩
 
 /-- `* = mul` -/
 instance : Mul Interval where

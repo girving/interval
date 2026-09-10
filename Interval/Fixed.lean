@@ -902,7 +902,9 @@ lemma Real.cast_natCast (n : ℤ) (n0 : 0 ≤ n) : (n : ℝ) = (n.toNat : ℝ) :
   simp only [Nat.log2_lt n0', ← Nat.cast_lt (α := ℤ), Nat.cast_pow, Nat.cast_two, Nat.cast_natAbs] at nn
   rw [Int64.toInt_ofInt' nn]
 
-@[simp] lemma Fixed.ofInt0_natCast (n : ℕ) : ofInt0 (n : ℤ) = ofNat0 n := by simp [ofInt0, ofNat0]
+@[simp] lemma Fixed.ofInt0_natCast (n : ℕ) : ofInt0 (n : ℤ) = ofNat0 n := by
+  simp [ofInt0, ofNat0]
+  rfl
 
 /-- `Fixed.ofNat0` is conservative -/
 @[approx] lemma Fixed.approx_ofNat0 (n : ℕ) : approx (ofNat0 n) (n : ℝ) := by
