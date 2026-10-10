@@ -64,8 +64,12 @@ partial def lift (e : Q(ℝ)) : MetaM Q(Interval) := do
     | ~q(0) => return q(0)
     | ~q(1) => return q(1)
     | ~q(@OfNat.ofNat ℝ $n $i) => return q(Interval.ofNat $n)
-    | ~q(@OfNat.ofNat ℝ $n $i / @OfNat.ofNat ℝ $d $j) => return q(Interval.ofRat ($n / $d))
-    | ~q(1 / @OfNat.ofNat ℝ $d $j) => return q(Interval.ofRat (1 / $d))
+    | ~q(@OfNat.ofNat ℝ $n $i / @OfNat.ofNat ℝ $d $j) =>
+      -- Our `approx` lemmas for rational literals need `2 ≤ d` and `n = 1` or `2 ≤ n`
+      match n.rawNatLit?, d.rawNatLit? with
+        | some 1, some (_ + 2) => return q(Interval.ofRat (1 / $d))
+        | some (_ + 2), some (_ + 2) => return q(Interval.ofRat ($n / $d))
+        | _, _ => return q($(← lift q(@OfNat.ofNat ℝ $n $i)) / $(← lift q(@OfNat.ofNat ℝ $d $j)))
     | ~q(@OfScientific.ofScientific ℝ _ $x $u $t) => do
       return q(@OfScientific.ofScientific Interval _ $x $u $t)
     | ~q(-$x) => return q(-$(← lift x))
