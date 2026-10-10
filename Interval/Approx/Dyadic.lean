@@ -1,7 +1,9 @@
-import Interval.Approx.Div2
-import Mathlib.Algebra.Lie.OfAssociative
-import Mathlib.Tactic.Bound
-import Mathlib.Tactic.Cases
+module
+
+public import Interval.Approx.Div2
+public import Mathlib.Algebra.Lie.OfAssociative
+public import Mathlib.Tactic.Bound
+public import Mathlib.Tactic.Cases
 
 /-!
 # Dyadic rationals approximate any field
@@ -9,6 +11,8 @@ import Mathlib.Tactic.Cases
 We want to do power series computations over `Dyadic`, where these approximate `ℂ` as a ring.
 This works because our `spray` series functions uses only ring operation and `div2` on scalars.
 -/
+
+@[expose] public section
 
 variable {𝕜 : Type}
 variable {x y : Dyadic} {x' y' : 𝕜} {s : ℤ} {n : ℕ}
@@ -39,11 +43,14 @@ lemma Dyadic.intCast_one : (1 : ℤ) = (1 : Dyadic) := rfl
 @[simp] lemma Dyadic.toRat_one : (1 : Dyadic).toRat = 1 := rfl
 @[simp] lemma Dyadic.toRat_zero' : zero.toRat = 0 := rfl
 
+/-- `x >>> i` in terms of the underlying `Dyadic.shiftRight`. -/
+lemma Dyadic.shiftRight_def (x : Dyadic) (i : ℤ) : x >>> i = x.shiftRight i := rfl
+
 @[simp] lemma Dyadic.toRat_shiftRightInt : (x >>> s).toRat = x.toRat / 2 ^ s := by
   induction' x with x t xo
-  · simp only [instHShiftRightInt, Dyadic.shiftRight, toRat_zero', zero_div]
+  · simp only [shiftRight_def, Dyadic.shiftRight, toRat_zero', zero_div]
   · have two : (2 : ℚ) ≠ 0 := by norm_num
-    simp only [instHShiftRightInt, Dyadic.shiftRight, toRat_ofOdd_eq_mkRat, neg_add_rev,
+    simp only [shiftRight_def, Dyadic.shiftRight, toRat_ofOdd_eq_mkRat, neg_add_rev,
       Int.shiftLeft_eq, Nat.shiftLeft_eq, _root_.one_mul, Rat.mkRat_eq_div, Int.cast_mul,
       Int.cast_pow, Int.cast_ofNat, ← zpow_natCast, Int.ofNat_toNat, Nat.cast_pow, Nat.cast_ofNat,
       mul_div_assoc, ← zpow_sub₀ two, mul_eq_mul_left_iff, Nat.ofNat_pos, ne_eq, OfNat.ofNat_ne_one,
@@ -93,17 +100,24 @@ instance : CommRing Dyadic where
   neg_add_cancel := Dyadic.neg_add_cancel
   natCast_succ := Dyadic.natCast_succ
   nsmul n x := n * x
-  nsmul_zero x := by rw [Dyadic.natCast_zero, Dyadic.zero_mul]
-  nsmul_succ n x := by simp only [Dyadic.natCast_succ, Dyadic.add_mul, Dyadic.one_mul]
+  nsmul_zero _ := rfl
+  nsmul_succ n x := by
+    show ((n + 1 : ℕ) : Dyadic) * x = ((n : ℕ) : Dyadic) * x + x
+    rw [Dyadic.natCast_succ, Dyadic.add_mul, Dyadic.one_mul]
   zsmul n x := n * x
-  zsmul_zero' x := by rw [Dyadic.intCast_zero, Dyadic.zero_mul]
-  zsmul_succ' n x := by simp [Dyadic.intCast_add_one, Dyadic.add_mul, Dyadic.one_mul]
+  zsmul_zero' _ := rfl
+  zsmul_succ' n x := by
+    show ((n.succ : ℕ) : Dyadic) * x = ((n : ℕ) : Dyadic) * x + x
+    rw [Dyadic.natCast_succ, Dyadic.add_mul, Dyadic.one_mul]
   zsmul_neg' n x := by
-    simp only [Int.negSucc_eq, neg_add_rev, Int.reduceNeg, add_comm, Dyadic.intCast_add,
-      Dyadic.intCast_neg, Dyadic.intCast_one, Dyadic.add_mul, Dyadic.neg_mul, Dyadic.one_mul,
-      Nat.succ_eq_add_one, Nat.cast_add, Nat.cast_one, Dyadic.neg_add]
+    show ((Int.negSucc n : ℤ) : Dyadic) * x = -(((n.succ : ℕ) : Dyadic) * x)
+    have e : (((n : ℤ) + 1 : ℤ) : Dyadic) = ((n.succ : ℕ) : Dyadic) := by
+      rw [Dyadic.intCast_add, Dyadic.intCast_one]
+      show ((n : ℕ) : Dyadic) + 1 = ((n.succ : ℕ) : Dyadic)
+      rw [← Dyadic.natCast_succ]
+    rw [Int.negSucc_eq, Dyadic.intCast_neg, e, Dyadic.neg_mul]
   intCast_negSucc n := by
-    simp only [Dyadic.instIntCast, Int.negSucc_eq, neg_add, Dyadic.intCast_add, Dyadic.natCast_succ,
+    simp only [Int.negSucc_eq, neg_add, Dyadic.intCast_add, Dyadic.natCast_succ,
       Dyadic.neg_add, Dyadic.intCast_neg, Dyadic.intCast_one]
     rfl
   npow n x := x.pow n

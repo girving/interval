@@ -1,9 +1,13 @@
-import Mathlib.Algebra.BigOperators.Field
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Sinc
+module
+
+public import Mathlib.Algebra.BigOperators.Field
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Sinc
 
 /-!
 ## Bounds for `sin` and `cos`
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real
@@ -159,7 +163,7 @@ lemma Complex.sinc_series_bound {z : ℂ} (z1 : ‖z‖ ≤ 1) (n : ℕ) :
   · induction n
     all_goals simp [sinc, z0, Finset.sum_range_succ']
   · rw [← mul_div_cancel_left₀ (∑ k ∈ Finset.range _, _) z0]
-    simp only [sinc, z0, if_false, ← sub_div, norm_div, div_le_iff₀ (norm_pos_iff.mpr z0),
+    simp only [sinc, z0, ite_false, ← sub_div, norm_div, div_le_iff₀ (norm_pos_iff.mpr z0),
       mul_comm _ ‖z‖, ← mul_assoc ‖z‖, ← pow_succ']
     exact sin_series_bound z1 n
 

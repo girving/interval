@@ -1,9 +1,13 @@
-import Interval.Box.Basic
-import Interval.Interval.Division
+module
+
+public import Interval.Box.Basic
+public import Interval.Interval.Division
 
 /-!
 ## `Box` inverse and division
 -/
+
+@[expose] public section
 
 open Pointwise
 open Set

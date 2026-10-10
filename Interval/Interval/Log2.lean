@@ -1,9 +1,13 @@
-import Mathlib.Analysis.SpecialFunctions.Log.Deriv
-import Interval.Interval.Constants
+module
+
+public import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+public import Interval.Interval.Constants
 
 /-!
 ## Interval approximations of `log 2` and friends
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real

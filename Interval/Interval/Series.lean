@@ -1,9 +1,13 @@
-import Interval.Interval.Mul
-import Interval.Misc.Array
+module
+
+public import Interval.Interval.Mul
+public import Interval.Misc.Array
 
 /-!
 ## Function approximation via `Interval` power series
 -/
+
+@[expose] public section
 
 open BigOperators
 open Set
@@ -90,7 +94,7 @@ instance : Approx Series (ℝ → ℝ) where
 /-- `Series.eval` propagates `nan` -/
 @[simp] lemma Series.eval_nan {p : Series} : p.eval (nan : Interval) = nan := by
   rw [Series.eval]
-  simp only [Interval.abs_nan, Interval.hi_nan, beq_self_eq_true, Bool.true_or, cond_true]
+  simp only [Interval.abs_nan, Interval.hi_nan, beq_self_eq_true, Bool.true_or, Bool.cond_true]
 
 /-- `Approx` proof given an effective Taylor series bound -/
 lemma Series.approx_of_taylor' (p : Series) (f : ℝ → ℝ) (a : ℕ → ℝ) (b : ℝ) (x : ℝ) (y : Interval)
@@ -104,8 +108,8 @@ lemma Series.approx_of_taylor' (p : Series) (f : ℝ → ℝ) (a : ℕ → ℝ) 
   · rw [Series.eval]
     rcases n with yn | ry
     · simp only [yn, Interval.hi_nan, BEq.rfl, Floating.val_lt_val, Floating.not_lt_nan_val,
-        decide_false, Bool.or_false, cond_true, approx_nan]
-    · simp only [ry, decide_true, Bool.or_true, cond_true, approx_nan]
+        decide_false, Bool.or_false, Bool.cond_true, approx_nan]
+    · simp only [ry, decide_true, Bool.or_true, Bool.cond_true, approx_nan]
   simp only [not_or, not_lt, Floating.val_le_val] at n
   rcases n with ⟨yn, ry⟩
   have yn' : y ≠ nan := by simpa only [ne_eq, Interval.abs_eq_nan] using yn

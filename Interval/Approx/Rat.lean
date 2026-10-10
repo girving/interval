@@ -1,4 +1,6 @@
-import Interval.Approx.Div2
+module
+
+public import Interval.Approx.Div2
 
 /-!
 # Rationals approximate any field
@@ -6,6 +8,8 @@ import Interval.Approx.Div2
 We want to do power series computations over `ℚ`, where these approximate `ℂ` via field structure.
 This works because our `spray` series functions uses only field operations on scalars.
 -/
+
+@[expose] public section
 
 variable {𝕜 : Type}
 

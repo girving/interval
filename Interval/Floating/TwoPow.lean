@@ -1,10 +1,14 @@
-import Interval.Floating.Standardization
+module
 
-open Pointwise
+public import Interval.Floating.Standardization
 
 /-!
 ## Floating point powers of two
 -/
+
+@[expose] public section
+
+open Pointwise
 
 open Set
 open scoped Real

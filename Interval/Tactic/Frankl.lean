@@ -1,10 +1,14 @@
-import Interval.Tactic.Interval
+module
+
+public import Interval.Tactic.Interval
 
 /-!
 # The inequality from Alweiss et al.
 
 Exploring Claim 3 of https://arxiv.org/abs/2211.11731.
 -/
+
+@[expose] public section
 
 open Real (log sqrt)
 open Set

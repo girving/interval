@@ -1,8 +1,12 @@
-import Interval.UInt128
+module
+
+public import Interval.UInt128
 
 /-!
 ## `Int128`: 128-bit signed integers
 -/
+
+@[expose] public section
 
 open Classical
 open Set
@@ -73,9 +77,9 @@ instance : Coe Int128 ℤ where
 @[simp] lemma isNeg_iff {x : Int128} : x.isNeg = decide ((x : ℤ) < 0) := by
   simp only [toInt, sub_neg]
   by_cases n : x.isNeg
-  · simp only [n, cond_true, true_eq_decide_iff]
+  · simp only [n, Bool.cond_true, true_eq_decide_iff]
     exact lt_of_lt_of_le (Nat.cast_lt.mpr x.n.toNat_lt) (by norm_num)
-  · simp only [n, cond_false, false_eq_decide_iff, not_lt, Nat.cast_nonneg]
+  · simp only [n, Bool.cond_false, false_eq_decide_iff, not_lt, Nat.cast_nonneg]
 
 /-- `Int128 → ℤ → Int128` is the identity -/
 @[simp] lemma ofInt_coe (x : Int128) : .ofInt (x : ℤ) = x := by

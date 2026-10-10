@@ -1,4 +1,6 @@
-import Interval.Interval.Basic
+module
+
+public import Interval.Interval.Basic
 
 /-!
 ## Interval orderings
@@ -7,6 +9,8 @@ We define `≤, <` on `Interval` such that if they are true, we know the corresp
 on any approximated reals. This unfortunately means that we don't get a `Preorder`, since
 reflexivity fails.
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real
@@ -81,7 +85,7 @@ instance : IsTrans Interval (· < ·) where
   trans _ _ _ xy yz := Interval.lt_trans' xy yz
 
 /-- `<` is asymmetric -/
-instance : IsAsymm Interval (· < ·) where
+instance : Std.Asymm (α := Interval) (· < ·) where
   asymm _ _ xy := Interval.lt_asymm' xy
 
 /-!

@@ -1,9 +1,13 @@
-import Interval.Floating.Floor
-import Interval.Interval.Basic
+module
+
+public import Interval.Floating.Floor
+public import Interval.Interval.Basic
 
 /-!
 ## `natFloor` for `Interval`
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real

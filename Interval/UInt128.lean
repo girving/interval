@@ -1,11 +1,16 @@
-import Mathlib.Data.Real.Archimedean
-import Interval.Approx.Approx
-import Interval.UInt64
-import Interval.Misc.Int
+module
+
+public import Mathlib.Algebra.Order.AbsoluteValue.Basic
+public import Mathlib.Data.Rat.Floor
+public import Interval.Approx.Approx
+public import Interval.UInt64
+public import Interval.Misc.Int
 
 /-!
 ## `UInt128`: 128-bit integers
 -/
+
+@[expose] public section
 
 open Classical
 
@@ -203,7 +208,7 @@ lemma UInt128.toNat_succ {x : UInt128} (h : x.toNat ≠ 2^128-1) : x.succ.toNat 
     · simp only [toNat_def, hh, ll, ne_eq] at h; contrapose h; clear h; decide +kernel
     · simp only [UInt64.pow_eq_zero, UInt64.zero_sub] at hh
       simp [toNat, Nat.shiftLeft_eq, UInt64.toNat_add_one' hh, add_mul, one_mul, UInt64.toNat_zero,
-        add_zero, ll, to_omega, bif_eq_if]
+        add_zero, ll, to_omega]
   · simp only [to_omega] at ll
     simp only [to_omega, UInt64.toNat_add_one ll, ↓reduceIte, toNat]
     have h0 := x.lo.toNat_lt
@@ -672,7 +677,7 @@ lemma UInt128.toNat_shiftLeft' (x : UInt128) {s : UInt64} :
   have h : (0 : UInt64) < 64 := by decide
   rw [shiftLeft_def, shiftLeft]
   simp only [UInt64.land_eq_hand, UInt64.zero_land, h, decide_true, UInt64.shiftLeft_zero,
-    cond_true, beq_self_eq_true]
+    Bool.cond_true, beq_self_eq_true]
 
 /-- Shifting zero does nothing -/
 @[simp] lemma UInt128.zero_shiftLeft (s : UInt64) : (0 : UInt128) <<< s = 0 := by
@@ -753,10 +758,10 @@ lemma UInt128.toInt_shiftRightRound (x : UInt128) (s : UInt64) (up : Bool) :
   · simp only [h0, pow_zero, Int.rdiv_one]
   · rcases h2 with x0 | down
     · simp only [x0, CharP.cast_eq_zero, Int.zero_rdiv]
-    · simp only [Int.rdiv, down, Nat.cast_pow, Nat.cast_ofNat, cond_false,
+    · simp only [Int.rdiv, down, Nat.cast_pow, Nat.cast_ofNat, Bool.cond_false,
         Int.ediv_eq_zero_of_lt (Int.natCast_nonneg _) (d0 h1)]
   · simp only [not_or, Bool.not_eq_false] at h2
-    simp only [Int.rdiv, h2.2, Nat.cast_pow, Nat.cast_ofNat, cond_true, ← neg_eq_iff_eq_neg]
+    simp only [Int.rdiv, h2.2, Nat.cast_pow, Nat.cast_ofNat, Bool.cond_true, ← neg_eq_iff_eq_neg]
     exact (Int.ediv_eq_neg_one (Nat.cast_pos.mpr (Nat.pos_iff_ne_zero.mpr h2.1)) (d0 h1).le).symm
   · simp only [not_le] at h1
     simp only [h3.1, Nat.mod_eq_of_lt h1, true_and] at h3 h4
@@ -765,7 +770,7 @@ lemma UInt128.toInt_shiftRightRound (x : UInt128) (s : UInt64) (up : Bool) :
     rw [h4]; decide
   · simp only [not_le] at h1; clear h4
     simp only [h3.1, Nat.mod_eq_of_lt h1, true_and, Int.rdiv, Nat.cast_pow, Nat.cast_ofNat,
-      cond_true, Nat.mod_eq_of_lt d2] at h3 ⊢
+      Bool.cond_true, Nat.mod_eq_of_lt d2] at h3 ⊢
     rw [eq_comm, ←Nat.dvd_iff_div_mul_eq] at h3
     rw [Int.neg_ediv_neg (by positivity)]
     simp only [d3, h3, Int.ofNat_dvd, not_false_eq_true]
@@ -773,7 +778,7 @@ lemma UInt128.toInt_shiftRightRound (x : UInt128) (s : UInt64) (up : Bool) :
     simp only [Nat.mod_eq_of_lt h1, not_and_or, not_not, Bool.not_eq_true,
       Nat.mod_eq_of_lt d2] at h3 ⊢
     rcases h3 with down | dv
-    · simp only [Int.rdiv, down, Nat.cast_pow, Nat.cast_ofNat, cond_false]
+    · simp only [Int.rdiv, down, Nat.cast_pow, Nat.cast_ofNat, Bool.cond_false]
     · rw [dv]
       simp only [Nat.cast_mul, Int.natCast_ediv, ne_eq, d3, pow_eq_zero_iff', OfNat.ofNat_ne_zero,
         false_and, not_false_eq_true, Int.mul_rdiv_cancel]
@@ -815,7 +820,7 @@ lemma UInt128.toNat_shiftLeftSaturate {x : UInt128} {s : UInt64}
       Nat.mod_eq_of_lt, not_le.mpr t128, decide_false, bif_eq_if, Bool.and_eq_true, bne_iff_ne,
       ne_eq, UInt64.eq_iff_toNat_eq, UInt64.toNat_zero, t0, not_false_eq_true, eq_iff_toNat_eq,
       UInt128.toNat_shiftRight _ sub, e9, toNat_zero, Nat.div_eq_zero_iff, not_lt, true_and,
-      apply_ite (f := fun x : UInt128 ↦ x.toNat), toNat_max, if_false, UInt64.toNat_cast,
+      apply_ite (f := fun x : UInt128 ↦ x.toNat), toNat_max, ite_false, UInt64.toNat_cast,
       Bool.false_eq_true, pow_eq_zero_iff', two_ne_zero, false_and, false_or]
     rw [UInt128.toNat_shiftLeft]
     split_ifs with c
@@ -859,13 +864,13 @@ lemma UInt128.shiftLeftSaturate_eq {x : UInt128} {s : UInt64}
 @[simp] lemma UInt128.zero_shiftRightRound {s : UInt64} {up : Bool} :
     (0 : UInt128).shiftRightRound s up = 0 := by
   rw [shiftRightRound]
-  simp only [beq_self_eq_true, Bool.true_or, cond_true, zero_shiftRight, zero_shiftLeft,
-    bne_self_eq_false, Bool.and_false, cond_false, Bool.cond_self]
+  simp only [beq_self_eq_true, Bool.true_or, Bool.cond_true, zero_shiftRight, zero_shiftLeft,
+    bne_self_eq_false, Bool.and_false, Bool.cond_false, Bool.cond_self]
 
 @[simp] lemma UInt128.shiftRightRound_zero {x : UInt128} {up : Bool} :
     x.shiftRightRound 0 up = x := by
   rw [shiftRightRound]
-  simp only [beq_self_eq_true, shiftLeft_zero, Bool.cond_decide, cond_true]
+  simp only [beq_self_eq_true, shiftLeft_zero, Bool.cond_decide, Bool.cond_true]
 
 /-!
 ### `log2`
@@ -916,7 +921,7 @@ lemma UInt128.shiftLeftSaturate_eq {x : UInt128} {s : UInt64}
 
 @[simp] lemma UInt128.log2_zero : (0 : UInt128).log2 = 0 := by
   rw [log2]
-  simp only [zero_hi, beq_self_eq_true, zero_lo, UInt64.log2_zero, cond_true, UInt64.fast_log2_eq]
+  simp only [zero_hi, beq_self_eq_true, zero_lo, UInt64.log2_zero, Bool.cond_true, UInt64.fast_log2_eq]
 
 @[simp] lemma UInt128.toNat_lo_of_log2_lt {x : UInt128} (h : x.toNat.log2 < 64) :
     x.lo.toNat = x.toNat := by

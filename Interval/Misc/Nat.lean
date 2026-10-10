@@ -1,13 +1,17 @@
-import Mathlib.Algebra.Order.Floor.Semifield
-import Mathlib.Data.Nat.Bitwise
-import Mathlib.Data.Nat.ModEq
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic.Cases
-import Interval.Misc.Bool
+module
+
+public import Mathlib.Algebra.Order.Floor.Semifield
+public import Mathlib.Data.Nat.Bitwise
+public import Mathlib.Data.Nat.ModEq
+public import Mathlib.Basic.Real.Basic
+public import Mathlib.Tactic.Cases
+public import Interval.Misc.Bool
 
 /-!
 ## `ℕ` facts
 -/
+
+@[expose] public section
 
 variable {α : Type*}
 
@@ -28,9 +32,9 @@ lemma Nat.bit_div2_eq (n : ℕ) : Nat.bit (Nat.bodd n) (Nat.div2 n) = n := by
     by_cases p : bodd n
     · simp only [p, div2_val, bit_true, bodd_succ, Bool.not_true, bit_false] at h ⊢
       omega
-    · simp only [bit, p, cond_false] at h
-      simp only [bit, bodd_succ, p, Bool.not_false, div2_succ, succ_eq_add_one, cond_false,
-        cond_true, h]
+    · simp only [bit, p, Bool.cond_false] at h
+      simp only [bit, bodd_succ, p, Bool.not_false, div2_succ, succ_eq_add_one, Bool.cond_false,
+        Bool.cond_true, h]
 
 lemma Nat.bit_le_bit {a b : Bool} {m n : ℕ} (ab : a ≤ b) (mn : m ≤ n) : bit a m ≤ bit b n := by
   induction a
@@ -313,7 +317,7 @@ lemma Nat.le_add_div_mul {n k : ℕ} (k0 : 0 < k) : n ≤ (n + k - 1) / k * k :=
   have bk0 : 0 < b + k := by omega
   simp only [mul_comm k _, add_assoc, Nat.add_sub_assoc bk0, Nat.add_div k0,
     Nat.mul_div_cancel _ k0, mul_mod_left, zero_add, ge_iff_le, ←not_lt (b := k), Nat.mod_lt _ k0, not_true,
-    if_false, add_zero, add_mul, add_le_add_iff_left]
+    ite_false, add_zero, add_mul, add_le_add_iff_left]
   by_cases b0 : b = 0
   · simp only [b0, zero_add, _root_.zero_le]
   · trans k
@@ -346,7 +350,7 @@ lemma Nat.shiftRightRound_eq_rdiv (n k : ℕ) (up : Bool) :
 
 /-- `rdiv` rounds down if desired -/
 lemma Nat.rdiv_le {a b : ℕ} : (a.rdiv b false : ℝ) ≤ a / b := by
-  simp only [rdiv, cond_false]
+  simp only [rdiv, Bool.cond_false]
   by_cases b0 : b = 0
   · simp only [b0, Nat.cast_zero, Nat.div_zero, cast_zero, div_zero, le_refl]
   · rw [le_div_iff₀]
@@ -356,7 +360,7 @@ lemma Nat.rdiv_le {a b : ℕ} : (a.rdiv b false : ℝ) ≤ a / b := by
 
 /-- `rdiv` rounds up if desired -/
 lemma Nat.le_rdiv {a b : ℕ} : (a / b : ℝ) ≤ a.rdiv b true := by
-  simp only [rdiv, cond_true]
+  simp only [rdiv, Bool.cond_true]
   by_cases b0 : b = 0
   · simp only [b0, cast_zero, div_zero, _root_.zero_le, tsub_eq_zero_of_le, add_zero, Nat.div_zero,
     le_refl]
@@ -385,8 +389,8 @@ lemma Nat.rdiv_le_rdiv {a b : ℕ} {u0 u1 : Bool} (u01 : u0 ≤ u1) :
 @[simp] lemma Nat.zero_rdiv {b : ℕ} {up : Bool} : (0 : ℕ).rdiv b up = 0 := by
   rw [rdiv]
   induction up
-  · simp only [zero_add, cond_false, Nat.zero_div]
-  · simp only [zero_add, cond_true]
+  · simp only [zero_add, Bool.cond_false, Nat.zero_div]
+  · simp only [zero_add, Bool.cond_true]
     by_cases b0 : b = 0
     · simp only [b0, _root_.zero_le, tsub_eq_zero_of_le, Nat.div_zero]
     · exact Nat.div_eq_of_lt (by omega)
@@ -406,7 +410,7 @@ lemma Nat.rdiv_lt {a b : ℕ} {up : Bool} : (a.rdiv b up : ℝ) < a / b + 1 := b
   by_cases b0 : b = 0
   · simp only [b0, rdiv_zero, cast_zero, div_zero, zero_add, zero_lt_one]
   refine lt_of_le_of_lt (Nat.cast_le.mpr (Nat.rdiv_le_rdiv (Bool.le_true up))) ?_
-  simp only [rdiv, cond_true]
+  simp only [rdiv, Bool.cond_true]
   have b0 : 0 < (b : ℝ) := by positivity
   have bb : b-1 < b := by omega
   rw [←mul_lt_mul_iff_of_pos_right b0]
@@ -421,14 +425,14 @@ lemma Nat.rdiv_le_of_le_mul {a b c : ℕ} {up : Bool} (h : a ≤ c * b) : a.rdiv
   · simp only [b0, rdiv_zero, _root_.zero_le]
   · refine le_trans (rdiv_le_rdiv (Bool.le_true _)) ?_
     have b0' : 0 < b := pos_iff_ne_zero.mpr b0
-    simp only [rdiv, cond_true, Nat.div_le_iff_le_mul_add_pred b0']
+    simp only [rdiv, Bool.cond_true, Nat.div_le_iff_le_mul_add_pred b0']
     linarith
 
 /-- Prove `≤ rdiv` in terms of a multiplication inequality -/
 lemma Nat.le_rdiv_of_mul_le {a b c : ℕ} {up : Bool} (b0 : 0 < b) (h : c * b ≤ a) :
     c ≤ a.rdiv b up := by
   refine le_trans ?_ (rdiv_le_rdiv (Bool.false_le _))
-  simpa only [rdiv, cond_false, le_div_iff_mul_le b0]
+  simpa only [rdiv, Bool.cond_false, le_div_iff_mul_le b0]
 
 @[simp] lemma Nat.log2_one : (1 : ℕ).log2 = 0 := by
   rw [log2]

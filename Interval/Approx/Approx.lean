@@ -1,14 +1,18 @@
-import Mathlib.Algebra.Field.Defs
-import Mathlib.Algebra.Group.Pointwise.Set.Basic
-import Mathlib.Algebra.Order.Group.Defs
-import Mathlib.Algebra.Order.Group.OrderIso
-import Mathlib.Algebra.Star.Basic
-import Mathlib.Order.Interval.Set.OrdConnected
-import Interval.Tactic.Approx
+module
+
+public import Mathlib.Algebra.Field.Defs
+public import Mathlib.Algebra.Group.Pointwise.Set.Basic
+public import Mathlib.Algebra.Order.Group.Defs
+public import Mathlib.Algebra.Order.Group.OrderIso
+public import Mathlib.Algebra.Star.Basic
+public import Mathlib.Order.Interval.Set.OrdConnected
+public meta import Interval.Tactic.Approx
 
 /-!
 ## Approximate arithmetic typeclasses
 -/
+
+@[expose] public section
 
 open Set
 

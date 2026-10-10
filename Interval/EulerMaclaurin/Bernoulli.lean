@@ -1,10 +1,12 @@
-import Interval.EulerMaclaurin.DerivUnderIntegral
-import Interval.EulerMaclaurin.IteratedDerivArith
-import Interval.EulerMaclaurin.LHopital
-import Mathlib.Analysis.Calculus.LocalExtr.Rolle
-import Mathlib.Analysis.Complex.RemovableSingularity
-import Mathlib.NumberTheory.ZetaValues
-import Mathlib.Tactic.Cases
+module
+
+public import Interval.EulerMaclaurin.DerivUnderIntegral
+public import Interval.EulerMaclaurin.IteratedDerivArith
+public import Interval.EulerMaclaurin.LHopital
+public import Mathlib.Analysis.Calculus.LocalExtr.Rolle
+public import Mathlib.Analysis.Complex.RemovableSingularity
+public import Mathlib.NumberTheory.ZetaValues
+public import Mathlib.Tactic.Cases
 
 /-!
 # Bernoulli polynomials
@@ -12,6 +14,8 @@ import Mathlib.Tactic.Cases
 Mathlib has a lot of this, so possibly I should shift to using those results in future.
 See `periodizedBernoulli` in particular.
 -/
+
+@[expose] public section
 
 open Classical
 open Filter
@@ -435,7 +439,7 @@ lemma exists_max_bernoulli (s : ℕ) :
   · use 0
     simp only [mem_Icc, le_refl, zero_le_one, and_self, s1, bernoulliFun_one, one_div, true_and]
     intro x m
-    simp only [zero_sub, abs_neg, mem_setOf_eq, mem_Icc] at m ⊢
+    simp only [zero_sub, abs_neg, mem_ofPred_eq, mem_Icc] at m ⊢
     nth_rw 2 [abs_of_pos (by norm_num)]
     rw [abs_le]
     exact ⟨by linarith, by linarith⟩

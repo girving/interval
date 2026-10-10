@@ -1,11 +1,15 @@
-import Interval.EulerMaclaurin.EulerMaclaurin
-import Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
-import Mathlib.Analysis.SpecialFunctions.Gamma.BohrMollerup
-import Mathlib.Analysis.SpecialFunctions.Stirling
+module
+
+public import Interval.EulerMaclaurin.EulerMaclaurin
+public import Mathlib.Analysis.SpecialFunctions.Complex.LogBounds
+public import Mathlib.Analysis.SpecialFunctions.Gamma.BohrMollerup
+public import Mathlib.Analysis.SpecialFunctions.Stirling
 
 /-!
 # The Stirling series for the gamma function
 -/
+
+@[expose] public section
 
 open Filter
 open MeasureTheory
@@ -234,7 +238,7 @@ lemma tendsto_sum {x : ℝ} {s : ℕ} (x0 : 0 ≤ x) :
     Tendsto (fun n : ℕ ↦ sum (x + n) s) atTop (𝓝 0) := by
   simp only [sum, term]
   rw [(by rw [Finset.sum_const_zero] : (0 : ℝ) = ∑ m ∈ Finset.range (s + 1), 0)]
-  refine tendsto_finset_sum _ fun m _ ↦ ?_
+  refine tendsto_finsetSum _ fun m _ ↦ ?_
   generalize hc : (bernoulli (m + 2) : ℝ) / ((↑m + 1) * (↑m + 2)) = c
   simp only [div_eq_mul_inv]
   rw [(by simp : 0 = c * 0)]
@@ -376,7 +380,7 @@ lemma MeasureTheory.norm_set_integral_le_of_norm_le {α G : Type*} [NormedAddCom
 lemma tendsto_sum_atTop {s : ℕ} : Tendsto (fun x ↦ sum x s) atTop (𝓝 0) := by
   simp only [sum]
   rw [(by rw [Finset.sum_const_zero] : (0 : ℝ) = ∑ m ∈ Finset.range (s + 1), 0)]
-  refine tendsto_finset_sum _ fun m _ ↦ ?_
+  refine tendsto_finsetSum _ fun m _ ↦ ?_
   apply Filter.Tendsto.const_div_atTop
   exact tendsto_pow_atTop (by omega)
 

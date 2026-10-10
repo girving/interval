@@ -1,7 +1,9 @@
-import Interval.Floating.TwoPow
-import Interval.Interval.Conversion
-import Interval.Interval.Around
-import Interval.Interval.Mul
+module
+
+public import Interval.Floating.TwoPow
+public import Interval.Interval.Conversion
+public import Interval.Interval.Mul
+public import Interval.Interval.Around
 
 /-!
 ## `Interval` inverse and division
@@ -29,6 +31,8 @@ Happily, we can cancel `x/c` to get `step f x c = c + x (1 - a c)`.  Let `c = 1/
 If `1/a ∈ x`, the two endpoints of `x` will produce opposite sign for `1 - a x`, which regardless of
 the sign of `d` will produce opposite signs for `d (1 - a x)`, and will bracket `1/a`.
 -/
+
+@[expose] public section
 
 open Pointwise
 open Set

@@ -1,10 +1,14 @@
-import Batteries.Data.ByteArray
-import Mathlib.Data.Fin.Basic
-import Mathlib.Tactic.Linarith.Frontend
+module
+
+public import Batteries.Data.ByteArray
+public import Mathlib.Data.Fin.Basic
+public import Mathlib.Tactic.Linarith.Frontend
 
 /-!
 ## `Array` lemmas
 -/
+
+public section
 
 variable {α β : Type}
 
@@ -38,17 +42,6 @@ lemma ByteArray.getElem_eq_getElem! (d : ByteArray) (i : Fin d.size) : d[i] = d[
 
 lemma ByteArray.getElemNat_eq_getElem! {d : ByteArray} {i : ℕ} (h : i < d.size) : d[i] = d[i]! := by
   exact Eq.symm (getElem!_pos d i h)
-
-lemma ByteArray.getElem!_push (d : ByteArray) (c : UInt8) (i : ℕ) :
-    (d.push c)[i]! = if i < d.size then d[i]! else if i = d.size then c else default := by
-  split_ifs with lt e
-  · have lt' : i < (d.push c).size := by simp only [ByteArray.size_push]; omega
-    rw [← getElemNat_eq_getElem! lt, ← getElemNat_eq_getElem! lt', ByteArray.get_push_lt _ _ _ lt]
-  · rw [e, ← getElemNat_eq_getElem!, ByteArray.get_push_eq]
-    simp only [size_push, lt_add_iff_pos_right, zero_lt_one]
-  · apply getElem!_neg
-    simp only [size_push, not_lt]
-    omega
 
 -- This is deprecated upstream, but the exact replacement is unclear
 lemma Array.getElem?_eq_toList_get?' (a : Array α) (i : Nat) : a[i]? = a.toList[i]? := by

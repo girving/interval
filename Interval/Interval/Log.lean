@@ -1,11 +1,15 @@
-import Interval.Floating.Log2
-import Interval.Interval.Log2
-import Interval.Interval.Scale
-import Interval.Interval.Series
+module
+
+public import Interval.Floating.Log2
+public import Interval.Interval.Log2
+public import Interval.Interval.Scale
+public import Interval.Interval.Series
 
 /-!
 ## Interval logarithm
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real

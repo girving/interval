@@ -1,10 +1,14 @@
-import Interval.Interval.Pow
+module
+
+public import Interval.Interval.Pow
 
 /-!
 ## Interval square root
 
 This is an extremely slow way of computing square roots.
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real

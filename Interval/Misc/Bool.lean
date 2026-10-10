@@ -1,12 +1,16 @@
-import Mathlib.Data.Bool.Basic
-import Mathlib.Tactic.NormNum.Core
-import Interval.Tactic.Simp
+module
 
-open Classical
+public import Mathlib.Data.Bool.Basic
+public import Mathlib.Tactic.NormNum.Core
+public import Interval.Tactic.Simp
 
 /-!
 ## `Bool` lemmas
 -/
+
+public section
+
+open Classical
 
 variable {α : Type}
 
@@ -23,9 +27,9 @@ lemma bif_if_congr {x : Bool} {y : Prop} {a b c d : α} {dy : Decidable y}
   rw [ac, bd]
   by_cases h : y
   · simp only [h, decide_true] at xy
-    simp only [h, xy, if_true, cond_true]
+    simp only [h, xy, ite_true, Bool.cond_true]
   · simp only [h, decide_false] at xy
-    simp only [h, xy, if_false, cond_false]
+    simp only [h, xy, ite_false, Bool.cond_false]
 
 /-- Better version of `Bool.beq_eq_decide_eq` that uses any `BEq` instance -/
 lemma Bool.beq_eq_decide_eq' [BEq α] [DecidableEq α] [LawfulBEq α ] (x y : α) :
@@ -54,8 +58,8 @@ lemma bif_congr {x y : Bool} {a b c d : α} (xy : x = y) (ac : a = c) (bd : b = 
 @[to_if, to_bitvec, to_omega] lemma bif_eq_if {b : Bool} {x y : α} :
     (bif b then x else y) = if b then x else y := by
   induction b
-  · simp only [cond_false, Bool.false_eq_true, ↓reduceIte]
-  · simp only [cond_true, ↓reduceIte]
+  · simp only [Bool.cond_false, Bool.false_eq_true, ↓reduceIte]
+  · simp only [Bool.cond_true, ↓reduceIte]
 
 lemma apply_decide {f : Bool → α} {p : Prop} {dp : Decidable p} :
     (f (@decide p dp)) = if p then f true else f false := by

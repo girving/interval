@@ -1,10 +1,14 @@
-import Interval.Box.Basic
-import Interval.Interval.Exp
-import Interval.Interval.Sincos
+module
+
+public import Interval.Box.Basic
+public import Interval.Interval.Exp
+public import Interval.Interval.Sincos
 
 /-!
 ## `Box` exponential and friends
 -/
+
+@[expose] public section
 
 open Pointwise
 open Set

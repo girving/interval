@@ -1,6 +1,6 @@
-import Interval.Interval.Conversion
+module
 
-open Pointwise
+public import Interval.Interval.Conversion
 
 /-!
 ## Generic constant approximation machinery
@@ -16,6 +16,10 @@ Warning: It is crucial for downstream `decide` performance that the defined cons
 are as simple as possible. That is, we do not want to define them as results of nontrivial interval
 computations, including coersions, since this will slow all downstream use.
 -/
+
+public section
+
+open Pointwise
 
 open Set
 open scoped Real

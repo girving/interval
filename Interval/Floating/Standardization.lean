@@ -1,8 +1,12 @@
-import Interval.Floating.Basic
+module
+
+public import Interval.Floating.Basic
 
 /-!
 ## Floating point standardization: build a `Floating` out of `n : Int64`, s : UInt64`
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real
@@ -112,7 +116,7 @@ lemma of_ns_norm {n : Int64} {s : UInt64} (n0 : n ≠ 0) (nm : n ≠ .minValue) 
   rw [lower] at sm ⊢
   simp only [Bool.cond_decide, ne_eq, ite_eq_left_iff, not_lt, not_forall, exists_prop] at sm ⊢
   generalize hd : s - (s - (62 - n.uabs.log2)) = d
-  simp only [not_lt.mpr sm.1, if_false, hd]
+  simp only [not_lt.mpr sm.1, ite_false, hd]
   have a0 : n.uabs.toNat ≠ 0 := by
     simpa only [ne_eq, ← UInt64.ne_zero_iff_toNat_ne_zero, Int64.uabs_eq_zero_iff]
   refine le_trans ?_ (Nat.mul_le_mul_right _ (Nat.log2_self_le a0))

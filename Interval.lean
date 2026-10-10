@@ -1,35 +1,36 @@
-import Interval.Approx.Approx
-import Interval.Approx.Div2
-import Interval.Approx.Dyadic
-import Interval.Approx.NormSq
-import Interval.Approx.Rat
-import Interval.Box.Basic
-import Interval.Box.Division
-import Interval.Box.Exp
-import Interval.EulerMaclaurin.EulerMaclaurin
-import Interval.EulerMaclaurin.Gamma
-import Interval.Floating.Abs
-import Interval.Floating.Add
-import Interval.Floating.Basic
-import Interval.Floating.Dyadic
-import Interval.Floating.Floor
-import Interval.Floating.Neg
-import Interval.Floating.Order
-import Interval.Floating.Scale
-import Interval.Floating.Standardization
-import Interval.Interval.Basic
-import Interval.Interval.Conversion
-import Interval.Interval.Division
-import Interval.Interval.Dyadic
-import Interval.Interval.Exp
-import Interval.Interval.Floor
-import Interval.Interval.Hyperbolic
-import Interval.Interval.Log
-import Interval.Interval.Mul
-import Interval.Interval.Order
-import Interval.Interval.Pow
-import Interval.Interval.Series
-import Interval.Interval.Sincos
-import Interval.Interval.Sqrt
-import Interval.Tactic.Interval
+module
 
+public import Interval.Approx.Approx
+public import Interval.Approx.Div2
+public import Interval.Approx.Dyadic
+public import Interval.Approx.NormSq
+public import Interval.Approx.Rat
+public import Interval.Box.Basic
+public import Interval.Box.Division
+public import Interval.Box.Exp
+public import Interval.EulerMaclaurin.EulerMaclaurin
+public import Interval.EulerMaclaurin.Gamma
+public import Interval.Floating.Abs
+public import Interval.Floating.Add
+public import Interval.Floating.Basic
+public import Interval.Floating.Dyadic
+public import Interval.Floating.Floor
+public import Interval.Floating.Neg
+public import Interval.Floating.Order
+public import Interval.Floating.Scale
+public import Interval.Floating.Standardization
+public import Interval.Interval.Basic
+public import Interval.Interval.Conversion
+public import Interval.Interval.Division
+public import Interval.Interval.Dyadic
+public import Interval.Interval.Exp
+public import Interval.Interval.Floor
+public import Interval.Interval.Hyperbolic
+public import Interval.Interval.Log
+public import Interval.Interval.Mul
+public import Interval.Interval.Order
+public import Interval.Interval.Pow
+public import Interval.Interval.Series
+public import Interval.Interval.Sincos
+public import Interval.Interval.Sqrt
+public import Interval.Tactic.Interval

@@ -1,12 +1,16 @@
-import Mathlib.Algebra.EuclideanDomain.Basic
-import Mathlib.Algebra.EuclideanDomain.Field
-import Mathlib.Analysis.Calculus.Deriv.Basic
-import Mathlib.Analysis.RCLike.Basic
-import Mathlib.Tactic.Bound
+module
+
+public import Mathlib.Algebra.EuclideanDomain.Basic
+public import Mathlib.Algebra.EuclideanDomain.Field
+public import Mathlib.Analysis.Calculus.Deriv.Basic
+public import Mathlib.Analysis.RCLike.Basic
+public import Mathlib.Tactic.Bound
 
 /-!
 # L'Hopital's rule over any normed field
 -/
+
+public section
 
 open Filter
 open Set
@@ -14,7 +18,7 @@ open scoped Topology
 
 variable {𝕜 : Type} [NontriviallyNormedField 𝕜]
 
-@[bound] lemma norm_sub_norm_le_norm_add {E : Type*} [SeminormedAddGroup E] (x y : E) :
+@[bound] lemma norm_sub_norm_le_norm_add {E : Type*} [SeminormedAddCommGroup E] (x y : E) :
     ‖x‖ - ‖y‖ ≤ ‖x + y‖ := by simpa using norm_sub_norm_le x (-y)
 
 attribute [bound] norm_add_le
@@ -23,7 +27,7 @@ attribute [bound] norm_add_le
 theorem lhopital_field {f g : 𝕜 → 𝕜} {a f' g' : 𝕜} (df : HasDerivAt f f' a) (dg : HasDerivAt g g' a)
     (g'0 : g' ≠ 0) (f0 : f a = 0) (g0 : g a = 0) :
     Tendsto (fun x => f x / g x) (𝓝[≠] a) (𝓝 (f' / g')) := by
-  simp only [Metric.tendsto_nhds, NormedAddGroup.dist_eq, eventually_nhdsWithin_iff,
+  simp only [Metric.tendsto_nhds, dist_eq_norm_neg_add', neg_add_eq_sub, eventually_nhdsWithin_iff,
     mem_compl_iff, mem_singleton_iff]
   intro e ep
   simp only [hasDerivAt_iff_isLittleO, f0, sub_zero, smul_eq_mul, Asymptotics.isLittleO_iff,

@@ -1,8 +1,12 @@
-import Interval.Floating.Basic
+module
+
+public import Interval.Floating.Basic
 
 /-!
 ## Floating point negation
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real

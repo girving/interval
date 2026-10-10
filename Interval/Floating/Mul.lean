@@ -1,9 +1,9 @@
-import Interval.Misc.Bool
-import Interval.Floating.Abs
-import Interval.Floating.Neg
-import Interval.Int128
+module
 
-open Pointwise
+public import Interval.Misc.Bool
+public import Interval.Floating.Abs
+public import Interval.Floating.Neg
+public import Interval.Int128
 
 /-!
 ## Floating point multiplication
@@ -13,6 +13,10 @@ If `z = x * y`, we have
 
   `z.n * 2^(z.s - 2^63) = x.n * y.n * 2^(x.s + y.s - 2^63 - 2^63)`
 -/
+
+@[expose] public section
+
+open Pointwise
 
 open Set
 open scoped Real
@@ -107,7 +111,7 @@ lemma mul_norm_correct (n : UInt128) (up : Bool) (n0 : n ≠ 0) (lo : n.toNat �
     omega
   simp only [rounds_same]
   by_cases r_eq : r == 2^63
-  · simp only [r_eq, cond_true] at hp
+  · simp only [r_eq, Bool.cond_true] at hp
     simp only [←hp]
     constructor
     · decide +kernel
@@ -116,7 +120,7 @@ lemma mul_norm_correct (n : UInt128) (up : Bool) (n0 : n ≠ 0) (lo : n.toNat �
         contrapose r_eq
         apply ne_of_lt
         simp only [Bool.not_eq_true] at r_eq
-        simp only [r_eq, Bool.and_false, cond_false, UInt64.toNat_zero] at hb
+        simp only [r_eq, Bool.and_false, Bool.cond_false, UInt64.toNat_zero] at hb
         simp only [←hb, add_zero] at hr
         simp only [UInt64.lt_iff_toNat_lt, ←hr, UInt64.toNat_2_pow_63]
         simp only [UInt128.toNat_def] at z_lt
@@ -142,7 +146,7 @@ lemma mul_norm_correct (n : UInt128) (up : Bool) (n0 : n ≠ 0) (lo : n.toNat �
       ring_nf
       rw [add_comm, ←Nat.cast_add_one, zpow_natCast, ←Nat.cast_two, ←Nat.cast_pow, Nat.cast_le, ←ht]
       exact Nat.lt_log2_self.le
-  · simp only [r_eq, cond_false] at hp
+  · simp only [r_eq, Bool.cond_false] at hp
     simp only [beq_iff_eq, UInt64.eq_iff_toNat_eq, up63] at r_eq
     simp only [← hp, le_r, r_le.lt_of_ne r_eq, and_self, true_and]
     have hz' : (n.toNat : ℝ) = z.toNat / 2 ^ s.toNat := by
@@ -150,14 +154,14 @@ lemma mul_norm_correct (n : UInt128) (up : Bool) (n0 : n ≠ 0) (lo : n.toNat �
         OfNat.ofNat_ne_zero, false_and, not_false_eq_true, mul_div_cancel_right₀]
     have ep : (2:ℝ) ^ (64:ℤ) = 2^64 := zpow_ofNat _ _
     induction up
-    · simp only [Bool.and_false, cond_false, UInt64.toNat_zero] at hb
+    · simp only [Bool.and_false, Bool.cond_false, UInt64.toNat_zero] at hb
       simp only [← hr, ← hb, add_zero, zpow_sub₀ t0, ep, zpow_natCast, ← mul_div_assoc, hz']
       simp only [UInt128.toNat_def, Nat.cast_add, Nat.cast_mul, Nat.cast_pow, Nat.cast_ofNat,
         add_div, le_add_iff_nonneg_right]
       simp only [Bool.false_eq_true, ↓reduceIte]
       positivity
     · by_cases l0 : z.lo = 0
-      · simp only [l0, bne_self_eq_false, Bool.and_true, cond_false, UInt64.toNat_zero] at hb
+      · simp only [l0, bne_self_eq_false, Bool.and_true, Bool.cond_false, UInt64.toNat_zero] at hb
         simp only [← hr, ← hb, add_zero, zpow_sub₀ t0, ep, zpow_natCast, hz', z.toNat_def, l0,
           UInt64.toNat_zero, Nat.cast_mul, Nat.cast_pow, Nat.cast_ofNat, mul_div_assoc, le_refl,
           ite_self]

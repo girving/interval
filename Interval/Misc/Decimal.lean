@@ -1,16 +1,20 @@
-import Mathlib.Data.Nat.Log
-import Mathlib.Data.Nat.Log
-import Mathlib.Data.Rat.Defs
-import Mathlib.Data.Rat.Floor
-import Mathlib.Data.Real.Archimedean
-import Mathlib.Tactic.Bound
-import Interval.Approx.Approx
-import Interval.Misc.Int
-import Interval.Misc.Real
+module
+
+public import Mathlib.Data.Nat.Log
+public import Mathlib.Data.Rat.Defs
+public import Mathlib.Data.Rat.Floor
+public import Mathlib.Algebra.Order.AbsoluteValue.Basic
+public import Mathlib.Data.String.Defs
+public import Mathlib.Tactic.Bound
+public import Interval.Approx.Approx
+public import Interval.Misc.Int
+public import Interval.Misc.Real
 
 /-!
 # Utilities for decimal numbers
 -/
+
+@[expose] public section
 
 open Set
 

@@ -1,4 +1,6 @@
-import Interval.Floating.Neg
+module
+
+public import Interval.Floating.Neg
 
 /-!
 ## Floating point ordering
@@ -6,6 +8,8 @@ import Interval.Floating.Neg
 We choose to make `Floating` a linear order with `∀ x, nan ≤ x`, though unfortunately this means
 `max` can't propagate `nan`.  We provide an `Floating.max` version which does.
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real
@@ -299,7 +303,7 @@ lemma val_lt_val_of_nonneg {x y : Floating} (xn : 0 ≤ x.n) (yn : 0 ≤ y.n) :
   simp only [two_zpow_not_neg, and_false, Int64.coe_neg_iff, isNeg_iff, val, false_or, not_lt,
     two_zpow_pos, Int.cast_nonneg, Int64.coe_nonneg_iff, yn, true_and, gt_iff_lt, mul_neg_iff,
     and_true]
-  simp only [Int.cast_lt_zero, Int64.coe_neg_iff, not_lt.mpr xn, false_or, if_false, not_lt.mpr yn,
+  simp only [Int.cast_lt_zero, Int64.coe_neg_iff, not_lt.mpr xn, false_or, ite_false, not_lt.mpr yn,
     true_and]
   have en : x.n.toUInt64 < y.n.toUInt64 ↔ x.n < y.n := by
     simp only [UInt64.lt_iff_toNat_lt, ← Int64.coe_lt_coe, Int64.coe_of_nonneg, xn, yn,
@@ -354,23 +358,20 @@ lemma val_lt_val_of_nonneg {x y : Floating} (xn : 0 ≤ x.n) (yn : 0 ≤ y.n) :
                   Bool.not_eq_false', ← not_lt, not_not]
               · simpa only [n_neg, Int64.isNeg_neg (x.n_ne_zero x0) (x.n_ne_min xm),
                   Bool.not_eq_false', ← not_lt, not_not]
-    · simp only at yn
-      trans True
+    · trans True
       · simp only [isNeg_iff, not_lt] at xn yn
         simp only [iff_true]
         linarith
       · simp only [lt_def, Int64.isNeg, xn, decide_true, yn, decide_false, gt_iff_lt,
           Bool.false_lt_true, Bool.true_eq_false, ↓reduceIte, false_and, or_false]
   · by_cases yn : y.n < 0
-    · simp only at xn
-      trans False
+    · trans False
       · simp only [isNeg_iff, not_lt] at xn yn
         simp only [iff_false, not_lt]
         linarith
       · simp only [lt_def, Int64.isNeg, xn, decide_false, yn, decide_true, gt_iff_lt,
           Bool.false_eq_true, ↓reduceIte, false_and, or_false, false_iff, not_lt, Bool.le_true]
-    · simp only at xn yn
-      exact val_lt_val_of_nonneg (not_lt.mp xn) (not_lt.mp yn)
+    · exact val_lt_val_of_nonneg (not_lt.mp xn) (not_lt.mp yn)
 
 /-- The order is consistent with `.val` -/
 @[simp] lemma val_le_val {x y : Floating} : x ≤ y ↔ x.val ≤ y.val := by
@@ -435,7 +436,7 @@ lemma n_lt_of_nonneg {x : Floating} (x0 : 0 ≤ x.val) : x.n.toUInt64.toNat < 2^
 
 /-- `min` propagates `nan` -/
 @[simp] lemma nan_min (x : Floating) : min nan x = nan := by
-  simp only [min, ble_eq_le, nan_le, decide_true, cond_true]
+  simp only [min, ble_eq_le, nan_le, decide_true, Bool.cond_true]
 
 /-- `min` propagates `nan` -/
 lemma ne_nan_of_min {x y : Floating} (n : min x y ≠ nan) : x ≠ nan ∧ y ≠ nan := by

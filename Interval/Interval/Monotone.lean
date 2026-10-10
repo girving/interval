@@ -1,8 +1,12 @@
-import Interval.Interval.Basic
+module
+
+public import Interval.Interval.Basic
 
 /-!
 ## Approximating monotonic functions with intervals
 -/
+
+public section
 
 open Set
 open scoped Real

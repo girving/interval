@@ -1,8 +1,12 @@
-import Mathlib.Tactic.TypeStar
+module
+
+public import Mathlib.Tactic.TypeStar
 
 /-!
 # Mark an object to print raw, so that we get all the bits
 -/
+
+@[expose] public section
 
 variable {α : Type*}
 

@@ -1,9 +1,13 @@
-import Interval.Floating.Basic
-import Interval.Floating.Order
+module
+
+public import Interval.Floating.Basic
+public import Interval.Floating.Order
 
 /-!
 ## Floating point floor, producing `Int64` or `ℕ`
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real
@@ -37,10 +41,10 @@ namespace Floating
   simp only [Int64.coe_shiftRightRound, UInt64.toNat_sub'' s63, UInt64.toNat_2_pow_63,
     Int64.coe_zero, zpow_zero, mul_one, Int.cast_inj, eq, Rat.floor_cast,
     Rat.floor_intCast_div_natCast]
-  rw [Int.rdiv, Nat.cast_pow, Nat.cast_ofNat, cond_false]
+  rw [Int.rdiv, Nat.cast_pow, Nat.cast_ofNat, Bool.cond_false]
 
 @[simp] lemma floor_nan : (nan : Floating).floor = nan := by
-  rw [floor]; simp only [beq_self_eq_true, s_nan, Bool.true_or, n_nan, cond_true]
+  rw [floor]; simp only [beq_self_eq_true, s_nan, Bool.true_or, n_nan, Bool.cond_true]
 
 @[simp] lemma ne_nan_of_floor {x : Floating} (n : x.floor ≠ nan) : x ≠ nan := by
   contrapose n; simp [n]

@@ -1,12 +1,16 @@
-import Interval.Approx.Div2
-import Interval.Floating.Scale
-import Interval.Interval.Basic
+module
 
-open Pointwise
+public import Interval.Approx.Div2
+public import Interval.Floating.Scale
+public import Interval.Interval.Basic
 
 /-!
 ## Interval scaling by a power of two
 -/
+
+@[expose] public section
+
+open Pointwise
 
 open Set
 open scoped Real
@@ -40,7 +44,7 @@ lemma ne_nan_of_scaleB {t : Int64} (n : x.scaleB t ≠ nan) : x ≠ nan := by
 
 /-- `scaleB'` propagates `nan` -/
 @[simp] lemma scaleB'_nan : x.scaleB' nan = nan := by
-  rw [scaleB']; simp only [beq_self_eq_true, Fixed.nan_n, cond_true]
+  rw [scaleB']; simp only [beq_self_eq_true, Fixed.nan_n, Bool.cond_true]
 
 /-- `scaleB'` propagates `nan` -/
 lemma ne_nan_of_scaleB' {t : Fixed 0} (n : x.scaleB' t ≠ nan) :
@@ -74,7 +78,7 @@ lemma ne_nan_of_scaleB' {t : Fixed 0} (n : x.scaleB' t ≠ nan) :
     approx (x.scaleB' t) (x' * 2^t') := by
   rw [scaleB']
   by_cases tn : t = nan
-  · simp only [tn, beq_self_eq_true, Fixed.nan_n, cond_true, approx_nan]
+  · simp only [tn, beq_self_eq_true, Fixed.nan_n, Bool.cond_true, approx_nan]
   simp only [bif_eq_if, beq_iff_eq, tn, ite_false]
   simp only [approx, tn, false_or] at tm
   rw [← tm, Fixed.val, Int64.coe_zero, zpow_zero, mul_one, Real.rpow_intCast]

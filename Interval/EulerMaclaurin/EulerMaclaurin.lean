@@ -1,4 +1,6 @@
-import Interval.EulerMaclaurin.Bernoulli
+module
+
+public import Interval.EulerMaclaurin.Bernoulli
 
 /-!
 # Euler-Maclaurin formula
@@ -6,6 +8,8 @@ import Interval.EulerMaclaurin.Bernoulli
 This lets us approximate finite sums of `C^k` functions with integrals, with known bounds on the
 remainder.
 -/
+
+@[expose] public section
 
 open Set
 open MeasureTheory (volume)
@@ -38,10 +42,9 @@ lemma integral_saw_eq_integral_presaw :
     rw [uIoc_of_le]
     · exact MeasureTheory.Ioo_ae_eq_Ioc.symm
     · simp only [(lt_add_one _).le]
-  simp only [← MeasureTheory.ae_restrict_iff' measurableSet_uIoc,
-    MeasureTheory.ae_restrict_congr_set e, MeasureTheory.ae_restrict_iff' measurableSet_Ioo]
-  filter_upwards
-  intro x m
+  rw [← MeasureTheory.ae_restrict_iff' measurableSet_uIoc,
+    MeasureTheory.Measure.restrict_congr_set e, MeasureTheory.ae_restrict_iff' measurableSet_Ioo]
+  filter_upwards with x m
   rw [saw_eqOn (a := a)]
   exact Ioo_subset_Ico_self m
 
@@ -62,7 +65,7 @@ lemma presaw_smul_iteratedDeriv_by_parts [CompleteSpace E] (fc : ContDiffOn ℝ 
     presaw (s + 1) c x • iteratedDerivWithin (s + 1) f t x
   have df : ∀ x ∈ Ioo (a : ℝ) (a + 1) \ ∅, HasDerivAt g (g' x) x := by
     intro x m
-    simp only [diff_empty] at m
+    simp only [sdiff_empty] at m
     simp only [g, g', add_comm (presaw s c _ • _) _]
     apply HasDerivAt.smul
     · exact hasDerivAt_presaw
@@ -123,8 +126,8 @@ lemma trapezoid_sum_succ :
     trapezoid_sum f a (n + 1) = trapezoid_sum f a n + (2⁻¹ : ℝ) • (f (a + n) + f (a + n + 1)) :=
   rfl
 
-lemma ae_ne {α : Type*} [MeasurableSpace α] (μ : MeasureTheory.Measure α) [MeasureTheory.NoAtoms μ]
-    (x : α) : ∀ᵐ y ∂μ, y ≠ x := by
+lemma ae_ne {α : Type*} [MeasurableSpace α] (μ : MeasureTheory.Measure α)
+    [MeasureTheory.NullSingletonClass μ] (x : α) : ∀ᵐ y ∂μ, y ≠ x := by
   simp only [Filter.Eventually, ne_eq, MeasureTheory.mem_ae_iff, compl_ne_eq_singleton,
     MeasureTheory.measure_singleton]
 

@@ -1,12 +1,16 @@
-import Interval.Floating.Conversion
-import Interval.Interval.Basic
+module
 
-open Classical
-open Pointwise
+public import Interval.Floating.Conversion
+public import Interval.Interval.Basic
 
 /-!
 ## Conversion to `Interval` from `ℕ`, `ℤ`, `ℚ`, and `ofScientific`
 -/
+
+@[expose] public section
+
+open Classical
+open Pointwise
 
 open Set
 open scoped Real

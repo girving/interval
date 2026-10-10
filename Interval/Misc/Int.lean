@@ -1,13 +1,19 @@
-import Mathlib.Algebra.Order.Field.Power
-import Mathlib.Algebra.Order.Floor.Div
-import Mathlib.Data.Real.Archimedean
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic.Ring
-import Interval.Misc.Nat
+module
+
+public import Mathlib.Algebra.Order.AbsoluteValue.Basic
+public import Mathlib.Algebra.Order.Archimedean.Real.Basic
+public import Mathlib.Algebra.Order.Field.Power
+public import Mathlib.Algebra.Order.Floor.Div
+public import Mathlib.Basic.Real.Basic
+public import Mathlib.Data.Rat.Floor
+public import Mathlib.Tactic.Ring
+public import Interval.Misc.Nat
 
 /-!
 ## `ℤ` facts
 -/
+
+@[expose] public section
 
 /-- `Int` division, rounding up or down -/
 def Int.rdiv (a : ℤ) (b : ℕ) (up : Bool) : ℤ :=
@@ -17,8 +23,8 @@ def Int.rdiv (a : ℤ) (b : ℕ) (up : Bool) : ℤ :=
 lemma Int.rdiv_nonneg {a : ℤ} {b : ℕ} {up : Bool} (a0 : 0 ≤ a) : 0 ≤ a.rdiv b up := by
   simp only [Int.rdiv]
   induction up
-  · simp only [cond_false, Int.ediv_nonneg a0 (Nat.cast_nonneg _)]
-  · simp only [cond_true, Left.nonneg_neg_iff]
+  · simp only [Bool.cond_false, Int.ediv_nonneg a0 (Nat.cast_nonneg _)]
+  · simp only [Bool.cond_true, Left.nonneg_neg_iff]
     by_cases b0 : b = 0
     · simp only [b0, Nat.cast_zero, Int.ediv_zero, le_refl]
     · apply Int.ediv_le_of_le_mul
@@ -27,7 +33,7 @@ lemma Int.rdiv_nonneg {a : ℤ} {b : ℕ} {up : Bool} (a0 : 0 ≤ a) : 0 ≤ a.r
 
 /-- `rdiv` rounds down if desired -/
 lemma Int.rdiv_le {a : ℤ} {b : ℕ} : (a.rdiv b false : ℝ) ≤ a / b := by
-  simp only [rdiv, cond_false]
+  simp only [rdiv, Bool.cond_false]
   by_cases b0 : b = 0
   · simp only [b0, Nat.cast_zero, Int.ediv_zero, cast_zero, div_zero, le_refl]
   · rw [le_div_iff₀]
@@ -38,7 +44,7 @@ lemma Int.rdiv_le {a : ℤ} {b : ℕ} : (a.rdiv b false : ℝ) ≤ a / b := by
 
 /-- `rdiv` rounds up if desired -/
 lemma Int.le_rdiv {a : ℤ} {b : ℕ} : (a / b : ℝ) ≤ a.rdiv b true := by
-  simp only [rdiv, cond_true, cast_neg]
+  simp only [rdiv, Bool.cond_true, cast_neg]
   by_cases b0 : b = 0
   · simp only [b0, Nat.cast_zero, div_zero, Int.ediv_zero, cast_zero, neg_zero, le_refl]
   · rw [le_neg, ←neg_div, ←Int.cast_neg]
@@ -71,7 +77,7 @@ lemma Int.rdiv_lt {a : ℤ} {b : ℕ} {up : Bool} : (a.rdiv b up : ℝ) < a / b 
   · simp only [rdiv, b0, Nat.cast_zero, Int.ediv_zero, neg_zero, Bool.cond_self, cast_zero,
       div_zero, zero_add, zero_lt_one]
   refine lt_of_le_of_lt (Int.cast_le.mpr (Int.rdiv_le_rdiv (Bool.le_true up))) ?_
-  simp only [rdiv, cond_true, cast_neg]
+  simp only [rdiv, Bool.cond_true, cast_neg]
   rw [neg_lt, neg_add, ←lt_sub_iff_add_lt, sub_neg_eq_add]
   have bp : 0 < (b : ℝ) := by positivity
   have e : (((-a / b : ℤ) : ℝ) + 1) * b = ((-a / b + 1) * b : ℤ) := by
@@ -85,9 +91,9 @@ lemma Int.rdiv_lt {a : ℤ} {b : ℕ} {up : Bool} : (a.rdiv b up : ℝ) < a / b 
 lemma Int.abs_rdiv_le (x : Int) (y : ℕ) (up : Bool) : |(x.rdiv y up : ℤ)| ≤ |(x : ℤ)| := by
   simp only [Int.rdiv]
   induction up
-  · simp only [cond_false]
+  · simp only [Bool.cond_false]
     apply Int.abs_ediv_le_abs
-  · simp only [cond_true, _root_.abs_neg]
+  · simp only [Bool.cond_true, _root_.abs_neg]
     refine le_trans (Int.abs_ediv_le_abs _ _) ?_
     simp only [_root_.abs_neg, le_refl]
 
@@ -100,14 +106,14 @@ lemma Int.rdiv_div {a : ℤ} {b c : ℕ} (bc : c ∣ b) : a.rdiv (b / c) = (a * 
   rcases dvd_def.mp bc with ⟨k, e⟩
   simp only [e, Nat.mul_div_cancel_left _ cp]
   induction up
-  repeat simp only [rdiv, cond_false, cond_true, Nat.cast_mul, mul_comm (c : ℤ), ← neg_mul,
+  repeat simp only [rdiv, Bool.cond_false, Bool.cond_true, Nat.cast_mul, mul_comm (c : ℤ), ← neg_mul,
     Int.mul_ediv_mul_of_pos_left _ _ (Nat.cast_pos.mpr cp)]
 
 @[simp] lemma Int.mul_rdiv_cancel {a : ℤ} {b : ℕ} (b0 : b ≠ 0) {up : Bool} :
     (a * b).rdiv b up = a := by
   induction up
   repeat simp only [rdiv, ne_eq, Nat.cast_eq_zero, b0, not_false_eq_true, mul_ediv_cancel,
-    cond_false, cond_true, ←neg_mul, neg_neg]
+    Bool.cond_false, Bool.cond_true, ←neg_mul, neg_neg]
 
 /-- `Int.ediv (-small) big = -1` -/
 lemma Int.ediv_eq_neg_one {a b : ℤ} (a0 : 0 < a) (ab : a ≤ b) : -a / b = -1 := by

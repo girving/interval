@@ -1,5 +1,7 @@
-import Aesop
-import Interval.Tactic.Init
+module
+
+public import Aesop
+public import Interval.Tactic.Init
 
 /-!
 # The `approx` tactic
@@ -7,6 +9,8 @@ import Interval.Tactic.Init
 Given an `Approx A R` relationship, the `approx` tactic proves that expressions over `A` are
 conservative approximations of expressions over `R`, using `aesop` recursion.
 -/
+
+@[expose] public section
 
 -- Attribute for `apply` rules for the `approx` tactic
 macro "approx" : attr =>

@@ -1,11 +1,15 @@
-import Interval.Floating.Floor
-import Interval.Interval.Log2
-import Interval.Interval.Scale
-import Interval.Interval.Series
+module
+
+public import Interval.Floating.Floor
+public import Interval.Interval.Log2
+public import Interval.Interval.Scale
+public import Interval.Interval.Series
 
 /-!
 ## Interval exponential function
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real
@@ -34,7 +38,7 @@ lemma approx_exp_series' (n : ℕ) : approx (exp_series n) Real.exp := by
     have e : (exp_series 0).error = nan := by
       rw [exp_series]
       simp only [beq_self_eq_true, pow_zero, CharP.cast_eq_zero, zero_add, Nat.factorial_zero,
-        Nat.cast_one, mul_zero, div_zero, cond_true]
+        Nat.cast_one, mul_zero, div_zero, Bool.cond_true]
     simp only [n0, Series.eval, Floating.val_lt_val, e, Interval.grow_nan, taylor_sum_nan,
       Bool.cond_self, approx_nan]
   · apply (exp_series n).approx_of_taylor
@@ -55,7 +59,7 @@ lemma approx_exp_series' (n : ℕ) : approx (exp_series n) Real.exp := by
     · intro en
       simp only [mul_inv_rev, Nat.cast_succ]
       rw [exp_series, bif_eq_if] at en ⊢
-      simp only [beq_iff_eq, ne_eq, n0, if_false] at en ⊢
+      simp only [beq_iff_eq, ne_eq, n0, ite_false] at en ⊢
       refine le_trans (le_of_eq ?_) (Floating.le_ofRat en)
       simp only [div_eq_inv_mul, mul_inv, mul_comm _ ((n:ℚ)⁻¹), Rat.cast_mul, Rat.cast_pow,
         Rat.cast_inv, Rat.cast_natCast, Rat.cast_add, Rat.cast_one]
@@ -109,7 +113,7 @@ via Taylor series, and form `exp x = exp (y + n log 2) = exp y * 2^n` via shifti
 /-- `Floating.exp` propagates `nan` -/
 @[simp] lemma Floating.exp_nan : (nan : Floating).exp = nan := by
   rw [Floating.exp, exp_series_16]
-  simp only [beq_self_eq_true, nan_mul, cond_true]
+  simp only [beq_self_eq_true, nan_mul, Bool.cond_true]
 
 /-- `Interval.exp` is conservative (`⊆` version) -/
 @[approx] lemma Interval.approx_exp (ax : approx x x') : approx x.exp (Real.exp x') := by

@@ -1,9 +1,14 @@
-import Aesop.Frontend.Command
-import Lean.Util.Trace
+module
+
+public import Aesop.Frontend.Command
+public import Lean.Meta.Tactic.Simp.RegisterCommand
+public import Lean.Util.Trace
 
 /-!
 # Interval tactics setup
 -/
+
+@[expose] public section
 
 /-!
 ### Aesop rule set for `approx`

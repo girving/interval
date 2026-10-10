@@ -1,12 +1,16 @@
-import Interval.Floating.Floor
-import Interval.Interval.Monotone
-import Interval.Interval.Pi
-import Interval.Interval.Series
-import Interval.Misc.TrigBounds
+module
+
+public import Interval.Floating.Floor
+public import Interval.Interval.Monotone
+public import Interval.Interval.Pi
+public import Interval.Interval.Series
+public import Interval.Misc.TrigBounds
 
 /-!
 ## Interval `sin` and `cos`
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real
@@ -75,7 +79,7 @@ lemma approx_sinc_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interval)
     rw [sinc_sqrt_series, bif_eq_if] at en ⊢
     by_cases n0 : n = 0
     · simp [n0] at en
-    · simp only [beq_iff_eq, ne_eq, n0, if_false] at en ⊢
+    · simp only [beq_iff_eq, ne_eq, n0, ite_false] at en ⊢
       refine le_trans (le_of_eq ?_) (Floating.le_ofRat en)
       simp only [div_eq_inv_mul, mul_inv, Rat.cast_mul, Rat.cast_pow, Rat.cast_inv,
         Rat.cast_natCast, Rat.cast_add, Rat.cast_one]
@@ -115,7 +119,7 @@ lemma approx_cos_sqrt_series (n : ℕ) (x : ℝ) (x0 : 0 ≤ x) (y : Interval)
       approx
     · intro en
       rw [cos_sqrt_series, bif_eq_if] at en ⊢
-      simp only [beq_iff_eq, ne_eq, n0, if_false] at en ⊢
+      simp only [beq_iff_eq, ne_eq, n0, ite_false] at en ⊢
       refine le_trans (le_of_eq ?_) (Floating.le_ofRat en)
       simp only [div_eq_inv_mul, mul_inv, mul_comm _ ((n:ℚ)⁻¹), Rat.cast_mul, Rat.cast_pow,
         Rat.cast_inv, Rat.cast_natCast, Rat.cast_add, Rat.cast_one]
@@ -201,8 +205,7 @@ lemma Int64.n_mod_4 (x : Int64) : (x.toUInt64.toNat % 4 : ℕ) = x.toInt % 4 := 
   · have e : ((2 ^ 64 : ℕ) : ℤ) % 4 = 0 := rfl
     rw [Int64.coe_of_neg xn, Int.sub_emod, e, sub_zero, Int.emod_emod, Int.natCast_emod,
       Nat.cast_ofNat]
-  · simp only at xn
-    rw [Int64.coe_of_nonneg (not_lt.mp xn), Int.natCast_emod, Nat.cast_ofNat]
+  · rw [Int64.coe_of_nonneg (not_lt.mp xn), Int.natCast_emod, Nat.cast_ofNat]
 
 /-- `Floating.presin` is conservative -/
 @[approx] lemma Floating.approx_presin {x' : ℝ} {x : Floating} (ax : approx x x')
@@ -326,7 +329,7 @@ lemma floor_even_iff {n : Floating} (nn : n.floor ≠ nan) :
   by_cases h : n.lo.floor = nan ∨ n.hi.floor = nan ∨ n.lo.floor + 1 = nan ∨
       (n.lo.floor + 1).blt n.hi.floor = true
   · simp [h, Real.neg_one_le_sin, Real.sin_le_one]
-  simp only [h, if_false]
+  simp only [h, ite_false]
   simp only [not_or, Bool.not_eq_true, ← ne_eq] at h
   obtain ⟨n0n, n1n, n0n', le⟩ := h
   have f0 := n.lo.approx_floor

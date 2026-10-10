@@ -1,12 +1,16 @@
-import Mathlib.Algebra.Order.Floor.Div
-import Mathlib.Data.Real.Basic
-import Interval.Misc.Bool
-import Interval.Misc.Nat
-import Interval.Misc.Real
+module
+
+public import Mathlib.Algebra.Order.Floor.Div
+public import Mathlib.Basic.Real.Basic
+public import Interval.Misc.Bool
+public import Interval.Misc.Nat
+public import Interval.Misc.Real
 
 /-!
 ## `ℚ` machinery
 -/
+
+@[expose] public section
 
 open Set
 variable {𝕜 : Type} [Field 𝕜] [LinearOrder 𝕜] [IsStrictOrderedRing 𝕜]
@@ -76,7 +80,7 @@ lemma Rat.log2_correct {x : ℚ} (x0 : x ≠ 0) : |x| ∈ Ico (2^x.log2) (2^(x.l
     simp [Nat.cast_le, ba, ↓reduceIte, ← Nat.cast_sub ab, mul_comm _ ((2 : ℚ) ^ _),
       decide_eq_true_eq, e, zpow_neg, zpow_natCast, ae, not_le,
       inv_le_iff_one_le_mul₀ (two_pow_pos (R := ℚ)), ← mul_div_assoc, one_le_div d0',
-      div_lt_iff₀ d0', ← div_eq_inv_mul, lt_div_iff₀ (two_pow_pos (R := ℚ)), if_true_left, and_self]
+      div_lt_iff₀ d0', ← div_eq_inv_mul, lt_div_iff₀ (two_pow_pos (R := ℚ)), ite_true_left, and_self]
 
 lemma Rat.log2_self_le {x : ℚ} (x0 : x ≠ 0) : 2 ^ x.log2 ≤ |x| := (Rat.log2_correct x0).1
 

@@ -1,8 +1,12 @@
-import Interval.Interval.Exp
+module
+
+public import Interval.Interval.Exp
 
 /-!
 ## Hyperbolic functions: `sinh` and `cosh`
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real

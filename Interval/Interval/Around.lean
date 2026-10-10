@@ -1,13 +1,17 @@
-import Interval.Interval.Basic
+module
 
-open Classical
-open Pointwise
+public import Interval.Interval.Basic
 
 /-!
 ## An `Interval` that contains a particular value
 
 This is useful when we need to thread correctness properties through a computation.
 -/
+
+@[expose] public section
+
+open Classical
+open Pointwise
 
 open Set
 open scoped Real
@@ -27,7 +31,8 @@ variable {c : ℝ}
 attribute [approx] Around.mem
 
 /-- `Around` intersections are always valid -/
-instance : Inter (Around c) where
+-- `macro_inline` keeps `c` out of compiled code, so `c` can be noncomputable (e.g. `x.val⁻¹`)
+@[macro_inline] instance : Inter (Around c) where
   inter x y := {
     i := x.i.inter y.i ⟨c, x.mem, y.mem⟩
     mem := Interval.approx_inter x.mem y.mem }

@@ -1,11 +1,15 @@
-import Interval.Approx.Approx
-import Mathlib.Algebra.EuclideanDomain.Field
-import Mathlib.Algebra.Ring.Action.Rat
-import Mathlib.Data.Rat.Cast.CharZero
+module
+
+public import Interval.Approx.Approx
+public import Mathlib.Algebra.EuclideanDomain.Field
+public import Mathlib.Algebra.Ring.Action.Rat
+public import Mathlib.Data.Rat.Cast.CharZero
 
 /-!
 # Division by 2
 -/
+
+@[expose] public section
 
 variable {α 𝕜 : Type}
 

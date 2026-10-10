@@ -1,16 +1,20 @@
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic.IntervalCases
-import Interval.Misc.Bool
-import Interval.Misc.BitVec
-import Interval.Misc.Int
-import Interval.Tactic.Init
-import Interval.UInt64
+module
+
+public import Mathlib.Basic.Real.Basic
+public import Mathlib.Tactic.IntervalCases
+public import Interval.Misc.Bool
+public import Interval.Misc.BitVec
+public import Interval.Misc.Int
+public import Interval.Tactic.Init
+public import Interval.UInt64
 
 /-!
 ## 64-bit two's complement integers
 
 Arithmetic wraps, so beware (not really, our uses are formally checked).
 -/
+
+@[expose] public section
 
 open Set
 
@@ -105,7 +109,7 @@ instance : CommRing Int64 where
   natCast_zero := rfl
   natCast_succ n := by simp only [to_bitvec]
   intCast_ofNat n := rfl
-  intCast_negSucc n := by simp only [to_bitvec, Int.negSucc_eq]
+  intCast_negSucc n := by simp only [to_bitvec, Int.negSucc_eq]; rfl
   nsmul := nsmulRec
   zsmul := zsmulRec
 
@@ -285,7 +289,7 @@ lemma Int64.isNeg_neg {x : Int64} (x0 : x ≠ 0) (xn : x ≠ .minValue) : (-x) <
 /-- `Int64.neg` usually commutes with `ℤ` conversion -/
 lemma Int64.coe_neg' {x : Int64} (xn : x ≠ .minValue) : ((-x : Int64) : ℤ) = -x := by
   simp only [← coe_ne_coe, toInt_min] at xn
-  simp only [coe_neg, xn, if_false]
+  simp only [coe_neg, xn, ite_false]
 
 /-- `ℤ` conversion commutes with add if `isNeg` matches the left argument -/
 lemma Int64.coe_add_eq {x y : Int64} (h : x + y < 0 ↔ x < 0) :
@@ -382,8 +386,9 @@ lemma Int64.toInt_eq_toNat_of_lt {x : Int64} (h : x.toUInt64.toNat < 2^63) :
 /-- `UInt64.log2` converts to `ℤ` as `toNat` -/
 @[simp] lemma Int64.coe_log2 (n : UInt64) : (n.log2.toInt64 : ℤ) = n.log2.toNat := by
   rw [Int64.toInt_eq_toNat_of_lt]
-  simp only [UInt64.toNat_log2, UInt64.toUInt64_toInt64]
-  exact lt_trans (UInt64.log2_lt_64 _) (by norm_num)
+  · simp only [UInt64.toNat_log2, UInt64.toUInt64_toInt64]
+  · simp only [UInt64.toUInt64_toInt64, UInt64.toNat_log2]
+    exact lt_trans (UInt64.log2_lt_64 _) (by norm_num)
 
 /-- Adding `2^63` and converting via `UInt64` commutes -/
 @[simp] lemma Int64.toNat_add_pow_eq_coe (n : Int64) :
@@ -509,7 +514,7 @@ lemma Int64.toInt_eq_if (x : Int64) :
     Int64.toNat_toBitVec]
   generalize x.toUInt64.toNat = a at u
   by_cases lt : 2 * a < 18446744073709551616
-  · simp_all only [ite_true, forall_const, if_true_right, isEmpty_Prop, not_lt, Nat.cast_nonneg,
+  · simp_all only [ite_true, forall_const, ite_true_right, isEmpty_Prop, not_lt, Nat.cast_nonneg,
       IsEmpty.forall_iff]
   · simp only [lt, ↓reduceIte, sub_neg, Nat.cast_lt_ofNat, u, IsEmpty.forall_iff]
 
@@ -601,7 +606,7 @@ lemma Int64.coe_uabs' {x : Int64} (n : x ≠ .minValue) : (x.uabs.toInt64 : ℤ)
   simp only [← coe_ne_coe, toInt_min, ha] at n
   simp only [uabs, toInt, ← coe_lt_zero_iff, UInt64.toUInt64_toInt64,
     apply_ite (fun x : UInt64 ↦ x.toBitVec.toInt), ha', Int64.toBitVec]
-  simp only [e, coe_neg, ha, n, if_false, Int.abs_def]
+  simp only [e, coe_neg, ha, n, ite_false, Int.abs_def]
 
 /-- `abs` preserves 0 -/
 @[simp] lemma Int64.abs_eq_zero_iff {x : Int64} : x.abs = 0 ↔ x = 0 := by
@@ -631,7 +636,7 @@ lemma Int64.abs_eq_self' {x : Int64} (h : 0 ≤ x) : x.abs = x := by
 lemma Int64.uabs_eq_self' {x : Int64} (h : 0 ≤ x) : x.uabs = x.toUInt64 := by
   have h1 := coe_of_nonneg h
   simp only [← coe_nonneg_iff] at h
-  simp only [UInt64.eq_iff_toNat_eq, toNat_uabs, Int.natAbs_def, not_lt.mpr h, if_false]
+  simp only [UInt64.eq_iff_toNat_eq, toNat_uabs, Int.natAbs_def, not_lt.mpr h, ite_false]
   simp only [h1, Int.toNat_natCast]
 
 lemma Int64.ne_minValue_of_nonneg {x : Int64} (h : 0 ≤ x) : x ≠ .minValue := by aesop
@@ -857,10 +862,10 @@ lemma Int64.coe_shiftRightRound (x : Int64) (s : UInt64) (up : Bool) :
   simp only [bif_eq_if, decide_eq_true_eq, beq_iff_eq, ← coe_lt_zero_iff,
     apply_ite (fun x : Int64 ↦ (x : ℤ)), coe_zero, e1, Nat.cast_pow, Nat.cast_ofNat]
   by_cases x0 : (x : ℤ) < 0
-  · simp only [x0, if_true]
+  · simp only [x0, ite_true]
     by_cases xm : x = .minValue
     · have me : ((.minValue : Int64) : ℤ) = -(2:ℤ)^63 := by decide
-      simp only [xm, if_true, me]
+      simp only [xm, ite_true, me]
       by_cases s64 : 64 ≤ s
       · simp only [s64, ite_true]
         simp only [UInt64.le_iff_toNat_le, e64] at s64
@@ -950,5 +955,4 @@ lemma Int64.natFloor_eq (n : Int64) : n.natFloor = ⌊(n : ℤ)⌋₊ := by
   by_cases neg : n < 0
   · simp [neg, coe_of_neg neg]
   · simp only [neg, ↓reduceIte, Nat.floor_int]
-    simp only at neg
     simp only [coe_of_nonneg (not_lt.mp neg), Int.toNat_natCast]

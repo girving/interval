@@ -1,4 +1,6 @@
-import Mathlib.Algebra.Group.Basic
+module
+
+public import Mathlib.Algebra.Group.Basic
 
 /-!
 # Unbundled arithmetic typeclasses for `Interval` friendliness
@@ -6,6 +8,8 @@ import Mathlib.Algebra.Group.Basic
 `Interval` is not a monoid, so we special type classes if we want to use facts like `add_zero`.
 Keeping them unbundled makes things a lot simpler.
 -/
+
+@[expose] public section
 
 /-- Unbundled version of `NegZeroClass` -/
 class NegZeroClass' (α : Type) [Zero α] [Neg α] where

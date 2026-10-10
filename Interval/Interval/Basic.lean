@@ -1,16 +1,20 @@
-import Interval.Floating.Add
-import Interval.Floating.Abs
-import Interval.Floating.Order
-import Interval.Floating.Scale
-import Interval.Misc.Real
-import Interval.Unbundled
+module
 
-open Classical
-open Pointwise
+public import Interval.Floating.Add
+public import Interval.Floating.Abs
+public import Interval.Floating.Order
+public import Interval.Floating.Scale
+public import Interval.Misc.Real
+public import Interval.Unbundled
 
 /-!
 ## 64-bit precision floating point interval arithmetic
 -/
+
+@[expose] public section
+
+open Classical
+open Pointwise
 
 open Set
 open scoped Real
@@ -178,7 +182,7 @@ instance : ApproxConnected Interval ℝ where
   connected x := by
     simp only [approxSet, approx, lo_eq_nan]
     by_cases n : x = nan
-    · simp only [n, lo_nan, hi_nan, true_or, setOf_true, ordConnected_univ]
+    · simp only [n, lo_nan, hi_nan, true_or, Set.ofPred_true, ordConnected_univ]
     · simp only [n, false_or]
       exact ordConnected_Icc
 
@@ -703,7 +707,7 @@ instance : Coe Floating Interval where
   rcases x.sign_cases with ⟨ls,hs⟩ | ⟨ls,hs⟩ | ⟨ls,hs⟩
   all_goals try simp only [not_lt.mpr ls]
   all_goals try simp only [not_lt.mpr hs]
-  all_goals try simp only [ls, hs, if_true, if_false, Floating.val_min,
+  all_goals try simp only [ls, hs, ite_true, ite_false, Floating.val_min,
     Floating.val_abs (x.lo_ne_nan n), Floating.val_abs (x.hi_ne_nan n), Floating.val_zero, true_iff]
   · simp only [abs_of_neg ls, abs_of_neg hs, neg_le_neg_iff, le, min_eq_right, max_eq_left]
     rcases nonpos_or_nonneg a with as | as
@@ -753,7 +757,7 @@ lemma abs_of_nonpos {x : Interval} (x0 : x.hi.val ≤ 0) : x.abs = -x := by
       · simp only [ne_eq, Floating.zero_ne_nan, not_false_eq_true]
   · replace h0 : x.hi.val < 0 := Ne.lt_of_le (Floating.val_ne_zero.mpr h0) x0
     have l0 : x.lo.val < 0 := lt_of_le_of_lt x.le h0
-    simp only [l0, h0, if_true]
+    simp only [l0, h0, ite_true]
     rw [min_eq_right, Floating.max_eq_left, Floating.abs_of_nonpos h0.le,
       Floating.abs_of_nonpos l0.le]
     · simp only [and_self]
@@ -871,7 +875,7 @@ lemma valid_error {e : Floating} (e0 : ¬e.n.isNeg) : Valid (-e) e where
 
 /-- `error` propagates `nan` -/
 @[simp] lemma error_nan : error (nan : Floating) = nan := by
-  rw [error]; simp only [beq_self_eq_true, cond_true]
+  rw [error]; simp only [beq_self_eq_true, Bool.cond_true]
 
 /-- `error` propagates `nan` -/
 lemma ne_nan_of_error {e : Floating} (n : error e ≠ nan) : e ≠ nan := by

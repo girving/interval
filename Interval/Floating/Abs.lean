@@ -1,9 +1,13 @@
-import Interval.Floating.Basic
-import Interval.Floating.Order
+module
+
+public import Interval.Floating.Basic
+public import Interval.Floating.Order
 
 /-!
 ## Floating point absolute value
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real

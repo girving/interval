@@ -1,10 +1,14 @@
-import Interval.Approx.Dyadic
-import Interval.Approx.Rat
-import Mathlib.Analysis.Complex.Basic
+module
+
+public import Interval.Approx.Dyadic
+public import Interval.Approx.Rat
+public import Mathlib.Analysis.Complex.Basic
 
 /-!
 # Squared norms for series scalars
 -/
+
+@[expose] public section
 
 variable {𝕜 : Type} [NontriviallyNormedField 𝕜]
 

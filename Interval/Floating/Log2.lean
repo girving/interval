@@ -1,9 +1,13 @@
-import Interval.Floating.Basic
-import Interval.Floating.Conversion
+module
+
+public import Interval.Floating.Basic
+public import Interval.Floating.Conversion
 
 /-!
 ## Floating point `log2`
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real

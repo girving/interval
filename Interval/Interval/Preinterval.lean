@@ -1,13 +1,17 @@
-import Interval.Interval.Basic
+module
 
-open Classical
-open Pointwise
+public import Interval.Interval.Basic
 
 /-!
 ## `Preinterval` is `Interval` without the correctness properties
 
 This lets us write a routine, prove it correct, then finalize it.
 -/
+
+@[expose] public section
+
+open Classical
+open Pointwise
 
 open Set
 open scoped Real
@@ -55,9 +59,10 @@ instance : ApproxNan Preinterval ℝ where
   Interval.mix x.lo x.hi le
 
 /-- If a `Preinterval` is nonempty`, it can be turned into an `Interval` -/
-@[irreducible, inline] def mix' (x : Preinterval) {a : ℝ} (m : approx x a) : Interval :=
+@[irreducible, inline] def mix' (x : Preinterval) (m : ∃ a : ℝ, approx x a) : Interval :=
   x.mix (by
     intro ln hn
+    obtain ⟨a, m⟩ := m
     simp only [approx, ln, hn, mem_Icc, false_or] at m
     linarith)
 
@@ -73,7 +78,7 @@ instance : ApproxNan Preinterval ℝ where
   simp only [approx, ln, hn, or_self, dite_false, false_or, mem_Icc]
 
 /-- `mix'` commutes with `approx` -/
-@[simp] lemma approx_mix' (x : Preinterval) {a b : ℝ} (m : approx x a) :
+@[simp] lemma approx_mix' (x : Preinterval) (m : ∃ a : ℝ, approx x a) {b : ℝ} :
     approx (x.mix' m) b = approx x b := by
   rw [mix', approx_mix]
 
@@ -84,5 +89,5 @@ instance : ApproxNan Preinterval ℝ where
   rw [mix]; simp only [lo_nan, hi_nan, Interval.mix_self, Interval.coe_nan]
 
 /-- `mix'` propagates `nan` -/
-@[simp] lemma mix_nan' {a : ℝ} (m : approx (nan : Preinterval) a) : mix' nan m = nan := by
+@[simp] lemma mix_nan' (m : ∃ a : ℝ, approx (nan : Preinterval) a) : mix' nan m = nan := by
   rw [mix', mix_nan]

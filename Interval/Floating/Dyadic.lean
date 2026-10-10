@@ -1,8 +1,12 @@
-import Interval.Floating.Basic
+module
+
+public import Interval.Floating.Basic
 
 /-!
 # Conversion between `Dyadic` and `Floating`
 -/
+
+@[expose] public section
 
 /-- The exact `Dyadic` that a `Floating` represents -/
 def Floating.vald (x : Floating) : Dyadic :=

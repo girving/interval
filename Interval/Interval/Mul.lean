@@ -1,13 +1,17 @@
-import Interval.Floating.Mul
-import Interval.Interval.Basic
-import Interval.Interval.Preinterval
+module
 
-open Classical
-open Pointwise
+public import Interval.Floating.Mul
+public import Interval.Interval.Basic
+public import Interval.Interval.Preinterval
 
 /-!
 ## Interval arithmetic multiplication
 -/
+
+@[expose] public section
+
+open Classical
+open Pointwise
 
 open Set
 open scoped Real
@@ -100,8 +104,8 @@ variable {x y : Interval} {x' y' : ℝ}
   all_goals rcases y.sign_cases with ⟨yls,yhs⟩ | ⟨yls,yhs⟩ | ⟨yls,yhs⟩
   all_goals try simp only [not_lt.mpr yls]
   all_goals try simp only [not_lt.mpr yhs]
-  all_goals simp only [xls, xhs, yls, yhs, not_true, false_and, if_false, decide_true,
-    decide_false, true_iff, not_false_iff, true_and, if_true, mll0, mlh0, mhl0, mhh0, mll1,
+  all_goals simp only [xls, xhs, yls, yhs, not_true, false_and, ite_false, decide_true,
+    decide_false, true_iff, not_false_iff, true_and, ite_true, mll0, mlh0, mhl0, mhh0, mll1,
     mlh1, mhl1, mhh1]
   all_goals clear mll0 mlh0 mhl0 mhh0 mll1 mlh1 mhl1 mhh1
   all_goals simp only [approx, x.lo_ne_nan xn, y.lo_ne_nan yn, and_imp, Floating.min_eq_nan,
@@ -141,7 +145,7 @@ variable {x y : Interval} {x' y' : ℝ}
 
 /-- Multiply two intervals -/
 @[irreducible] def mul (x : Interval) (y : Interval) : Interval :=
-  (x.premul y).mix' (approx_premul x.lo_mem y.lo_mem)
+  (x.premul y).mix' ⟨_, approx_premul x.lo_mem y.lo_mem⟩
 
 /-- `* = mul` -/
 instance : Mul Interval where
@@ -161,11 +165,11 @@ instance : ApproxRing Interval ℝ where
 
 /-- `mul` propagates `x = nan` -/
 @[simp] lemma nan_mul {y : Interval} : nan * y = nan := by
-  rw [mul_def, mul]; simp only [nan_premul, lo_nan, Preinterval.mix_nan']
+  rw [mul_def, mul]; simp only [nan_premul, Preinterval.mix_nan']
 
 /-- `mul` propagates `y = nan` -/
 @[simp] lemma mul_nan {x : Interval} : x * nan = nan := by
-  rw [mul_def, mul]; simp only [premul_nan, lo_nan, Preinterval.mix_nan']
+  rw [mul_def, mul]; simp only [premul_nan, Preinterval.mix_nan']
 
 /-- `mul` arguments are `≠ nan` if the result is -/
 lemma ne_nan_of_mul {x : Interval} {y : Interval} (n : x * y ≠ nan) : x ≠ nan ∧ y ≠ nan := by

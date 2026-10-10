@@ -1,9 +1,13 @@
-import Interval.Interval.Conversion
-import Interval.Interval.Scale
+module
+
+public import Interval.Interval.Conversion
+public import Interval.Interval.Scale
 
 /-!
 # Conversion between `Dyadic` and `Interval`
 -/
+
+@[expose] public section
 
 def Interval.ofDyadic : Dyadic → Interval
   | .zero => 0

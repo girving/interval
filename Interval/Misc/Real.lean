@@ -1,14 +1,18 @@
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic.Linarith.Frontend
-import Interval.Tactic.Approx
+module
 
-open Classical
-open Pointwise
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.Basic.Real.Basic
+public import Mathlib.Tactic.Linarith.Frontend
+public import Interval.Tactic.Approx
 
 /-!
 ## `ℝ` lemmas
 -/
+
+public section
+
+open Classical
+open Pointwise
 
 open Set
 open scoped Real

@@ -1,12 +1,16 @@
-import Interval.Interval.Division
-import Interval.Interval.Exp
-import Interval.Interval.Log
+module
+
+public import Interval.Interval.Division
+public import Interval.Interval.Exp
+public import Interval.Interval.Log
 
 /-!
 ## Interval powers
 
 These are easy on top of `exp` and `log`.
 -/
+
+@[expose] public section
 
 open Classical
 open Set
@@ -85,13 +89,28 @@ lemma Interval.powNat_def {x : Interval} {n : ℕ} : x ^ n = x.powNat n := rfl
   · simp [xn]
   simp only [approx, xn, false_or] at xm
   simp only [← xm]
-  have am : approx ((x.abs : Interval) ^ Interval.ofNat n) (|x.val| ^ n) := by
-    apply Interval.approx_pow_nat
-    approx
   by_cases x0 : x.val < 0
-  · rcases Nat.even_or_odd' n with ⟨k, e | e⟩
-    · simpa [e, pow_mul] using am
-    · simpa [e, x0, pow_mul, pow_succ' _ (2 * k), ← neg_mul, abs_of_neg x0] using am
+  · rcases Nat.even_or_odd' n with ⟨k, rfl | rfl⟩
+    · have am : approx ((x.abs : Interval) ^ Interval.ofNat (2 * k)) (|x.val| ^ (2 * k)) := by
+        apply Interval.approx_pow_nat
+        approx
+      have real_eq : x.val ^ (2 * k) = |x.val| ^ (2 * k) := by rw [pow_mul, pow_mul, sq_abs]
+      rw [real_eq]
+      split_ifs with h
+      · exact absurd (Nat.mul_mod_right 2 k) (by simpa using h.1)
+      · exact am
+    · have am : approx ((x.abs : Interval) ^ Interval.ofNat (2 * k + 1)) (|x.val| ^ (2 * k + 1)) := by
+        apply Interval.approx_pow_nat
+        approx
+      have real_eq : x.val ^ (2 * k + 1) = -(|x.val| ^ (2 * k + 1)) := by
+        rw [pow_succ' _ (2 * k), pow_succ' _ (2 * k), pow_mul, pow_mul, sq_abs, ← neg_mul,
+          abs_of_neg x0, neg_neg]
+      rw [real_eq]
+      split_ifs with h
+      · apply (Interval.approx_neg (a := -(|x.val| ^ (2 * k + 1)))).mpr
+        rw [neg_neg]
+        exact am
+      · exact absurd ⟨by omega, x0⟩ h
   · simp only [x0, and_false, ↓reduceIte]
     simp only [Floating.abs_of_nonneg (not_lt.mp x0)]
     approx

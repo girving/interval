@@ -1,15 +1,19 @@
-import Interval.Floating.Basic
-import Interval.Floating.Neg
-import Interval.Floating.Order
-import Interval.Floating.Scale
-import Interval.Floating.Standardization
-import Interval.Misc.Rat
+module
 
-open Pointwise
+public import Interval.Floating.Basic
+public import Interval.Floating.Neg
+public import Interval.Floating.Order
+public import Interval.Floating.Scale
+public import Interval.Floating.Standardization
+public import Interval.Misc.Rat
 
 /-!
 ## Conversion from `ℕ`, `ℤ`, `ℚ`, `Float` to `Floating`
 -/
+
+@[expose] public section
+
+open Pointwise
 
 open Set
 open scoped Real
@@ -258,14 +262,14 @@ lemma approx_ofInt (n : ℤ) (up : Bool) : Rounds (ofInt n up) (n : ℝ) up := b
       have le : 0 ≤ -n := by omega
       rw [e, ←Int.toNat_of_nonneg le, neg_inj, Int.cast_natCast]
       rw [Int.toNat_of_nonneg le]
-    simp only [e, n0, decide_true, cond_true]
+    simp only [e, n0, decide_true, Bool.cond_true]
     apply rounds_neg
     simp only [neg_neg]
     exact approx_ofNat (-n).toNat (!up)
   · have e : (n : ℝ) = ↑n.toNat := by
       rw [←Int.toNat_of_nonneg (not_lt.mp n0), Int.cast_natCast]
       simp only [Int.toNat_of_nonneg (not_lt.mp n0)]
-    simp only [e, n0, decide_false, cond_false, approx_ofNat]
+    simp only [e, n0, decide_false, Bool.cond_false, approx_ofNat]
 
 /-- `approx_ofInt`, down version -/
 lemma ofInt_le {n : ℤ} (h : (ofInt n false) ≠ nan) : (ofInt n false).val ≤ n := by
@@ -395,11 +399,11 @@ lemma approx_ofRat_abs (x : ℚ) (up : Bool) : Rounds (ofRat_abs x up) (↑|x| :
 lemma approx_ofRat (x : ℚ) (up : Bool) : Rounds (ofRat x up) (x : ℝ) up := by
   rw [ofRat]
   by_cases x0 : x < 0
-  · simp only [x0, decide_true, Bool.xor_true, cond_true]
+  · simp only [x0, decide_true, Bool.xor_true, Bool.cond_true]
     apply rounds_neg
     convert approx_ofRat_abs x _
     simp only [abs_of_neg x0, Rat.cast_neg]
-  · simp only [x0, decide_false, Bool.xor_false]
+  · simp only [x0, decide_false, Bool.xor_false, Bool.cond_false]
     convert approx_ofRat_abs x _
     rw [abs_of_nonneg (by linarith)]
 

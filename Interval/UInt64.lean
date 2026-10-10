@@ -1,19 +1,25 @@
-import Batteries.Data.Nat.Lemmas
-import Batteries.Data.UInt
-import Mathlib.Algebra.Order.Floor.Div
-import Mathlib.Data.UInt
-import Mathlib.Data.ZMod.Basic
-import Mathlib.Tactic.GCongr
-import Mathlib.Tactic.Ring
-import Mathlib.Tactic.SplitIfs
-import Mathlib.Tactic.Zify
-import Interval.Misc.Nat
-import Interval.Misc.Int
-import Interval.Tactic.Simp
+module
+
+public import Batteries.Data.Nat.Lemmas
+public import Batteries.Data.UInt
+public import Mathlib.Algebra.Order.Floor.Div
+public import Mathlib.Data.UInt
+public import Mathlib.Data.ZMod.Basic
+public import Mathlib.Tactic.GCongr
+public import Mathlib.Tactic.Ring
+public import Mathlib.Tactic.SplitIfs
+public import Mathlib.Tactic.Zify
+public import Interval.Misc.Nat
+public import Interval.Misc.Int
+public import Interval.Tactic.Simp
+import all Init.Data.UInt.Log2
+import all Init.Data.Fin.Log2
 
 /-!
 ## `UInt64` lemmas
 -/
+
+@[expose] public section
 
 open Qq
 open Set
@@ -22,6 +28,8 @@ lemma UInt64.size_eq_pow : UInt64.size = 2^64 := rfl
 
 def UInt64.max : UInt64 := UInt64.ofNat UInt64.size - 1
 lemma UInt64.max_eq_pow_sub_one : UInt64.max = 2^64 - 1 := by decide +kernel
+
+@[simp, to_omega] lemma UInt64.toNat_max' : UInt64.max.toNat = 2^64 - 1 := rfl
 
 @[simp] lemma UInt64.toNat_lt_2_pow_64 (n : UInt64) : n.toNat < 2^64 := Fin.prop _
 @[simp] lemma UInt64.cast_toNat_lt_2_pow_64 (n : UInt64) : (n.toNat : ℤ) < (2:ℤ)^64 := by
@@ -74,7 +82,7 @@ lemma UInt64.ne_zero_iff_toNat_ne_zero {n : UInt64} : n ≠ 0 ↔ n.toNat ≠ 0 
   by_cases n0 : n = 0
   · simp only [n0, ite_true]
     rfl
-  · simp only [n0, if_false]
+  · simp only [n0, ite_false]
     rw [Nat.mod_eq_of_lt]
     apply Nat.sub_lt_of_pos_le
     · simp only [eq_iff_toNat_eq, toNat_ofNat, Nat.zero_mod] at n0
@@ -84,8 +92,8 @@ lemma UInt64.ne_zero_iff_toNat_ne_zero {n : UInt64} : n ≠ 0 ↔ n.toNat ≠ 0 
 @[to_omega] lemma UInt64.toNat_add' (m n : UInt64) :
     (m + n).toNat = m.toNat + n.toNat - if m.toNat + n.toNat < size then 0 else size := by
   by_cases mn : m.toNat + n.toNat < size
-  · simp only [mn, if_true, Nat.sub_zero]; rw [UInt64.toNat_add, Nat.mod_eq_of_lt mn]
-  · simp only [mn, if_false]; rw [UInt64.toNat_add, Nat.mod_eq]
+  · simp only [mn, ite_true, Nat.sub_zero]; rw [UInt64.toNat_add, Nat.mod_eq_of_lt mn]
+  · simp only [mn, ite_false]; rw [UInt64.toNat_add, Nat.mod_eq_ite]
     rw [not_lt] at mn
     simp only [Nat.reducePow, Nat.ofNat_pos, mn, and_self, ↓reduceIte, Nat.mod_succ_eq_iff_lt,
       Nat.succ_eq_add_one, Nat.reduceAdd]
@@ -102,13 +110,13 @@ lemma UInt64.add_wrap_iff (m n : UInt64) : m + n < m ↔ size ≤ m.toNat + n.to
   by_cases m0 : m = 0
   · simp only [m0, zero_add, UInt64.toNat_zero]
     rw [←not_iff_not, not_le]
-    simp only [lt_iff_toNat_lt, UInt64.toNat_zero, not_lt_zero', not_false_eq_true, lt_size]
+    simp only [lt_iff_toNat_lt, UInt64.toNat_zero, not_lt_zero, not_false_eq_true, lt_size]
   · simp only [UInt64.lt_iff_toNat_lt, UInt64.toNat_add']
     simp only [eq_iff_toNat_eq, UInt64.toNat_zero] at m0
     by_cases h : size ≤ m.toNat + n.toNat
     · simp only [not_lt.mpr h, ite_false, Nat.add_sub_lt_left m0, lt_size, h]
     · simp only [not_le] at h
-      simp only [h, ite_true, tsub_zero, add_lt_iff_neg_left, not_lt_zero', false_iff, not_le]
+      simp only [h, ite_true, tsub_zero, add_lt_iff_neg_left, not_lt_zero, false_iff, not_le]
 
 /-- If `UInt64` doesn't wrap, addition commutes with `toNat` -/
 lemma UInt64.toNat_add_of_le_add {m n : UInt64} (h : m ≤ m + n) :
@@ -118,8 +126,8 @@ lemma UInt64.toNat_add_of_le_add {m n : UInt64} (h : m ≤ m + n) :
   by_cases m0 : m.toNat = 0
   · simp only [m0, zero_add, lt_size, ite_true, tsub_zero]
   · by_cases mn : toNat m + toNat n < size
-    · simp only [mn, if_true, Nat.sub_zero] at h ⊢
-    · contrapose h; clear h; simp only [mn, if_false, not_le]
+    · simp only [mn, ite_true, Nat.sub_zero] at h ⊢
+    · contrapose h; clear h; simp only [mn, ite_false, not_le]
       rw [Nat.add_sub_lt_left m0]
       exact lt_size n
 
@@ -131,7 +139,7 @@ lemma UInt64.toNat_add_of_add_lt' {G : Type} [AddGroupWithOne G]
   rw [UInt64.lt_iff_toNat_lt] at h
   rw [UInt64.toNat_add'] at h ⊢
   by_cases mn : toNat m + toNat n < size
-  · contrapose h; clear h; simp only [mn, if_true, Nat.sub_zero, not_lt]; apply Nat.le_add_right
+  · contrapose h; clear h; simp only [mn, ite_true, Nat.sub_zero, not_lt]; apply Nat.le_add_right
   · simp only [mn, ite_false]
     simp only [not_lt] at mn
     simp only [Nat.cast_sub mn, Nat.cast_add]
@@ -142,7 +150,7 @@ lemma UInt64.toNat_add_of_add_lt {m n : UInt64} (h : m + n < m) :
   rw [UInt64.lt_iff_toNat_lt] at h
   rw [UInt64.toNat_add'] at h ⊢
   by_cases mn : toNat m + toNat n < size
-  · contrapose h; clear h; simp only [mn, if_true, Nat.sub_zero, not_lt]; apply Nat.le_add_right
+  · contrapose h; clear h; simp only [mn, ite_true, Nat.sub_zero, not_lt]; apply Nat.le_add_right
   · simp only [mn, ite_false]
 
 /-- `UInt64` subtract wraps around -/
@@ -169,7 +177,7 @@ lemma UInt64.toNat_add_one {m : UInt64} (h : m.toNat ≠ 2^64-1) : (m + 1).toNat
 
 /-- Adding 1 is usually adding one `toNat` -/
 lemma UInt64.toNat_add_one' {m : UInt64} (h : m ≠ .max) : (m + 1).toNat = m.toNat + 1 := by
-  apply toNat_add_one; simpa only [ne_eq, eq_iff_toNat_eq] using h
+  apply toNat_add_one; simpa only [ne_eq, eq_iff_toNat_eq, toNat_max'] using h
 
 /-- `UInt64` is a linear order (though not an ordered algebraic structure) -/
 instance : LinearOrder UInt64 where
@@ -286,7 +294,8 @@ lemma UInt64.toNat_lor_shifts {x y s : UInt64} (s0 : s ≠ 0) (s64 : s < 64) :
 lemma UInt64.toInt_mem_Ico (n : UInt64) : (n.toNat : ℤ) ∈ Ico 0 (2^64) := by
   simp only [mem_Ico, Nat.cast_nonneg, cast_toNat_lt_2_pow_64, and_self]
 
-@[simp] lemma UInt64.toNat_log2 (n : UInt64) : n.log2.toNat = n.toNat.log2 := rfl
+@[simp] lemma UInt64.toNat_log2 (n : UInt64) : n.log2.toNat = n.toNat.log2 := by
+  simp only [log2, Fin.log2]; rfl
 
 @[simp] lemma UInt64.log2_zero : (0 : UInt64).log2 = 0 := by
   simp only [log2, Fin.log2, toFin_ofNat, Fin.isValue, Fin.val_zero, Nat.log2_zero, Fin.zero_eta]
@@ -314,8 +323,6 @@ lemma UInt64.toNat_add_of_le {x y : UInt64} (h : x ≤ .max - y) :
       norm_num at b
     · exact Nat.le_sub_one_of_lt yp
     · rw [le_iff_toNat_le, e]; exact Nat.le_sub_one_of_lt yp
-
-@[simp, to_omega] lemma UInt64.toNat_max' : UInt64.max.toNat = 2^64 - 1 := rfl
 
 @[simp] lemma UInt64.le_max (n : UInt64) : n ≤ max := by
   rw [UInt64.le_iff_toNat_le, toNat_max']; exact Nat.le_of_lt_succ (lt_size _)
@@ -524,8 +531,8 @@ lemma UInt64.induction_bitvec {p : UInt64 → Prop} (h : ∀ x : BitVec 64, p (.
 @[simp] lemma UInt64.zero_shiftRightRound (s : UInt64) (up : Bool) :
     (0 : UInt64).shiftRightRound s up = 0 := by
   rw [shiftRightRound]
-  simp only [beq_self_eq_true, Bool.true_or, cond_true, zero_shiftRight, zero_shiftLeft,
-    bne_self_eq_false, Bool.and_false, cond_false, Bool.cond_self]
+  simp only [beq_self_eq_true, Bool.true_or, Bool.cond_true, zero_shiftRight, zero_shiftLeft,
+    bne_self_eq_false, Bool.and_false, Bool.cond_false, Bool.cond_self]
 
 /-- Exact `ℕ` result of `UInt64.shiftRightRound` -/
 lemma UInt64.toNat_shiftRightRound {x : UInt64} {s : UInt64} {up : Bool} :

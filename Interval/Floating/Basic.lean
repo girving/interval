@@ -1,20 +1,24 @@
-import Mathlib.Data.Real.Basic
-import Interval.Approx.Approx
-import Interval.Fixed
-import Interval.Int64
-import Interval.UInt128
-import Interval.Misc.Decimal
-import Interval.Misc.Int
-import Interval.Misc.Raw
-import Interval.Misc.Real
+module
 
-open Pointwise
+public import Mathlib.Basic.Real.Basic
+public import Interval.Approx.Approx
+public import Interval.Fixed
+public import Interval.Int64
+public import Interval.UInt128
+public import Interval.Misc.Decimal
+public import Interval.Misc.Int
+public import Interval.Misc.Raw
+public import Interval.Misc.Real
 
 /-!
 ## Floating point arithmetic
 
 The floating point number `⟨n,s⟩` represents `n * 2^(s - 2^63)`, where `n : Int64`, `s : UInt64`.
 -/
+
+@[expose] public section
+
+open Pointwise
 
 open Set
 open scoped Real

@@ -1,9 +1,13 @@
-import Interval.EulerMaclaurin.PartialDerivCommute
-import Mathlib.Analysis.Calculus.ParametricIntegral
+module
+
+public import Interval.EulerMaclaurin.PartialDerivCommute
+public import Mathlib.Analysis.Calculus.ParametricIntegral
 
 /-!
 ### Iterated ifferentiation under the integral sign
 -/
+
+public section
 
 open Set
 open Function (uncurry)
@@ -26,8 +30,8 @@ lemma deriv_interval_integral_of_contDiff (fc : ContDiff ℝ ⊤ (uncurry f)) (a
     have e : (fun t ↦ f t x) = uncurry f ∘ (fun t ↦ (t,x)) := rfl
     simp only [f']
     rw [← fderiv_apply_one_eq_deriv, e, fderiv_comp]
-    · nth_rw 2 [(hasFDerivAt_prodMk_left _ _).fderiv]
-      simp only [ContinuousLinearMap.coe_comp', Function.comp_apply, ContinuousLinearMap.inl_apply]
+    · rw [(hasFDerivAt_prodMk_left t x).fderiv]
+      simp only [ContinuousLinearMap.coe_comp, Function.comp_apply, ContinuousLinearMap.inl_apply]
     · exact (fc.differentiable (by decide)).differentiableAt
     · simp only [differentiableAt_fun_id, differentiableAt_const, DifferentiableAt.prodMk]
   have dc : Continuous (uncurry f') := by
@@ -38,8 +42,8 @@ lemma deriv_interval_integral_of_contDiff (fc : ContDiff ℝ ⊤ (uncurry f)) (a
   have pn : (closedBall t 1 ×ˢ Icc a b).Nonempty := by use (t,a); simp [ab]
   obtain ⟨m,_,mm⟩ := pc.exists_isMaxOn pn dc.norm.continuousOn
   set c := ‖uncurry f' m‖
-  refine (hasDerivAt_integral_of_dominated_loc_of_deriv_le (𝕜 := ℝ) (bound := fun _ ↦ c) (ε := 1)
-    zero_lt_one ?_ ?_ ?_ ?_ ?_ ?_).2
+  refine (hasDerivAt_integral_of_dominated_loc_of_deriv_le (𝕜 := ℝ) (bound := fun _ ↦ c)
+    (Metric.ball_mem_nhds t zero_lt_one) ?_ ?_ ?_ ?_ ?_ ?_).2
   · filter_upwards []
     intro t
     exact fc.continuous.along_snd.aestronglyMeasurable

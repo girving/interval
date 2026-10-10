@@ -1,12 +1,16 @@
-import Interval.Approx.NormSq
-import Interval.Interval.Conversion
-import Interval.Interval.Division
-import Interval.Interval.Mul
-import Interval.Interval.Scale
+module
+
+public import Interval.Approx.NormSq
+public import Interval.Interval.Conversion
+public import Interval.Interval.Division
+public import Interval.Interval.Mul
+public import Interval.Interval.Scale
 
 /-!
 ## `Interval` also approximates `ℂ`, along the real line
 -/
+
+@[expose] public section
 
 open Set
 open Complex (I)
@@ -18,7 +22,7 @@ instance instApproxComplex : Approx Interval ℂ where
   approx x x' := approx x x'.re ∧ x'.im = 0
 
 @[local simp] lemma approx_complex_iff {x : Interval} {x' : ℂ} :
-    approx x x' ↔ approx x x'.re ∧ x'.im = 0 := by simp [instApproxComplex]
+    approx x x' ↔ approx x x'.re ∧ x'.im = 0 := Iff.rfl
 
 /-- `Interval` are real, so norm is just `sqr` -/
 instance : NormSq Interval where

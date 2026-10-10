@@ -1,12 +1,16 @@
-import Interval.Interval.Conversion
-import Interval.Interval.Scale
-import Mathlib.Analysis.Real.Pi.Bounds
+module
+
+public import Interval.Interval.Conversion
+public import Interval.Interval.Scale
+public import Mathlib.Analysis.Real.Pi.Bounds
 
 /-!
 ## Interval approximations of `π` and friends
 
 See `scripts/gen-pi` for generation code.
 -/
+
+@[expose] public section
 
 open Set
 open scoped Real

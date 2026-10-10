@@ -1,11 +1,15 @@
-import Interval.Approx.Div2
-import Interval.Floating.Standardization
+module
 
-open Pointwise
+public import Interval.Approx.Div2
+public import Interval.Floating.Standardization
 
 /-!
 ## Floating point scaling by changing the exponent
 -/
+
+@[expose] public section
+
+open Pointwise
 
 open Set
 open scoped Real
