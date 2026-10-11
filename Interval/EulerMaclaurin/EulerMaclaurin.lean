@@ -1,12 +1,18 @@
 module
 
 public import Interval.EulerMaclaurin.Bernoulli
+public import Interval.EulerMaclaurin.Formula
 
 /-!
 # Euler-Maclaurin formula
 
 This lets us approximate finite sums of `C^k` functions with integrals, with known bounds on the
 remainder.
+
+The general formula, for real end points and a family of successive derivatives, is
+`EulerMaclaurin.sum_Ioc_eq_integral_add_of_hasDerivWithinAt` in `Interval.EulerMaclaurin.Formula`,
+stated with Mathlib's `periodizedBernoulli`. Here it is specialised to `trapezoid_sum`, the
+trapezoidal rule with integer step size, and written with `saw`.
 -/
 
 @[expose] public section
@@ -115,6 +121,11 @@ open EulerMaclaurin
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 variable {f : ℝ → E} {t : Set ℝ} {a b c : ℤ} {s n : ℕ}
 
+/-- `saw s` is Mathlib's periodized Bernoulli polynomial divided by `s !` -/
+lemma saw_eq_periodizedBernoulli (s : ℕ) (x : ℝ) :
+    saw s x = (s.factorial : ℝ)⁻¹ * periodizedBernoulli s x := by
+  simp only [saw, periodizedBernoulli_coe, smul_eq_mul]
+
 /-- Trapezoidal sum: the trapezoidal rule for integer step size on `[a, a + n]` -/
 def trapezoid_sum (f : ℝ → E) (a : ℤ) : ℕ → E
   | 0 => 0
@@ -126,6 +137,25 @@ lemma trapezoid_sum_succ :
     trapezoid_sum f a (n + 1) = trapezoid_sum f a n + (2⁻¹ : ℝ) • (f (a + n) + f (a + n + 1)) :=
   rfl
 
+/-- The trapezoidal sum is the sum over the integers in `(a, a + n]`, corrected by half the
+difference of the values at the end points -/
+lemma trapezoid_sum_eq_sum_Ioc (f : ℝ → E) (a : ℤ) (n : ℕ) :
+    trapezoid_sum f a n = ∑ i ∈ Finset.Ioc a (a + n), f i - (2⁻¹ : ℝ) • (f (a + n) - f a) := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    have hI : Finset.Ioc a (a + ((n + 1 : ℕ) : ℤ)) = insert (a + n + 1) (Finset.Ioc a (a + n)) := by
+      ext i
+      simp only [Finset.mem_Ioc, Finset.mem_insert]
+      omega
+    have e1 : (a : ℝ) + ((n + 1 : ℕ) : ℝ) = (a : ℝ) + n + 1 := by push_cast; ring
+    have e2 : ((a + n + 1 : ℤ) : ℝ) = (a : ℝ) + n + 1 := by push_cast; ring
+    have hn : a + n + 1 ∉ Finset.Ioc a (a + n) := by
+      simp only [Finset.mem_Ioc]
+      omega
+    rw [trapezoid_sum_succ, ih, hI, Finset.sum_insert hn, e1, e2]
+    module
+
 lemma ae_ne {α : Type*} [MeasurableSpace α] (μ : MeasureTheory.Measure α)
     [MeasureTheory.NullSingletonClass μ] (x : α) : ∀ᵐ y ∂μ, y ≠ x := by
   simp only [Filter.Eventually, ne_eq, MeasureTheory.mem_ae_iff, compl_ne_eq_singleton,
@@ -135,23 +165,55 @@ lemma intervalIntegrable_saw_smul (fc : ContDiffOn ℝ s f t) (u : UniqueDiffOn 
     (abt : Icc (a : ℝ) (a + n) ⊆ t) :
     IntervalIntegrable (fun x ↦ saw s x • iteratedDerivWithin s f t x)
       volume a (a + n) := by
-  induction' n with n h
-  · simp
-  · simp only [Nat.cast_add, Nat.cast_one, ← add_assoc]
-    refine (h (subset_trans (Icc_subset_Icc (by rfl) (by simp)) abt)).trans ?_
-    have ab1 : Icc ((a + n : ℤ) : ℝ) ((a + n : ℤ) + 1) ⊆ t := by
-      refine subset_trans (Icc_subset_Icc ?_ ?_) abt
-      all_goals simp [← add_assoc]
-    have i := intervalIntegrable_presaw_smul (s := s) (c := a + n) fc (by simp) u ab1
-    simp only [Int.cast_add, Int.cast_natCast, intervalIntegrable_iff, le_add_iff_nonneg_right,
-      zero_le_one, uIoc_of_le] at i ⊢
-    apply i.congr
-    simp only [MeasureTheory.ae_restrict_iff' measurableSet_Ioc, Filter.EventuallyEq]
-    filter_upwards [ae_ne volume (a + n + 1 : ℝ)]
-    intro x ne m
-    rw [saw_eqOn (a := a + n)]
-    simp only [mem_Ioc, ne_eq, Int.cast_add, Int.cast_natCast, mem_Ico] at m ne ⊢
-    exact ⟨m.1.le, Ne.lt_of_le ne m.2⟩
+  have hc : IntervalIntegrable (iteratedDerivWithin s f t) volume a (a + n) :=
+    ((fc.continuousOn_iteratedDerivWithin le_rfl u).mono abt).intervalIntegrable_of_Icc (by simp)
+  simpa only [Pi.smul_def, saw_eq_periodizedBernoulli, mul_smul] using
+    (hc.periodizedBernoulli_smul (k := s)).smul ((s.factorial : ℝ)⁻¹)
+
+/-- The Euler-Maclaurin formula for a family of successive derivatives: `F (k + 1)` is a derivative
+of `F k` within `[a, a + n]` for `k ≤ s`, and `F (s + 1)` is interval integrable -/
+theorem trapezoid_sum_eq_integral_add_of_hasDerivWithinAt [CompleteSpace E] {F : ℕ → ℝ → E}
+    (hF : ∀ k < s + 1, ∀ x ∈ Icc (a : ℝ) (a + n),
+      HasDerivWithinAt (F k) (F (k + 1) x) (Icc (a : ℝ) (a + n)) x)
+    (hFs : IntervalIntegrable (F (s + 1)) volume a (a + n)) :
+    trapezoid_sum (F 0) a n = (∫ x in a..a + n, F 0 x) +
+      ∑ m ∈ Finset.range s, (-1 : ℝ) ^ m • saw (m + 2) 0 • (F (m + 1) (a + n) - F (m + 1) a) +
+      (-1 : ℝ) ^ s • ∫ x in a..a + n, saw (s + 1) x • F (s + 1) x := by
+  -- Start from the formula for integer end points, which is stated with `periodizedBernoulli`
+  have hF' : ∀ k < s + 1, ∀ x ∈ Icc (a : ℝ) ((a + n : ℤ) : ℝ),
+      HasDerivWithinAt (F k) (F (k + 1) x) (Icc (a : ℝ) ((a + n : ℤ) : ℝ)) x := by
+    simpa only [Int.cast_add, Int.cast_natCast] using hF
+  have hFs' : IntervalIntegrable (F (s + 1)) volume (a : ℝ) ((a + n : ℤ) : ℝ) := by
+    simpa only [Int.cast_add, Int.cast_natCast] using hFs
+  have h := EulerMaclaurin.sum_Ioc_int_eq_integral_add_of_hasDerivWithinAt (p := s + 1) (a := a)
+    (b := a + n) (Nat.succ_ne_zero s) (by omega) hF' hFs'
+  simp only [Int.cast_add, Int.cast_natCast] at h
+  -- The term `k = 0` of the boundary sum cancels the correction in `trapezoid_sum_eq_sum_Ioc`,
+  -- and the term `k = m + 1` is the term `m` of the sum over `saw`
+  have hsum : ∑ k ∈ Finset.range (s + 1),
+        ((bernoulli' (k + 1) : ℝ) / ((k + 1).factorial : ℝ)) • (F k (a + n) - F k a) =
+      ∑ m ∈ Finset.range s, (-1 : ℝ) ^ m • saw (m + 2) 0 • (F (m + 1) (a + n) - F (m + 1) a) +
+        (2⁻¹ : ℝ) • (F 0 (a + n) - F 0 a) := by
+    rw [Finset.sum_range_succ']
+    congr 1
+    · refine Finset.sum_congr rfl fun m _ ↦ ?_
+      have hc : ((bernoulli' (m + 1 + 1) : ℝ) / ((m + 1 + 1).factorial : ℝ)) =
+          (-1 : ℝ) ^ m * saw (m + 2) 0 := by
+        rw [show m + 2 = m + 1 + 1 from rfl, saw_eval_zero, bernoulli'_eq_bernoulli]
+        push_cast
+        ring
+      rw [hc, mul_smul]
+    · have h2 : ((bernoulli' 1 : ℚ) : ℝ) = 2⁻¹ := by norm_num [bernoulli'_one]
+      simp only [zero_add, h2, Nat.factorial_one, Nat.cast_one, div_one]
+  -- The remainder: `saw (s + 1)` is `periodizedBernoulli (s + 1)` divided by `(s + 1) !`
+  have hrem : ∫ x in (a : ℝ)..a + n, saw (s + 1) x • F (s + 1) x =
+      ((s + 1).factorial : ℝ)⁻¹ •
+        ∫ t in (a : ℝ)..a + n, periodizedBernoulli (s + 1) t • F (s + 1) t := by
+    rw [← intervalIntegral.integral_smul]
+    refine intervalIntegral.integral_congr fun x _ ↦ ?_
+    simp only [saw_eq_periodizedBernoulli, mul_smul]
+  have hT := trapezoid_sum_eq_sum_Ioc (F 0) a n
+  linear_combination (norm := module) hT + h + hsum - (-1 : ℝ) ^ s • hrem
 
 /-- The Euler-Maclaurin formula -/
 theorem trapezoid_sum_eq_integral_add [CompleteSpace E] (fc : ContDiffOn ℝ (s + 1) f t)
@@ -160,24 +222,11 @@ theorem trapezoid_sum_eq_integral_add [CompleteSpace E] (fc : ContDiffOn ℝ (s 
       ∑ m ∈ Finset.range s, (-1 : ℝ) ^ m • saw (m + 2) 0 •
         (iteratedDerivWithin (m + 1) f t (a + n) - iteratedDerivWithin (m + 1) f t a) +
       (-1 : ℝ) ^ s • ∫ x in a..a + n, saw (s+1) x • iteratedDerivWithin (s+1) f t x := by
-  induction' n with n h
-  · simp only [trapezoid_sum_zero, CharP.cast_eq_zero, add_zero, integral_same, sub_self,
-      smul_zero, Finset.sum_const_zero]
-  · generalize hb : a + n = b
-    have hb' : (a + n : ℝ) = b := by simp [← hb]
-    have ab0 : Icc (a : ℝ) (a + n) ⊆ t := subset_trans (Icc_subset_Icc (by rfl) (by simp)) abt
-    have ab1 : Icc (a + n : ℝ) (a + n + 1) ⊆ t :=
-      subset_trans (Icc_subset_Icc (by simp) (by simp [add_assoc])) abt
-    simp only [hb', Nat.cast_add, Nat.cast_one, ← add_assoc] at ab0 ab1 h ⊢
-    simp only [trapezoid_sum_succ]
-    rw [← intervalIntegral.integral_add_adjacent_intervals (b := a + n),
-      ← intervalIntegral.integral_add_adjacent_intervals (a := a) (b := b) (c := b + 1), h ab0]
-    · simp only [presaw_iterated_by_parts (a := b) fc u ab1, ← integral_saw_eq_integral_presaw,
-        smul_sub, smul_add, Finset.sum_sub_distrib, hb']
-      abel
-    · rw [← hb']
-      exact intervalIntegrable_saw_smul (by simpa) u (by simpa only [hb'])
-    · rw [← Nat.cast_one (R := ℝ)]
-      exact intervalIntegrable_saw_smul (by simpa) u (by simpa only [Nat.cast_one])
-    · exact (fc.continuousOn.mono (by simpa only [hb'])).intervalIntegrable_of_Icc (by linarith)
-    · exact (fc.continuousOn.mono (by simpa only [hb'])).intervalIntegrable_of_Icc (by linarith)
+  have fc' : ContDiffOn ℝ ((s + 1 : ℕ) : WithTop ℕ∞) f t := fc
+  have h := trapezoid_sum_eq_integral_add_of_hasDerivWithinAt (s := s) (a := a) (n := n)
+    (F := fun k ↦ iteratedDerivWithin k f t)
+    (fun k hk x hx ↦
+      (fc'.hasDerivWithinAt_iteratedDerivWithin (by exact_mod_cast hk) u (abt hx)).mono abt)
+    (((fc'.continuousOn_iteratedDerivWithin le_rfl u).mono abt).intervalIntegrable_of_Icc
+      (by simp))
+  simpa only [iteratedDerivWithin_zero] using h

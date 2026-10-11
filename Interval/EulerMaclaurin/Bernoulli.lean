@@ -13,6 +13,9 @@ public import Mathlib.Tactic.Cases
 
 Mathlib has a lot of this, so possibly I should shift to using those results in future.
 See `periodizedBernoulli` in particular.
+The general Euler-Maclaurin formula in `Interval.EulerMaclaurin.Formula` is stated with
+`periodizedBernoulli`; `saw_eq_periodizedBernoulli` in `Interval.EulerMaclaurin.EulerMaclaurin`
+relates it to `saw`.
 -/
 
 @[expose] public section
