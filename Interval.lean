@@ -10,6 +10,7 @@ public import Interval.Box.Division
 public import Interval.Box.Exp
 public import Interval.EulerMaclaurin.EulerMaclaurin
 public import Interval.EulerMaclaurin.Gamma
+public import Interval.EulerMaclaurin.RemainderBound
 public import Interval.Floating.Abs
 public import Interval.Floating.Add
 public import Interval.Floating.Basic
